@@ -494,9 +494,16 @@ function paragraph.start(filename, lineNum)
 	lineRead = seenLog:isTextLineRead(paragraphFilename, paragraphLineNum)
 	
 	--Handle paragraph start differently based on text mode
-	if isTextModeADV() or android then
+	if isTextModeADV() then
 		clearText()
 	elseif isTextModeNVL() then
+		if android then
+			local textBox = textState:getTextDrawable()
+			if textBox ~= nil and textBox:getTextHeight() >= .5 * textBox:getHeight() then
+				clearText() --Auto-page to compensate for much larger text size on Android
+			end
+		end
+		
 		local curText = getText()
 		if curText ~= nil and curText:length() > 0 then
 			local lastChar = curText:getChar(curText:length()-1)

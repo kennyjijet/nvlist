@@ -12,16 +12,16 @@ public interface IDrawable extends Serializable {
 	public void destroy();
 
 	/**
-	 * @param layer TODO
-	 * @param input Object containing keyboard/mouse/other input data
-	 * @param effectSpeed The suggested relative animation speed
+	 * @param layer The layer containing this object.
+	 * @param input Object containing keyboard/mouse/other input data.
+	 * @param effectSpeed The suggested relative animation speed.
 	 * @param layer The layer containing this drawable.
-	 * @return <code>true</code> If the state changed
+	 * @return <code>true</code> If the state changed.
 	 */
 	public boolean update(ILayer layer, IInput input, double effectSpeed);
 	
 	/**
-	 * @param r The renderer to use for drawing
+	 * @param r The renderer to use for drawing.
 	 */
 	public void draw(IRenderer r);
 
