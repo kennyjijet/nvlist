@@ -1,0 +1,111 @@
+<project name="LightNVL" basedir="." default="main">
+
+<!-- Initialize Properties -->
+	
+  <property name="build.sysclasspath" value="ignore"/>
+  <property name="project-name" value="lightnvl"/>
+	  	
+  <path id="classpath">
+    <fileset dir="." includes="lib/**/*.jar" />
+  </path>
+
+  <pathconvert property="jar-classpath-raw" pathsep=" " dirsep="/" refid="classpath">
+    <map from="${basedir}/" to="" />
+  </pathconvert>
+  <property name="jar-classpath" value=". ${jar-classpath-raw}" />
+
+<!-- Targets -->
+
+  <target name="clean-jar">
+    <delete file="${project-name}.jar" quiet="true"/>
+  </target>
+
+  <target name="clean" depends="clean-jar">
+    <delete dir="bin"/>
+    <delete dir="engine-internals"/>
+    <delete dir="script-reference"/>
+    <delete file="documentation.zip"/>
+  </target>
+
+  <target name="compile">  
+    <mkdir dir="bin"/>
+
+    <javac srcdir="src" destdir="bin" encoding="UTF-8" debug="true">
+	  <classpath refid="classpath" />
+	</javac>
+
+	<!-- Copy resources (embedded images, etc.) to bin dir -->
+    <copy todir="bin" overwrite="true">
+      <fileset dir="src">
+        <exclude name="**/*.java" />
+      </fileset>
+    </copy>
+    
+    <!-- Compile lua files in bin -->
+    <echo>Compiling Lua</echo>
+    <apply executable="java" dir="bin/script" relative="true" forwardslash="true"
+        force="true" verbose="true" parallel="true" failonerror="true">
+      
+      <arg value="-jar"/>
+      <arg value="${basedir}/lib/luajpp2.jar"/>
+      <arg value="-w"/>
+
+      <fileset dir="bin/script" includes="**/*.lua" />
+      <identitymapper />
+    </apply> 
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${project-name}.jar" basedir="bin" includes="**"
+    		excludes="nl/weeaboo/vn/test/**">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+      </manifest>
+    </jar>    
+  </target>
+  	
+  <target name="doc">
+    <delete dir="engine-internals"/>
+    <javadoc destdir="engine-internals" classpathref="classpath"
+        noindex="true" encoding="UTF-8" additionalparam="-notimestamp">
+        
+      <fileset dir="src" includes="**/*.java" excludes="nl/weeaboo/vn/vnds/** nl/weeaboo/vn/test/**" />
+      <link href="http://java.sun.com/javase/6/docs/api/" />
+    </javadoc>
+  	
+    <copy todir="script-temp">
+      <fileset dir="src/script" excludes="**/vnds/**" />
+    </copy>
+    
+    <delete dir="script-reference"/>
+  	<exec dir="script-temp" executable="cmd">
+      <arg value="/c"/>
+      <arg value="luadoc_start -d ../script-reference builtin"/>
+  	</exec>
+    
+  	<delete file="documentation.zip" />
+    <zip destfile="documentation.zip" update="true">
+      <mappedresources>
+        <fileset dir="manual"/>
+        <globmapper from="*" to="documentation/manual/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="engine-internals"/>
+        <globmapper from="*" to="documentation/engine-internals/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="script-reference"/>
+        <globmapper from="*" to="documentation/script-reference/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="script-temp"/>
+        <globmapper from="*" to="documentation/script-sourcecode/*"/>
+      </mappedresources>
+    </zip>
+    
+    <delete dir="script-temp" />
+  </target>
+    
+  <target name="main" depends="jar"/>
+
+</project>

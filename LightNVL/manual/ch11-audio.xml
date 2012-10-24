@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Audio" level="1">
+    
+  <p>Music, sound effects a voice data are stored in <code>res/snd</code> and its subfolders.</p>
+    
+  <section title="Supported Formats" level="2">
+    <section title="Ogg Vorbis" level="3">
+      <p>Vorbis is the only supported audio format. It's technically superior to MP3 and comparable to AAC, both of which have patent issues. Software to convert other audio formats to Ogg Vorbis is easy to find (but be careful when using FFmpeg -- FLAC, not Vorbis, is their default codec for .ogg files).</p>
+    </section>
+  </section>
+  
+  <section title="snd.xml" level="1">
+    <p>Like image folders, every audio folder may contain a file named <code>snd.xml</code>. This file stores metadata about the audio files in the folder.</p>
+    
+    <sourcecode lang="xml"><![CDATA[<sounds>
+  <sound filename="title.ogg" name="Main Theme" start="00:30" end="01:43.6" />
+</sounds>]]></sourcecode>
+
+    <p>The <code>name</code> attribute defines a human readable name for the audio file. If you define a name here and the audio file is used as music, a &quot;Now Playing:&quot; message will pop up with the name.</p>
+    <p>The <code>start</code> and <code>end</code> attributes are also optional. These are used to define loop points; instead of looping the entire song, only the part between <code>start</code> and <code>end</code> is looped. The part until <code>start</code> is played once, then <code>start → end</code> is looped a number of times, followed by the part after <code>end</code>.</p>
+  </section>
+  
+</section>

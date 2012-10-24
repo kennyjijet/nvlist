@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Resource Optimizer" level="1">
+  
+  <p>The resource optimizer can convert/optimize all images, audio and video in a project all at once. <strong>You need an FFmpeg executable either in the tools folder, or in your PATH to do audio/video optimization.</strong> pngcrush will be used if made available in the same way (it further compresses PNG images by a few percent).</p>
+  
+  <p>The result of the optimizer is a folder named <code>res-optimized</code> that can be used as a replacement <code>res</code> folder.</p>
+  
+  <figure src="img/resource-optimizer.png" alt="Resource Optimizer" />
+  
+  <section title="Target Resolutions" level="3">
+    <p>A comma-separated list of resolutions (widthxheight). Use &quot;original&quot; if you want to include an unscaled version. The optimizer will never change aspect ratio, so if you for example add <code>1024x600</code> and your images are 16:9, the generated images will be <code>1024x576</code> instead.</p>
+  </section>
+
+  <section title="Image Format Preset" level="3">
+    <p>The selected image format preset determines the file formats that will be considered for optimized images. The &quot;Default&quot; value is conservative, generating only JPEG and PNG files. The other presets may generate images in the more obscure JNG/KTX formats where appropriate.</p>
+  </section>
+  
+  <section title="Image Quality" level="3">
+    <p>Sets the quality for lossy (JPEG) image compression between <code>0.0</code> and <code>1.0</code>. If you check the &quot;Scale with resolution&quot; box, the quality you specify will be increased slightly when downscaling (because errors are more visible at lower resolutions).</p>
+  </section>
+  
+  <section title="Lossless Only Folders" level="3">
+    <p>A comma separated list of file patterns that should never use lossy image compression.</p>
+  </section>
+  
+  <section title="Audio Quality" level="3">
+    <p>The value to pass to FFmpeg's -aq parameter.</p>
+  </section>
+
+  <section title="Video Format" level="3">
+    <p>The video format extension and bitrate to use for video.</p>
+  </section>
+  
+</section>

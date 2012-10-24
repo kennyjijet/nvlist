@@ -1,0 +1,57 @@
+package nl.weeaboo.vn;
+
+import java.io.IOException;
+import java.io.Serializable;
+
+public interface ISound extends Serializable {
+
+	// === Functions ===========================================================
+	/**
+	 * Stops the sound and marks it as destroyed.
+	 */
+	public void destroy();
+	
+	/**
+	 * Starts playing the sound.
+	 * 
+	 * @param loops The number of times the sound should loop. Use
+	 *        <code>-1</code> for infinite looping.
+	 */
+	public void start(int loops) throws IOException;
+	
+	/**
+	 * Stops playing the sound.
+	 */
+	public void stop();
+	
+	/**
+	 * Temporarily pauses playback. Use {@link #resume()} to resume playback.
+	 */
+	public void pause();
+	
+	/**
+	 * Resumes a previously paused sound. Behavior is unspecified when the sound
+	 * is not paused.
+	 */
+	public void resume();
+	
+	// === Getters =============================================================
+	
+	public String getFilename();
+	public SoundType getSoundType();
+	public boolean isPlaying();
+	public boolean isPaused();
+	public boolean isStopped();
+	public boolean isDestroyed();
+	public int getLoopsLeft();
+	
+	public double getVolume();
+	public double getPrivateVolume();
+	public double getMasterVolume();
+	
+	// === Setters =============================================================
+	
+	public void setPrivateVolume(double v);
+	public void setMasterVolume(double v);
+	
+}

@@ -1,0 +1,67 @@
+
+@local background = bgf("bg/bg1")
+@local i = imgf("arm01m", "c")
+
+
+
+
+Blurring the character image
+@@
+local blurtex = blur(i:getTexture(), 16)
+i:setTexture(blurtex, 5) --5: center aligned
+@@
+
+
+
+
+Brightening the character image
+@@
+local brightened = brighten(i:getTexture(), .25)
+imgtween(i, brightened)
+@@
+
+
+
+
+Inverting the background color with a color matrix
+@@
+local negative = applyColorMatrix("bg/bg1", {-1,0,0,0,1}, {0,-1,0,0,1}, {0,0,-1,0,1})
+bgtween(negative)
+@@
+
+Grayscaling the background with a color matrix
+@@
+local graytex = applyColorMatrix("bg/bg1", {.30,.59,.11}, {.30,.59,.11}, {.30,.59,.11})
+bgtween(graytex)
+@@
+
+
+
+
+Crop texture in software
+@@
+local cropped = crop(i:getTexture(), 300, 300, 256, 256)
+i:setTexture(cropped, 5) --5: center aligned
+@@
+
+
+
+
+Merge textures in software
+@@
+--The merged result is as if tex2 is drawn on top of tex1.
+--Any parts of tex2 that fall outside the bounds of tex1 are cut off.
+local merged = composite({
+	{tex="arm01l"},
+	{tex="arm01m", pos={100, 50}}
+})
+
+i:setTexture(merged, 5) --5: center aligned
+@@
+
+
+
+
+Finished
+@rmf(i)
+@rmbgf()

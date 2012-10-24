@@ -1,0 +1,8 @@
+<sounds>
+  <sound filename="bgm/vivaldi-spring.ogg" name="Spring"/>
+
+  <sound filename="looping-test.ogg" name="Sound Loop Test" start="00:01.2" end="00:02.3"/>
+  <sound filename="looping-test-noloop.ogg" name="Sound Loop Test (No Loop)"/>
+  <sound filename="sfx.ogg" name="Sound Effect"/>
+  <sound filename="voice.ogg" name="Voice Clip"/>
+</sounds>

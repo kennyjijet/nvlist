@@ -1,0 +1,44 @@
+
+@@
+local function monospace()
+    return style{fontName="DejaVuSansMono"}
+end
+
+local function say_armor()
+    --Note: createStyle(), not style()
+    return say("Suit of Armor", createStyle{fontName="DejaVuSansMono", fontStyle="bolditalic", underline=true})
+end
+@@
+
+@bgf("bg/bg1")
+
+The default text style is determined by the [monospace()]text.defaultStyle[style()] preference.
+
+@textoff()
+@setTextModeNVL()
+@texton()
+
+Change the [style{fontName="DejaVuSansMono"}]fontName[style()] or [style{anchor=1, fontSize=15}]fontSize[style()].
+
+#Attention! Don't forget the quotes around "bold", etc.
+Or change the fontStyle to [style{fontStyle="bold"}]bold[style()], [style{fontStyle="italic"}]italic[style()], [style{fontStyle="bolditalic"}]bolditalic[style()].
+
+Change the [style{color=0xFFFF0000}]color[style()], or make text [style{underline=true}]underlined[style()].
+
+The [style{outlineSize=5, outlineColor=0xFF0000FF}]outline size and color[style()] are of course also changeable.
+
+Finally, there's [style{shadowColor=0xFFFF0000, shadowDx=10, shadowDy=10}]drop shadow[style()] to play with.
+
+@textoff()
+@clearText()
+@setTextModeADV()
+
+@local sprite = imgf("arm01m", "c")
+@texton()
+@say_armor()
+You can easily have a character speak using a custom text style by using the second parameter of [monospace()]say[style()].
+
+@say()
+@rmf(sprite)
+@rmbgf()
+@clearText()

@@ -1,0 +1,37 @@
+
+@@
+local function say_armor()
+    say("Suit of Armor")
+end
+@@
+
+@bgf("bg/bg1")
+Regular text appears without the speaker textbox.
+Use the 'say' function to change the active speaker.
+Let's see if we can find a someone to talk to...
+@local sprite = imgf("arm01m", "c")
+@say_armor()
+Were you expecting some kind of cute girl?
+Too bad!
+It's me, stock photo of a suit of armor.
+Dummy.
+@say()
+
+Alternatively, you can use the [style{fontName="DejaVuSansMono"}]registerSpeaker[style()] function.
+Look at the source code for this script or the manual to find out more.
+
+@registerSpeaker("bob", "Bob (Suit of Armor)")
+$bob Hello
+$bob World
+The speaker automatically changes back at the end of the line.
+
+@say_bob()
+Hello
+World
+The speaker doesn't automatically change back at the end of the line.
+@say()
+
+@rmf(sprite)
+
+@rmbgf()
+@clearText()

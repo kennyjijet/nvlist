@@ -1,0 +1,21 @@
+Fading in background.
+@bgf("bg/bg1")
+
+Adding a sprite.
+--Each call to img(f) adds a new sprite
+@local i = imgf("arm01m", "c") --"c" is the sprite slot, valid values: "l", "lc", "c", "rc", "r"
+
+Changing background image.
+@bgtween("bg/bg2")
+
+Changing character image.
+@imgtween(i, "arm01l")
+
+Color-tinting the character image (fuchsia)
+@i:setColor(1.0, 0.0, 1.0)
+
+Fading away and deleting sprite.
+@rmf(i)
+
+Fading away and deleting background.
+@rmbgf()

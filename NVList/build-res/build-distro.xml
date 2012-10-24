@@ -1,0 +1,199 @@
+<!-- Apache Ant Build Config -->
+<project name="Game-Distro">
+
+<!-- Properties -->
+  <fail>
+    <condition>
+      <or>
+        <not><isset property="project-name"/></not>
+        <not><isset property="main-class"/></not>
+        <not><isset property="dist.dir"/></not>
+        <not><isset property="gamedata.dir"/></not>
+        <not><isset property="tools.dir"/></not>
+      </or>
+    </condition>
+  </fail>
+
+  <property name="releases.dir" value="${gamedata.dir}/releases" />
+  <property name="executable-filter" value="**/*.jar, **/*.exe, **/*.bat, **/*.sh, **/*.command" />
+  
+<!-- Imports -->
+  
+<!-- Tasks -->
+  <taskdef name="jarbundler"           
+           classname="net.sourceforge.jarbundler.JarBundler"
+           classpath="${tools.dir}/jarbundler/jarbundler-2.2.0.jar" />
+
+  <macrodef name="create-application-bundle">
+    <attribute name="dir" default="${dist.dir}" />
+
+    <sequential>
+		<chmod dir="${build-res.dir}/mac" includes="JavaApplicationStub*" perm="ugo+rx"/>
+
+		<!-- Create Mac OSX launcher -->
+		<jarbundler dir="@{dir}"
+			name="${project-name}"
+			mainclass="${main-class}"
+			icon="${res.dir}/icon.icns"
+			stubfile="${build-res.dir}/mac/JavaApplicationStub"
+			jvmversion="1.6+"
+			jvmarchs="x86_64 i386 ppc"
+			vmoptions="${jvm-args}"
+			arguments="-reparseArgs -id &quot;${project-name}&quot; ${program-args} $APP_PACKAGE/Contents/Resources">
+				
+		  <!-- Include jars to classpath -->
+		  <jarfileset dir="lib" includes="**/*.jar" />
+		  <jarfilelist dir="${dist.dir}" >
+			  <file name="${project-name}.jar" />
+		  </jarfilelist>
+			
+		  <!-- Include native libs -->
+		  <javafileset dir="lib/mac" />
+		  
+		  <!-- Include resources -->
+		  <resourcefileset dir="${dist.dir}/res" erroronmissingdir="false" />
+		  <resourcefileset dir="${dist.dir}" includes="*.zip,*.nvl" />
+		</jarbundler>					
+    </sequential>
+  </macrodef>
+
+<!-- Targets -->
+
+  <target name="clean-installer">
+    <delete dir="${build-res.dir}" includes="installer.ini" />
+  </target>
+
+  <target name="clean-releases">
+    <delete>
+      <fileset dir="${releases.dir}">
+        <include name="${project-name}-*.jar" />
+        <include name="${project-name}-*.zip" />
+        <include name="${project-name}-*.iso" />
+      </fileset>
+    </delete>
+  </target>
+  
+  <target name="make-installer-common">
+    <tstamp />
+    <copy tofile="${build-res.dir}/installer.ini" file="${build-res.dir}/installer-config.ini">
+      <filterChain>
+        <expandProperties />
+      </filterChain>
+    </copy>
+  </target>
+  
+  <!-- Creates a no-installer ZIP archive from the releases folder -->
+  <!-- Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
+  <target name="make-installer-zip" depends="make-installer-common">  
+    <echo>Creating no-installer ZIP archive (may take a long time)...</echo>
+    
+    <zip destfile="${releases.dir}/${project-name}-${DSTAMP}.zip"
+            compress="true" encoding="UTF-8">
+			
+      <zipfileset dir="${dist.dir}" prefix="${project-name}" excludes="${executable-filter}" />
+      <zipfileset dir="${dist.dir}" prefix="${project-name}" includes="${executable-filter}" filemode="755" />
+    </zip>
+            
+    <delete file="${build-res.dir}/installer.ini" />
+  </target>
+
+  <!-- Subtask of make-installer, creates a cross-platform installer JAR -->
+  <target name="make-installer-jar" depends="make-installer-common">
+    <echo>Creating installer (may take a long time)...</echo>    
+    <java jar="${tools.dir}/MakeInstaller.jar" fork="true">
+      <arg value="${dist.dir}" />
+      <arg value="${releases.dir}/${project-name}-install-${DSTAMP}.jar" />
+      <arg value="${build-res.dir}/installer.ini" />
+    </java>
+    <delete file="${build-res.dir}/installer.ini" />
+  </target>
+  
+  <!-- Create an installer from the dist folder
+    Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
+  <target name="make-installer" depends="make-installer-jar" if="${installer-exe}">
+    <!-- Create a .bmp version of the splash screen -->
+    <script language="javascript">
+      <![CDATA[
+        importPackage(java.awt.image);
+        importPackage(java.io);
+        importPackage(javax.imageio);
+    
+        var splashFolder = project.getProperty("build-res.dir");
+        var img = ImageIO.read(new File(splashFolder+"/splash.png"));
+        var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
+        ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
+      ]]>
+    </script>
+  
+    <!-- Wrap JAR in .exe (if windows-installer-only property is set) -->
+    <launch4j bindir="tools/launch4j/bin/${os.family}">
+      <config headerType="gui" dontWrapJar="false" icon="${res.dir}/icon.ico"
+          manifest="${build-res.dir}/installer.manifest"
+          outfile="${releases.dir}/${project-name}-install-${DSTAMP}.exe"
+          jarPath="${releases.dir}/${project-name}-install-${DSTAMP}.jar">
+        <jre minVersion="1.6.0" />
+        <splash file="${build-res.dir}/splash.bmp" />
+      </config>
+    </launch4j>
+      
+    <!-- Delete splash screen .bmp -->
+    <delete file="${build-res.dir}/splash.bmp" />
+  </target>
+
+  <target name="make-installer-cd" depends="make-installer-common">
+    <echo>Creating installer (may take a long time)...</echo>
+    	
+    <java jar="${tools.dir}/MakeInstaller.jar" fork="true">
+      <arg value="-pack-disk" />
+      <arg value="${dist.dir}" />
+      <arg value="${dist.dir}/CDROOT" />
+      <arg value="${build-res.dir}/installer.ini" />
+    </java>
+    
+    <!-- Create application bundle in CDROOT folder -->
+    <create-application-bundle dir="${dist.dir}/CDROOT" />
+    
+    <!-- Package CDROOT folder -->
+    <exec executable="${tools.dir}/mkisofs/${os.family}/mkisofs" resultproperty="mkisofs-result">	  
+      <arg line="-J -R -hfs -iso-level 2" />
+      <arg value="-V" />
+      <arg value="${project-name}" />
+      <!-- File hiding rules -->
+      <arg line="-hidden .data -hidden *.inf" />
+      <arg line="-hide *.app -hide-joliet *.app" />
+      <arg line="-hide-hfs *.inf -hide-hfs *.jar" />
+      <!-- Output file and inputs -->
+      <arg value="-o" />
+      <arg value="${releases.dir}/${project-name}-cd-${DSTAMP}.iso" />
+      <arg value="${dist.dir}/CDROOT" />
+    </exec>
+	
+    <zip destfile="${releases.dir}/${project-name}-cd-${DSTAMP}.zip" basedir="${dist.dir}/CDROOT"
+            compress="false" encoding="UTF-8" />
+		
+	<!-- Delete temp files -->
+    <delete dir="${dist.dir}/CDROOT" />
+    <delete file="${build-res.dir}/installer.ini" />
+  </target>
+
+  <target name="make-installer-mac" depends="make-installer-common">
+    <echo>Creating Mac OSX application bundle (may take a long time)...</echo>
+    
+    <create-application-bundle dir="${dist.dir}" />
+	
+    <!-- Zip application bundle -->
+    <zip destfile="${releases.dir}/${project-name}-mac-${DSTAMP}.zip"
+      compress="true" encoding="UTF-8">
+			
+      <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
+        filemode="755" includes="Contents/MacOS/**,Contents/Resources/Java/**" />
+      <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
+        includes="**"  excludes="Contents/MacOS/**,Contents/Resources/Java/**" />
+    </zip>
+    <delete dir="${dist.dir}/${project-name}.app" />        	
+
+    <delete file="${build-res.dir}/installer.ini" />
+  </target>
+  
+</project>

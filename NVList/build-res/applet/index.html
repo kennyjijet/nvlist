@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html style="width: 100%; height: 100%;">
+  <head>
+    <title>${project-name}</title>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="default.css" />
+    
+    <script type="text/javascript">        
+        function scale(size) {
+            var applet = document.getElementById('applet');
+            applet.style.width  = (applet.width  * size / 100) + 'px';
+            applet.style.height = (applet.height * size / 100) + 'px';
+        }
+        
+        function fullscreen() {
+            var applet = document.getElementById("applet");
+            applet.toggleFullscreen();
+        }
+        
+        function anim() {
+        /*
+            var applet = document.getElementById('applet');
+            var appletMessage = document.getElementById('appletMessage');
+            if (appletMessage) {            
+                appletMessage.innerHTML = applet.getBlockingDownloads();
+            }
+            requestAnimationFrame(anim, 100);
+        */
+        }
+        
+        function init() {
+            var scaleSelect = document.getElementById('appletScaleSelect');
+            if (scaleSelect && scaleSelect.value) {
+                scale(scaleSelect.value);
+            }
+            anim();
+        }
+    </script>
+  </head>
+  
+  <body onload="init()">
+    <div class="container">
+      <div class="containerCell">
+        <div class="header">
+        </div>
+        <div class="outerContent">
+          <div class="content">
+        
+      <applet
+        id="applet"
+        code="org.jdesktop.applet.util.JNLPAppletLauncher"
+        width="${applet-width}" height="${applet-height}"
+        archive="${webstart-applet-launcher}, ${webstart-jogl-all}, ${webstart-gluegen-rt}, ${project-name-url}.jar">
+               
+        <param name="cache_archive" value="${project-name-url}.jar" />
+        <param name="codebase_lookup" value="false" />
+        <param name="separate_jvm" value="true" />
+
+        <param name="subapplet.classname" value="${applet-main-class}" />
+        <param name="subapplet.displayname" value="${project-name}" />
+        <param name="noddraw.check" value="true" />
+        <param name="splash" value="splash.jpg" />
+        <param name="progressbar" value="true" />
+        <param name="jnlpNumExtensions" value="1" />
+        <param name="jnlpExtension1" value="${jnlp-jogl-all-awt}" />
+        <param name="jnlp_href" value="applet.jnlp" />
+         
+        <param name="java_arguments" value="-Djnlp.packEnabled=true ${jvm-args}" />
+        <param name="args" value="-id &quot;${project-name}&quot; ${program-args}" />
+      </applet>
+  
+      <div class="info">
+        <span>
+          Size: 
+          <select id="appletScaleSelect" onchange="scale(this.value)">
+            <option value="50">smaller</option>
+            <option value="75">small</option>
+            <option value="100" selected="selected">normal</option>
+            <option value="150">large</option>
+            <option value="200">larger</option>
+            <!-- <option value="-1">fill</option> -->
+          </select>
+          <input type="button" value="Fullscreen" onclick="fullscreen()" />
+        </span>
+        <span id="appletMessage" style="padding-left: 100px; color: #666666;">
+          <!-- Any important messages to the user go here -->
+        </span>
+      </div>
+      
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

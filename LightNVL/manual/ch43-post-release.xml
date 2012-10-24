@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Post Release" level="1">
+  
+  <section title="Patching" level="3">
+    <p>As part of the build process, releases pack all their resources into a single .nvl file. This archive replaces the <code>res</code> folder from your project. However, if you create a new <code>res</code> folder, any files placed in it are picked up by NVList. Adding a res folder with some files is the easiest way to patch.</p>
+    
+    <p>It's also possible to add additional .nvl archives. These .nvl files must be named in a particular way to be picked up. If the default created .nvl file is named <code>NVList.nvl</code>, the patches must be named <code>NVList-1.nvl</code>, <code>NVList-2.nvl</code>, etc. The numbering must start at 1, and there may not be any gaps in it. If the same file exists in multiple archives, the version from the highest-numbered archive is used.</p>
+  </section>
+  
+</section>

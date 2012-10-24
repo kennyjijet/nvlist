@@ -1,0 +1,27 @@
+
+@@
+
+while true do
+    clearText()
+
+    local selected = choice("Buttons", "Built-in Special Screens", "Buttons in the Text Box", "Sub Screens", "Image Gallery", "Custom Special Screens", "Return")
+    if selected == 1 then
+        call("gui/01-buttons")
+    elseif selected == 2 then
+        call("gui/02-special-screens")
+    elseif selected == 3 then
+        call("gui/03-textbox-buttons")
+    elseif selected == 4 then
+        call("gui/04-sub-screens")
+    elseif selected == 5 then
+        call("gui/05-gallery")
+    elseif selected == 6 then
+        call("gui/06-custom-screens")
+    else
+        break
+    end
+end
+
+clearText()
+
+@@

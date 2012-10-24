@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/tcommon-awt-property.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-awt.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-core.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-io.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-settings.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-string.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-styledtext.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-system.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

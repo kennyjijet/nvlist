@@ -1,0 +1,82 @@
+
+@@
+local background = bgf("bg/bg1")
+local sprite = img("arm01m", "l")
+
+local w = screenWidth
+local h = screenHeight
+
+local camera = createCamera()
+camera:setBlurLevels(5)
+
+--Programming camera movement
+local anim = nil
+local ip = Interpolators.SMOOTH
+
+local function camPerspective()
+    camera:setPerspectiveTransform(true)
+    camera:setSubjectDistance(10)
+    return Anim.seq{
+        Anim.createTween(camera, "zoom3D", {0,0,0}, { 0,     0, 0}, 30 , ip),
+        Anim.createTween(camera, "zoom3D",     nil, {50,     0, 0}, 240, ip),
+        Anim.createTween(camera, "zoom3D",     nil, {50, .25*w, 0}, 120, ip),
+        Anim.createTween(camera, "zoom3D",     nil, { 0,     0, 0}, 60 , ip)
+        }
+end
+local function camOrtho()
+    camera:setPerspectiveTransform(false)
+    camera:setSubjectDistance(8)
+    return Anim.seq{
+        Anim.createTween(camera, "zoom2D", {0,0,w,h}, {    0,     0,     w,     h},  30, ip),
+        Anim.createTween(camera, "zoom2D",       nil, {.25*w, .25*h, .50*w, .50*h}, 120, ip),
+        Anim.createTween(camera, "zoom2D",       nil, {.75*w, .75*h, .25*w, .25*h},  60, ip),
+        Anim.createTween(camera, "zoom2D",       nil, {    0,     0,     w,     h},  60, ip)
+        }
+end
+
+--Adding images to camera's influence
+camera:add(background, 100)
+camera:add(sprite, 10)
+
+anim = camPerspective()
+anim:start(-1)
+
+fadeTo(sprite, 1)
+clearText()
+appendText("1=Toggle depth of field\n2=Toggle perspective transform")
+
+--Loop camera movement pattern
+while not input:consumeTextContinue() do
+    if input:consumeKey(Keys[1]) then
+        local bs = camera:getBlurScale()
+        if bs ~= 0 then
+            bs = 0
+        else
+            bs = 1
+        end
+        camera:setBlurScale(bs)
+    elseif input:consumeKey(Keys[2]) then
+        if camera:getPerspectiveTransform() then
+            anim:finish()
+            anim = camOrtho()
+            anim:start(-1)
+        else
+            anim:finish()
+            anim = camPerspective()
+            anim:start(-1)
+        end
+    end   
+    yield()
+end
+
+--Destroy the camera (reverts the changes made on the camera's images)
+anim:finish()
+camera:destroy()
+
+@@
+
+Camera destroyed
+
+@rmf(sprite)
+@rmbgf()
+

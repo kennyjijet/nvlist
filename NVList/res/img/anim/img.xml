@@ -1,0 +1,10 @@
+<images>
+  
+  <image filename="anim01.png" width="128" height="128">
+    <subrect id="1" rect=" 1, 1,62,62" />
+    <subrect id="2" rect="65, 1,62,62" />
+    <subrect id="3" rect=" 1,65,62,62" />
+    <subrect id="4" rect="65,65,62,62" />
+  </image>
+  
+</images>

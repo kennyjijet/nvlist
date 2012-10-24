@@ -1,0 +1,41 @@
+
+Changing the textbox...
+
+@@
+--Customize textbox
+customTextBox(TextMode.ADV, {
+    --Bounds (x,y,w,h) for the main text
+    textBounds={190, 528+16, 900, 128},
+    --Filename for the background image
+    textBackground="gui/adv-text-bg",
+    --Properties for the background image
+    textBackgroundExtra={x=128, y=528},
+    
+    --Bounds (x,y,w,h) for the speaker name text
+    nameTextBounds={152, 492},
+    --Filename for the part of the background that's behind the speaker name
+    --This image disappears when there's no speaker active. Delete the line and
+    --draw the namebox into the textBackground if you don't want it to disappear.
+    nameTextBackground="gui/adv-name-bg",
+    --Properties for the speaker background image
+    nameTextBackgroundExtra={x=140, y=528-40},
+    
+    --Filename for the click-to-continue cursor
+    cursor="gui/adv-cursor",
+    --Option fixed (x,y) position for the cursor, delete the line for automatic positioning
+    cursorPos={x=1100, y=650},
+    --Properties for the cursor image
+    cursorExtra={}
+})
+
+@@
+
+@say("Speaker Name")
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus augue neque, ullamcorper vel luctus ultrices, lobortis ac sapien. Cras posuere venenatis risus, ut lacinia erat hendrerit a. Proin in orci nec nibh vulputate mattis. Suspendisse pellentesque neque dui.
+
+@@
+--Reset speaker
+say()
+--Reset textbox
+customTextBox(TextMode.ADV)
+@@

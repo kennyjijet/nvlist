@@ -1,0 +1,66 @@
+<!-- Apache Ant Build Config -->
+<project name="Game-Applet">
+
+<!-- Properties -->
+  <fail>
+    <condition>
+	  <or>
+        <not><isset property="project-name"/></not>
+        <not><isset property="main-class"/></not>
+        <not><isset property="dist.dir"/></not>
+        <not><isset property="gamedata.dir"/></not>
+      </or>
+    </condition>
+  </fail>
+
+<!-- Imports -->
+  
+<!-- Tasks -->
+
+<!-- Targets -->
+
+  <target name="dist-applet-minimize">
+    <delete includeemptydirs="true">
+      <fileset dir="${dist.dir}" includes="*.exe,*.sh,*.bat,*.command,*-src.zip,res/**" />
+      <fileset dir="${dist.dir}/lib" includes="linux/**,mac/**,windows/**" />
+      <fileset dir="${dist.dir}/lib" includes="gluegen-rt*,jna.*,jogl*,nativewindow.*,newt.*" />
+    </delete>
+    
+    <tstamp />
+    
+    <jar destfile="${dist.dir}/${project-name}.jar" duplicate="preserve" update="true">
+      <manifest>
+        <attribute name="Class-Path" value=""/>
+        <attribute name="Main-Class" value="${main-class}"/>
+        <attribute name="Implementation-Version" value="${DSTAMP}"/>
+      </manifest>
+
+      <zipgroupfileset dir="${dist.dir}/lib" includes="**/*.jar" />
+    </jar>
+
+    <delete includeemptydirs="true">
+      <fileset dir="${dist.dir}/lib" />
+    </delete>
+  </target>
+  
+  <target name="dist-applet" depends="dist,dist-applet-minimize">
+    <!-- Compress JARs -->
+    <p200>
+      <fileset dir="${dist.dir}/lib" includes="**/*.jar" erroronmissingdir="false" />
+      <fileset dir="${dist.dir}" includes="*.jar" />
+    </p200>
+    
+    <copy todir="${dist.dir}">
+      <fileset dir="${build-res.dir}/applet" includes="*.jnlp,*.js,*.css,*.html,*.txt" />      
+      <filterChain>
+        <expandProperties />
+      </filterChain>
+    </copy>
+    <copy todir="${dist.dir}">
+      <fileset dir="${build-res.dir}/applet" excludes="*.jnlp,*.js,*.css,*.html,*.txt" />      
+    </copy>
+    
+    <copy tofile="${dist.dir}/favicon.ico" file="${res.dir}/icon.ico" />
+  </target>
+
+</project>

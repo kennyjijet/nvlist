@@ -1,0 +1,22 @@
+
+Simple text
+
+Text with\tescape\ncodes\[ \] \\
+
+Text with "quotes"
+
+#single-line comment
+
+##
+Multi-line
+comment
+##
+
+@text("Code line")
+
+@@
+text("Multi")
+text("Code")
+text("Lines")
+@@
+

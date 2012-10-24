@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Creating a Distribution" level="1">
+
+  <p>First, work your way through the <a href="ch41-pre-distro.xml">pre-distribution checklist</a>.</p>
+  
+  <p><code>Build.jar</code> can be used to create a release (applet, regular or CD). The release options are under the &quot;...&quot; button above the &quot;Run&quot; button.</p>
+  
+  <figure src="img/build-jar.png" alt="Screenshot of Build.jar" />
+  
+  <section title="Create Applet" level="3">
+    <a name="create-applet"></a>
+    
+    <p>Creates an applet distribution for embedding into a webpage. The applet is created in <code>dist</code>. Warning: users will be given a security popup when first running the applet.</p>
+  </section>
+  <section title="Create Release" level="3">
+    <a name="create-release"></a>
+
+    <p>Packages your project and NVList files together ready for end-user distribution. The generated files are created in the <code>releases</code> folder. Four files are created by default:</p>
+    <ul>
+      <li>A Windows-only .exe installer</li>
+      <li>A zipped application bundle for Mac OSX</li>
+      <li>A cross-platform no-installer zip file</li>
+      <li>A cross-platform self-extracting jar installer</li>
+    </ul>
+  </section>
+  <section title="Create CD Release" level="3">
+    <a name="create-cd-release"></a>
+
+    <p>Creates a disk image (.iso) ready to burn onto a CD/DVD. If correctly set up in <code>installer-config.ini</code>, a Windows Java runtime and Java installer will be included on the CD. If these aren't included, Windows users lacking a modern Java runtime can't run the installer.</p>
+  </section>
+  
+  <section title="Distribution Settings" level="2">
+    <section title="Adding Files to a Distribution" level="3">
+      <p>All game resources must be stored in the <code>res</code> folder. These files will be packed into a <code>.nvl</code> file upon distribution. To add end user readable files to a distribution, place them in the <code>build-res/extra-dist-files</code> folder. Any files/folders stored there will be included in distributions in the game root folder as regular files.</p>
+    </section>
+  </section>
+  
+</section>

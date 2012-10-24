@@ -1,0 +1,67 @@
+<!-- Apache Ant Build Config -->
+<project name="NVList" basedir="." default="main">
+
+<!-- Properties -->
+  
+  <property name="gamedata.dir" value="." />
+  <property name="build-res.dir" value="${gamedata.dir}/build-res" />
+  <property name="backup.dir" value="${gamedata.dir}/bak" />
+  
+<!-- Imports -->
+
+  <import file="build-res/build-game.xml" />
+  <import file="build-res/build-distro.xml" />
+  <import file="build-res/build-applet.xml" />
+  <import file="build-res/build-android.xml" />
+  
+<!-- Tasks -->
+  <macrodef name="obfuscate">
+    <attribute name="src" default="${dist.dir}/res.zip" />
+    <attribute name="dst" default="${dist.dir}/${project-name}.nvl" />
+
+    <sequential>
+      <java classname="nl.weeaboo.obfuscator.ObfuscatorUtil" fork="true">
+        <classpath refid="classpath" />
+        
+        <arg value="nl.weeaboo.vn.impl.base.Obfuscator" />
+        <arg value="-e" />
+        <arg value="@{src}" />
+        <arg value="@{dst}" />
+      </java>
+
+      <delete file="@{src}" />
+    </sequential>
+  </macrodef>
+
+<!-- Targets -->
+  <target name="dist-common" depends="Game.dist-common">
+    <!-- Copies the generated preloader data to use as the default preloader data -->
+    <copy tofile="${dist.dir}/res/preloader-default.bin"
+        file="${gamedata.dir}/save/preloader.bin"
+        failonerror="false" />        
+  </target>
+
+  <target name="dist-src" depends="Game.dist-src">
+    <delete file="${dist.dir}/res/preloader-default.bin" failonerror="false" />
+  </target>
+  
+  <target name="dist-obfuscate" if="${obfuscate}">
+    <echo>Obfuscating resources (this may take a while)...</echo>
+    <obfuscate />
+  </target>
+  
+  <target name="dist" depends="Game.dist, dist-obfuscate">
+    <delete file="${dist.dir}/${project-name}-src.zip" />
+  </target>
+  
+  <target name="backup" depends="init">
+    <mkdir dir="${backup.dir}/script"/>
+
+    <zip destfile="${backup.dir}/script/script-${DSTAMP}.zip"
+         basedir="${res.dir}/script"
+         compress="true"
+         encoding="UTF-8" />         
+    <echo>Script folder backup created: "${backup.dir}/script/script-${DSTAMP}.zip"</echo>
+  </target>
+    
+</project>

@@ -1,0 +1,18 @@
+
+@bgf("bg/bg1")
+Demonstrating built-in special screens...
+
+Load screen
+@loadScreen()
+
+Save screen
+@saveScreen()
+
+Text log
+@textLog()
+
+Hide text window (view cg)
+@viewCG()
+
+Finished
+@rmbgf()

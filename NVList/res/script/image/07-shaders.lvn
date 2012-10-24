@@ -1,0 +1,95 @@
+@bgf("bg/bg3")
+@local i = imgf("arm01m", "c")
+
+# Blend ------------------------------------------------------------------------
+
+@@
+clearText()
+appendText("BlendGS")
+
+local shader = BlendGS.new()
+shader:setEndTexture(tex("arm01l"))
+shader:setLooper(Looper.new(LoopMode.SINE, 120))
+i:setGeometryShader(shader)
+
+while not input:consumeTextContinue() do
+    yield()
+end
+i:setGeometryShader(nil)
+@@
+
+# Wipe -------------------------------------------------------------------------
+
+@@
+clearText()
+appendText("WipeGS")
+
+local shader = WipeGS.new(true, 6, .1)
+shader:setLooper(Looper.new(LoopMode.SINE, 120))
+i:setGeometryShader(shader)
+
+while not input:consumeTextContinue() do
+    yield()
+end
+i:setGeometryShader(nil)
+@@
+
+# Shutter ----------------------------------------------------------------------
+
+@@
+clearText()
+appendText("ShutterGS")
+
+local shader = ShutterGS.new(true, 6, 10)
+shader:setLooper(Looper.new(LoopMode.SINE, 120))
+i:setGeometryShader(shader)
+
+while not input:consumeTextContinue() do
+    yield()
+end
+i:setGeometryShader(nil)
+@@
+
+# Blur ----------------------------------------------------------------------
+
+@@
+clearText()
+appendText("BlurGS")
+
+local shader = BlurGS.new()
+blurs = shader
+shader:setLevels(3)
+shader:setExtendDirs(2) --Copy edge pixels for direction 2 (down)
+shader:setLooper(Looper.new(LoopMode.SINE, 120))
+i:setGeometryShader(shader)
+
+while not input:consumeTextContinue() do
+    yield()
+end
+i:setGeometryShader(nil)
+@@
+
+# Distort ----------------------------------------------------------------------
+
+@@
+clearText()
+appendText("DistortGS")
+
+local shader = DistortGS.new(1, 128)
+shader:setLooper(Looper.new(.01))
+shader:setClampBounds(0, 0, i:getWidth(), i:getHeight())
+i:setGeometryShader(shader)
+
+while not input:consumeTextContinue() do
+    shader:set(function(x, y, t)
+        return 5 * math.fastCos(5000 * y - 250 * t), 0
+    end)
+    yield()
+end
+i:setGeometryShader(nil)
+@@
+
+# ------------------------------------------------------------------------------
+
+@rmf(i)
+@rmbgf()

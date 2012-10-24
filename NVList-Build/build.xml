@@ -1,0 +1,50 @@
+
+<project name="NVList-Build" basedir="." default="main">
+
+<!-- Properties -->
+
+  <property name="build.sysclasspath" value="ignore"/>
+  <property name="project-name" value="Build"/>
+  <property name="main-class" value="nl.weeaboo.nvlist.build.BuildGUI"/>
+
+  <path id="classpath">
+    <fileset dir="." includes="lib/**/*.jar" />
+  </path>
+
+<!-- Targets -->
+
+  <target name="clean">
+    <delete dir="bin" />
+  </target>
+
+  <target name="compile">
+    <mkdir dir="bin"/>
+    
+    <javac srcdir="src" destdir="bin" encoding="UTF-8" debug="true">
+	  <classpath refid="classpath" />
+	</javac>
+
+    <copy todir="bin">
+      <fileset dir="src">
+        <exclude name="**/*.java" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="jar" depends="compile">
+  	<delete file="${project-name}.jar" quiet="true"/>
+  	
+    <jar destfile="${project-name}.jar" basedir="bin">    	
+      <manifest>
+        <attribute name="Main-Class" value="${main-class}" />
+      </manifest>
+    	
+      <zipgroupfileset dir="lib" includes="*.jar"/>
+    	
+      <fileset file="README.txt" />    	
+    </jar>
+  </target>
+
+  <target name="main" depends="jar"/>
+
+</project>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Features" level="1">
+
+    <section title="Cross Platform" level="3">
+      <p>Visual novels created using NVList run on Windows, Mac OS X and Linux.</p>
+    </section>
+    <section title="Simple Distribution" level="3">
+      <p>A packaged distribution can be created with the click of a button through the build system. This creates a single package capable of running on each of the supported platform. The build system can also create a simple Java-based installer, a Mac OS X application bundle and/or a .iso disc image.</p>
+    </section>
+
+  <section title="Graphics" level="2">
+    <section title="Hardware Acceleration" level="3">
+      <p>NVList was designed from the ground up to take full advantage of available graphics hardware. Older engines designed for software rendering have trouble scaling up to high resolutions, but NVList can do 1920x1080 easily with any half-decent graphics card.</p>
+    </section>
+    <section title="Shaders" level="3">
+      <p><a href="http://en.wikipedia.org/wiki/Shader">Vertex and pixel shaders</a> are supported. These shader programs are executed on the graphics card allowing for complex dynamic effects.</p>
+    </section>
+    <section title="Runtime Resolution Switching" level="3">      
+      <p>NVList can switch between image sets based on the current display resolution/window size. This can be used to add netbook resolution (1024x576) images to a 1920x1080 visual novel. Pre-scaled lower resolution images can decrease load times and improve rendering performance on low-end hardware.</p>
+      <figure src="img/features/resolution-comparison.jpg" alt="Resolution Comparison">
+        The same image at different resolutions
+      </figure>      
+    </section>
+  </section>
+  
+  <section title="Text" level="2">
+    <section title="Support for non-English languages" level="3">
+      <p>All text/script files are interpreted as <a href="http://en.wikipedia.org/wiki/Utf-8">UTF-8</a>. This effectively means you can use any character in any language (just make sure the fonts you use support those characters).</p>
+      <figure src="img/features/editing-greek.png" alt="Editing a non-English script">
+        A script file containing non-English characters
+      </figure>
+    </section>
+    <section title="Unicode Line Breaking" level="3">
+      <p>Different languages have different rules for line breaking. In the example below, NVList is smart enough to not break in the middle of <code>かぁ</code>. The line breaking algorithm also knows how to handle special whitespace like the zero-width space and non-breaking space.</p>
+      <figure src="img/features/linebreak-small-kana.png" alt="Line Breaking Example">
+        Smart line breaking
+      </figure>
+    </section>
+  </section>
+
+  <section title="Scripting" level="2">
+    <section title="Simple Scripting Language" level="3">
+      <p>Scripts are written in <a href="http://en.wikipedia.org/wiki/Lua_%28programming_language%29">Lua</a>, a simple and easy to learn language. There are no special animation or user interface layout languages you are required to learn.</p>
+    </section>
+    <section title="Hassle-free Saving" level="3">
+      <p>NVList can save anything, anytime. All script constructs are implicitly saveable, no additional action is required by the developer.</p>
+    </section>
+    <section title="Lightweight Multithreading" level="3">
+      <p>The scripting engine supports multithreading using <a href="http://en.wikipedia.org/wiki/Green_threads">green threads</a>. Multithreading makes it easy to execute multiple long-running functions simultaneously. This is especially useful for programming animations.</p>
+    </section>
+  </section>
+
+  <section title="Audio" level="2">
+    <section title="Loop Points" level="3">
+      <p>Loop points can be specified for audio files. When looping a music track, only the part between the loop points is repeated. The part prior to the loop start is played once, then the looping part, then the part after loop end.</p>
+    </section>
+  </section>
+  
+  <section title="Other" level="2">
+    <section title="In-Browser Gaming" level="3">
+      <p>NVList is capable of running as a <a href="http://en.wikipedia.org/wiki/Java_Applet">Java applet</a> inside a webpage.</p>
+    </section>
+    <section title="Gamepad Support" level="3">
+      <p>Scripts can query the state of gamepad buttons and its directional pad.</p>
+    </section>
+  </section>
+  
+</section>

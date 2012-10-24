@@ -1,0 +1,274 @@
+
+2012/10/19 -- 2.9 (r35)
+
+enhancements:
+- Added screens.lua to default res folder in order to make it more
+  straightforward to edit the save/load/choice/textlog screens. See also the
+  custom special screens demo.
+- Upgraded JOGL library to version 2.0-rc10
+- Added optional size argument to ImageFx.composite to explicitly set the size
+  of the output texture.
+- ImageFx.applyColorMatrix now accepts 4x5 matrices instead of just 4x4.
+- More helpful error message when trying to run NVList on a non-existent or
+  otherwise unreadable folder.
+- Added 1024x600 by default when running the resource optimizer for Android.
+
+bugfixes:
+- AndroidProjectCompiler didn't set XAPK size property correctly.
+- Fixed SequentialAnimator to call update on the same frame as start like all
+  other Animators.
+- [Android] Use of embedded fonts was broken.
+- Fixed a bug in GridLayout when using more than one row and the cells need to
+  be centered horizontally.
+
+
+
+2012/08/26 -- 2.8 (r34)
+
+enhancements:
+- Added the Android port for NVList, see chapter 4.4 in the manual.
+- Added a warning message when running on OpenGL version < 1.3
+- Renamed resource optimizer result from "_optimized" to "res-optimized".
+  Optimized resources are now automatically used by Build.jar, with detection
+  if they're outdated and a suggestion to run the optimizer when useful.
+- Resource optimizer now defaults to the "size" preset and adds 1280x720,
+  1024x576 target resolutions.
+- Added a utility function for creating filmstrip animations
+  (Anim.createFilmstrip). See image/animation tutorial for example code.
+    
+bugfixes:
+- Fixed an error on OpenGL 1.1 cards: GL_CLAMP_TO_EDGE doesn't exist.
+- Error in videoclip conversion to mp4 for some versions of FFmpeg (unknown
+  encoder libfaac).
+- Project creation dialog's progress bar now actually works...
+- Resource optimizer didn't pad with edge pixels properly for subimages.
+
+
+
+2012/08/11 -- 2.7 (r32)
+
+enhancements:
+- The $syntax for inserting variables into text now supports local variables.
+- Added a sayLine function that automatically resets the speaker at the end of
+  the paragraph.
+- Added a registerSpeaker function that registers a stringifier function and
+  companion global say_XXX function to change the current speaker. See
+  documentation (ch 3.1) and text/basics tutorial for more details. 
+- Added a new chunk to the save format, containing a savepoint-like IStorage
+  object. This object can contain user-supplied metadata for the save file.
+- The most recently saved slot is now marked as 'new' on the save/load screen.
+- Last used page on the save/load screen is now persisted.
+- New DistortGS shader that renders images using a distorted uniform grid.
+- BlurGS is now instantiable from within Lua code.
+- Added a tutorial demonstrating the use of IGeometryShader/IPixelShader
+- Renamed systemVars to sharedGlobals. The old systemVar functions are still
+  available for VNs targeting NVList version 2.6 or earlier.
+- Added support for using the mouse wheel to scroll the text log.
+- Implemented auto cursor scaling based on the default text style's font size.
+- Added ImageFx.crop()/ImageFx.composite() functions to combine sprites at
+  runtime. This allows you to use 
+- Added support for image sequences (for example, event CG variants) to the
+  image gallery, see script/gui/gallery.lua for more information.
+    
+bugfixes:
+- Name tags in NVL mode were accidentally being styled with the current
+  speaker's text style as well. Fixed to only use the name style.
+- Fixed unintended brightness decrease when using BlendGS in combination with
+  drawables with alpha less than one.
+- Build.jar was supposed to update prefs.ini, but instead wrote prefs.ini.txt
+- Fixed an off-by-one error for the cropping in the blur function.    
+- Auto read mode broke when a line doesn't fit on the screen and a panic line
+  wrap is necessary.
+- Image optimizer now pads resized subimages with a scaled version of its
+  former neighbor pixels instead of always with transparent pixels, thereby
+  maintaining the same edge behavior when rendered with linear interpolation.
+- Create project button (and some others) in Build.jar are now disabled at
+  times when using them could potentially cause problems.
+- Spurious error in build-game.xml:301 when no default video folder exists.
+- Under rare circumstances, a repaint would not be issued after resizing,
+  leading to image corruption.
+- Fixed a bug in BaseImageTween that would replace the imageAlignY with
+  imageAlignX if no specific anchor/imageAlignXY set.
+
+
+
+2012/07/06 -- 2.6 (r27)
+
+enhancements:
+- Added a matrix color tint function to ImageFX. Can be used for grayscale
+  effects, changing saturation, etc.
+- Added an Image FX tutorial demonstrating blur, brighten, color matrix.
+- Improved runtime performance of the debug window's image tab. It would cause
+  lag when viewed during heavy particle effects.
+- Changed some code related to tweens, removing anything that changed the
+  texture anchor (image alignment) without explicit action from the user.
+    
+bugfixes:
+- Fixed a bug in customTextBox that could cause a crash when not passing
+  explicit bounds
+
+
+
+2012/06/18 -- 2.5 (r26)
+
+enhancements:
+- F5 can now be used as a hotkey to restart when debug mode is turned on.
+- Replaced IDrawable.getColor with getColorRGB/getColorARGB to work better with
+  Anim.* functions.
+- Added an example usage of sprite tinting using IDrawable.setColor() to the
+  image/basics tutorial.
+- Moved Anim.* functions to a separate module (vn.anim)
+- Added Anim.seq(), Anim.par() for sequential/parallel chaining of Animators.
+- Added Anim.createWait() for adding pauses to chained Animators.
+- Added Anim.waitFor() that blocks until the Animators passed as arguments
+  have finished.
+- Added loops parameter to Animator.start() to let the animation loop a specific
+  number of times (or infinitely by using -1).
+- Added example usage for Anim.* functions to the image/animations tutorial.
+- Added vn.enableProofreaderTools preference that, when enabled, adds a report
+  bug/typo button to the menu bar. This button automatically adds info about the
+  current script location and merges bug reports into a single file.
+- Changed the interfaces of the Camera object to be compatible with the new
+  Anim.* functions. See camera tutorial for details.
+- Added the ability to customize the text continue cursor image using the
+  customTextBox function.
+- Added a second parameter to TextDrawable.setCursor() to be able to turn off
+  the automatic positioning. This makes a fixed position cursor possible.
+- Added a textbox customization tutorial demonstrating setCustomTextBox
+- Added vn.engineTargetVersion preference to allow you to specify which NVList
+  version your VN was created for. This allows built-in functions to change
+  their implementation but continue to function the same way for VNs targeting
+  the old NVList version.
+- Added an example image gallery script as a GUI tutorial.
+    
+bugfixes:
+- JNG images were erroneously saved with premultiplied alpha by the optimizer.
+- Fixed resource optimizer stripping start/end attributes from snd.xml
+
+
+
+2012/05/25 -- 2.4 (r25)
+
+enhancements:
+- Made fog effect much more customizable.
+- Added documentation to stdlib.lua and vn/gui.lua
+- Added a changeVolume function to (gradually) change the volume of sound or
+  music after they've started playing.
+- Moved code related to the default titlescreen into its own file
+  (titlescreen.lua), added a lot of code comments to it and main.lua
+- Screenshot menu item now has the ability to save screenshots as JPEG
+- Create new project button added to Build.jar, creating a new project now
+  triggers an automatic rebuild. 
+- Added Anim.* function for easily interpolating (animating) between two
+  property values (for example color, or scale). Background animations also
+  benefit; the new system saves a bit of typing.
+    
+bugfixes:
+- Wipe tween ignored sprite transform (position, scale and rotation).
+- Changes to the color or alpha of a name box would disappear after switching
+  back and forth between ADV and NVL text modes
+- Fixed a runtime exception when loading a 16-bit RGB image without alpha.
+- Paragraphs longer than a few hundred characters could, under specific
+  conditions, trigger a program crash on ATI graphics cards.
+- Setting texture parameters on a GLSL object didn't force their
+  initialization, making the textures appear transparent.
+- Resource optimizer was broken, gave an error message when attempting to use.
+- The return to title menu item accidentally reset the window size/position.
+- Text (sub)lines consisting of only whitespace were eaten by the parser.
+
+
+
+2012/05/01 -- 2.3 (r23)
+
+enhancements:
+- Implemented a basic auto-updater menu item (experimental, see game.ini)
+  JVM running NVList must be closed before library files can be overwritten.
+- Added a menu for setting the window size to a XX pct of the preferred size
+- Camera.add() now returns an ICameraImage which can be used to change the
+  image's depth after adding it to the Camera.
+
+bugfixes:
+- Generated installer splash screen was corrupted for images with alpha
+- Launch4j PPC binaries (windres/ld) replaced with PPC/x64 universal binaries
+  This should fix builds on Mac OS X Lion
+- getPlayTime() function was broken.
+
+
+
+2012/04/16 -- 2.2 (r21)
+
+enchancements:
+- Script errors printed on-screen now try to include a filename+line.
+- Clicking to instantly display the entire paragraph now works properly for
+  text with [bracketed] Lua code in it.
+- When using the img/imgf functions with a sprite slot, the y parameter can
+  now be used to change the baseline y. 
+- The OSD (toggle with F7), now displays much more information.
+- Added a quickload(slot) function
+- text/appendText functions now support StyledText objects as their text args.
+- waitForTextVisible function now takes an optional TextDrawable to wait for.
+- The createStyledText function can now be called with a StyledText arg.
+- Added a createLayer(name) function that calls imageState.createLayer()
+- Image cache size can now be specified in pages. A page is the amount of
+  memory required to store a full screen RGBA8 texture.
+- Debug window got a line in the VRAM graph indicating the image cache limit.
+- Added a vn.system module with lua wrappers for SystemLib functions.
+- Added a website() function that opens a webpage in an external browser.
+- Tuned the scale factor at which the main FBO starts mipmapping.
+- The Lua tab in the debug window now contains a print stack trace button.
+- Parse errors related to img.xml are now displayed on screen.
+- Added BlurGS class that provides a scalable blur.
+- Preferences starting with vn. can now be accessed through the prefs Lua table
+- Implemented depth-of-field/perspective for the Camera object.
+- Reduces mach banding of wipe tween (WipeGS).
+- Changing the text layer constructor now triggers text layer recreation.
+- quicksave/quickload now display a success message on screen.
+- Added support for reading precomputed mipmaps from KTX files.
+- Added prefs for readTextStyle, textLogStyle, choiceStyle, selectedChoiceStyle
+- Added registerJavaClass() function for importing Java code from Lua.
+- No longer requires separate executables for 32/64 bit Java.
+- Building a release now creates a .exe version of the generated installer.
+- Improved perceived startup time by showing an empty window early during init.
+- Significantly improved image load times on slow singlecore processors.
+- Reduced processor usage for sound playback, especially on slow singlecores.
+- Game update stops when the window is minimized. 
+- Video capture function (F8) now forces continuous repainting to reduce video
+  stuttering.
+- Added mouse wheel down as a text continue key.
+- Changed Build.jar to automatically do a rebuild when necessary.
+- Changed main.lua to act as a template for a standard VN titlescreen.
+
+bugfixes:
+- Rewrote the way OpenGL resources are managed internally. This should fix a
+  memory leak occurring when the texture cache becomes full.
+- Fixed mapping of linear volume dB gain. Previous implementation could raise
+  output levels over their natural maximum.
+- Text style property editor used by Build.jar now applies any pending edits
+  when closing the popup dialog.
+- Editing a preference in Build.jar now also updates save/prefs.ini
+- Silently crashed if gluegen-rt was not in the library path.
+- Keyconfig only read the first key specified for each line.
+- Increased default minimum heap size to improve performance in situations
+  with high garbage generation (like particle effects).
+- When running on hardware incapable of NPOT textures that also doesn't support
+  large textures, the just-in-time resize could cause a data alignment error. 
+- ARGB screenshots were shifted up by 1 pixel in some instances.
+- Improved support for escaped \$, \[ in text lines for syntax highlighters.
+- Events enqueued with edt.addEvent() now wait while the main thread is blocked
+- Saving could change the result of == for Lua userdata objects.
+- Using alt+enter to return to windows mode from full screen advanced the text.
+- Up key accidentally opened the text log even during a choice.
+- Show text log menu item was broken.
+- On some graphics cards, the menu bar popups were overlapped by the screen.
+- Crash on UniChrome GPU for glReadPixels(type=GL_UNSIGNED_INT_8_8_8_8_REV)
+- Drawing blended quads used wrong UV coords when NPOT textures unsupported.
+- screen2image aspect ratio was wrong when FBOs turned off and the physical
+  window didn't match the aspect ratio of the VN's virtual resolution.
+- Setting the FBO preference to true, now really always forces the FBO on.
+- Updated JOGL to 2012-02-28 build to fix compatibility with Mac OS X 10.5
+
+
+
+2012/03/02 -- 2.1 (r15)
+
+- Initial release

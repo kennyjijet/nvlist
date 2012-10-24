@@ -1,0 +1,29 @@
+
+@@
+
+local normalB = button("gui/test-button") --Automatically uses specifically named subimages defined in img.xml
+local disabledB = button("gui/test-button")
+disabledB:setEnabled(false)
+
+--Padding between buttons is a percentage of the screen size
+local pad = math.min(screenWidth, screenHeight) / 64
+
+--Create layout object to position the buttons for us
+local grid = GridLayout.new{w=screenWidth, h=screenHeight, pad=pad, pack=5, children={normalB, disabledB}}
+grid:layout()
+
+while true do
+    if normalB:consumePress() then
+        normalB:setEnabled(false) --Prevent button from being pressed again while text is showing
+        text("Button pressed")
+        break
+    end
+    yield()
+end
+
+rm(normalB)
+rm(disabledB)
+
+clearText()
+
+@@

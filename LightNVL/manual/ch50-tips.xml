@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="style/default.xsl"?>
+
+<section title="Tips" level="1">
+  
+  <section title="Hotkeys" level="3">
+    <p>Some functions are only available when running in debug mode.</p>
+    <table>
+      <tr>
+        <th style="width: 100px">Alt + Enter</th>
+        <td>Toggles fullscreen mode.</td>
+      </tr>
+      <tr>
+        <th>Ctrl</th>
+        <td>Hold to enable skip mode.</td>
+      </tr>
+      <tr>
+        <th>Shift + Ctrl</th>
+        <td>Activates skip mode, but with the opposite &quot;skip unread&quot; setting.</td>
+      </tr>
+      <tr>
+        <th>Space</th>
+        <td>Toggles textbox visibility.</td>
+      </tr>
+      <tr>
+        <th>Numpad +/-</th>
+        <td>Quicksave/quickload</td>
+      </tr>
+      <tr>
+        <th>F5</th>
+        <td>Full restart. Returns to the titlescreen and reloads all scripts. Can be used to test script changes without closing the NVList window.</td>
+      </tr>
+      <tr>
+        <th>F7</th>
+        <td>Toggles on-screen display of framerate.</td>
+      </tr>
+      <tr>
+        <th>F8</th>
+        <td>Starts/stops the built-in video capture. Video capture requires an x264 executable to be in your PATH.</td>
+      </tr>
+      <tr>
+        <th>F9</th>
+        <td>Clears the texture cache and disposes all OpenGL resources.</td>
+      </tr>
+      <tr>
+        <th>F11/F12</th>
+        <td>F12 toggles the texture viewer. When the texture viewer is active, F11 zooms in on the texture under the mouse cursor.</td>
+      </tr>
+      <tr>
+        <th>Numpad *</th>
+        <td>Divides by zero.</td>
+      </tr>
+    </table>
+  </section>
+  
+  <section title="Proofreader Tools" level="3">
+    <p>Enabling the <code>vn.enableProofreaderTools</code> preference adds a report bug/typo button to the menu bar of the main window. Reports made through this interface automatically include interesting information like the current script file/line and the current text in the main text box. The information provided is appended to <code>save/bugreport.log</code>. Bug reports created in this way are detailed and in a standardized format.</p>
+  </section>
+  
+</section>
