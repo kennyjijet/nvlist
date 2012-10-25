@@ -7,7 +7,7 @@ public interface IImageTween extends Serializable {
 	// === Functions ===========================================================
 	public void prepare();
 	public boolean update(double effectSpeed);
-	public void draw(IRenderer r);
+	public void draw(IDrawBuffer d);
 	public void finish();
 	
 	// === Getters =============================================================

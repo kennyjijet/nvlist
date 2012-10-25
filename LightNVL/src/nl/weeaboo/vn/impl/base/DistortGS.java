@@ -4,10 +4,10 @@ import static org.luaj.vm2.LuaValue.valueOf;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Vec2;
@@ -41,11 +41,9 @@ public class DistortGS extends BaseShader implements IGeometryShader {
 
 	//Functions
 	@Override
-	public void draw(IRenderer r, IImageDrawable image, ITexture tex,
+	public void draw(IDrawBuffer d, IImageDrawable image, ITexture tex,
 			double alignX, double alignY, IPixelShader ps)
 	{
-		BaseRenderer rr = (BaseRenderer)r;
-				
 		short z = image.getZ();
 		boolean clip = image.isClipEnabled();
 		BlendMode blend = image.getBlendMode();
@@ -56,7 +54,7 @@ public class DistortGS extends BaseShader implements IGeometryShader {
 
 		Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
 		
-		rr.drawDistortQuad(z, clip, blend, argb, tex, 
+		d.drawDistortQuad(z, clip, blend, argb, tex, 
 				trans, offset.x, offset.y, w, h, ps,
 				grid, clampBounds);
 	}

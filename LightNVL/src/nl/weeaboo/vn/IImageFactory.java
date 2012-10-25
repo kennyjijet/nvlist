@@ -7,12 +7,17 @@ public interface IImageFactory {
 	// === Functions ===========================================================
 
 	/**
-	 * Creates a new image drawable
+	 * Creates a new layer with the specified bounds.
+	 */
+	public ILayer createLayer(double x, double y, double w, double h);
+	
+	/**
+	 * Creates a new image drawable.
 	 */
 	public IImageDrawable createImageDrawable();
 	
 	/**
-	 * Creates a text drawable
+	 * Creates a text drawable.
 	 */
 	public ITextDrawable createTextDrawable();
 	

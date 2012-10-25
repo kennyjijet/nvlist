@@ -4,10 +4,10 @@ import java.util.Arrays;
 
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.INotifier;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.TriangleGrid.TextureWrap;
 
@@ -179,14 +179,13 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 	protected abstract void updateRemapTex(int[] argb);
 	
 	@Override
-	public void draw(IRenderer r) {
-		super.draw(r);
+	public void draw(IDrawBuffer d) {
+		super.draw(d);
 				
-		BaseRenderer rr = (BaseRenderer)r;
-		draw(rr, drawable, grid);
+		draw(BaseDrawBuffer.cast(d), drawable, grid);
 	}
 	
-	protected abstract void draw(BaseRenderer rr, IImageDrawable drawable, TriangleGrid grid);
+	protected abstract void draw(BaseDrawBuffer d, IImageDrawable drawable, TriangleGrid grid);
 		
 	//Getters
 	

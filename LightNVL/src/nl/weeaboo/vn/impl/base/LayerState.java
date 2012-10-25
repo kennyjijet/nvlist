@@ -3,58 +3,58 @@ package nl.weeaboo.vn.impl.base;
 import java.io.Serializable;
 import java.util.Collection;
 
-import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IDrawable;
+import nl.weeaboo.vn.ILayer;
 
 @LuaSerializable
 class LayerState implements Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
-	private Rect2D bounds;
-	private short z;
-	private boolean visible;
 	private LayerContents contents;
 	
-	public LayerState(double w, double h) {
-		bounds = new Rect2D(0, 0, w, h);
-		visible = true;
+	public LayerState() {
 		contents = new LayerContents();
 	}
 	public LayerState(LayerState ls, short maxDrawableZ) {
-		bounds = ls.bounds;
-		z = ls.z;
-		visible = ls.visible;
-		
 		contents = new LayerContents();
-		for (IDrawable d : ls.getDrawables()) {
+		for (IDrawable d : ls.getContents()) {
 			if (d.getZ() <= maxDrawableZ) {
 				contents.add(d);
+				if (d instanceof ILayer) {
+					//We need to also recursively push the contents of nested layers
+					ILayer l = (ILayer)d;
+					l.pushContents();
+				}
 			}
 		}
 	}
 	
 	//Functions
+	public Collection<IDrawable> destroy() {
+		Collection<IDrawable> c = contents.clear();
+		for (IDrawable d : c) {
+			if (d instanceof ILayer) {
+				//Pop the recursively pushed layers
+				ILayer l = (ILayer)d;
+				l.popContents();
+			}
+		}
+		return c;
+	}
 	public boolean add(IDrawable d) {
 		return contents.add(d);
 	}
-	public Collection<IDrawable> clear() {
-		return contents.clear();
-	}
 	
 	//Getters
-	public Rect2D getBounds() { return bounds; }
-	public short getZ() { return z; }
-	public boolean isVisible() { return visible; }
-	
-	public IDrawable[] getDrawables() {
-		return getDrawables(null);
+	public IDrawable[] getContents() {
+		return getContents(null);
 	}
-	public IDrawable[] getDrawables(IDrawable[] out) {
-		return getDrawables(out, 0);
+	public IDrawable[] getContents(IDrawable[] out) {
+		return getContents(out, 0);
 	}
-	IDrawable[] getDrawables(IDrawable[] out, int zDirection) {
+	IDrawable[] getContents(IDrawable[] out, int zDirection) {
 		return contents.getDrawables(out, zDirection);
 	}
 	
@@ -63,8 +63,5 @@ class LayerState implements Serializable {
 	}
 	
 	//Setters
-	public void setBounds(Rect2D r) { this.bounds = r; }
-	public void setZ(short z) { this.z = z; }
-	public void setVisible(boolean v) { visible = v; }
 	
 }

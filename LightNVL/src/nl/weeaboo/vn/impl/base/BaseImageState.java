@@ -4,33 +4,27 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageState;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderer;
 
 public class BaseImageState implements IImageState {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
-	public static final String DEFAULT_LAYER_ID = "default";
-	public static final String OVERLAY_LAYER_ID = "overlay";
-	
+	private final IImageFactory imgfac;
 	private final int width, height;
+	
 	private List<State> sstack;
 	private transient boolean changed;
-	private transient ILayer[] tempArray;
 	
-	protected BaseImageState(int w, int h) {
+	protected BaseImageState(IImageFactory fac, int w, int h) {
+		imgfac = fac;
 		width = w;
 		height = h;
 		sstack = new ArrayList<State>();
@@ -42,7 +36,6 @@ public class BaseImageState implements IImageState {
 	//Functions
 	private void initTransients() {
 		changed = true;		
-		tempArray = new ILayer[0];
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -54,21 +47,23 @@ public class BaseImageState implements IImageState {
 	private void reset0() {
 		while (!sstack.isEmpty()) {
 			State state = sstack.remove(sstack.size()-1);
-			state.clear();
+			state.destroy();
 		}
 		sstack.add(newState());
 		markChanged();
 	}
 	
 	private State newState() {
-		State state = new State();
+		ILayer rootLayer = imgfac.createLayer(0, 0, width, height);
 		
-		createLayer(state, DEFAULT_LAYER_ID);
+		ILayer defaultLayer = imgfac.createLayer(0, 0, width, height);
+		rootLayer.add(defaultLayer);
 		
-		ILayer overlay = createLayer(state, OVERLAY_LAYER_ID);
-		overlay.setZ((short)(-30000));
+		ILayer overlayLayer = imgfac.createLayer(0, 0, width, height);
+		overlayLayer.setZ((short)(-30000));
+		rootLayer.add(overlayLayer);
 		
-		return state;
+		return new State(rootLayer, defaultLayer, overlayLayer);
 	}
 	
 	@Override
@@ -77,69 +72,15 @@ public class BaseImageState implements IImageState {
 		
 		markChanged();
 	}
-	
-	@Override
-	public ILayer createLayer(String id) {
-		if (id == null) id = DEFAULT_LAYER_ID;
 		
-		State state = getState();
-		ILayer layer = state.getLayer(id);
-		if (layer != null && !layer.isDestroyed()) {
-			return null;
-		}
-		
-		return createLayer(state, id);
-	}
-	
-	protected ILayer createLayer(State state, String id) {
-		ILayer layer = new Layer(width, height);
-		state.setLayer(id, layer);
-		markChanged();
-		return layer;		
-	}
-	
 	@Override
 	public boolean update(IInput input, double effectSpeed) {
-		tempArray = getState().getLayers(tempArray, 1);
-		for (int n = 0; n < tempArray.length; n++) {
-			ILayer l = tempArray[n];
-			if (l == null) break; //The array can only contain nulls at the end
-			tempArray[n] = null; //Null the array indices to allow garbage collection
-			
-			if (!l.isDestroyed()) {
-				final double x = l.getX();
-				final double y = l.getY();
-				input.translate(-x, -y);
-				try {
-					if (l.update(input, effectSpeed)) {
-						markChanged();
-					}
-				} finally {
-					input.translate(x, y);
-				}
-			}
+		ILayer rootLayer = getRootLayer();		
+		if (!rootLayer.isDestroyed() && rootLayer.update(null, input, effectSpeed)) {
+			markChanged();
 		}
 				
 		return consumeChanged();
-	}
-
-	@Override
-	public void draw(IRenderer r) {
-		r.render(null);
-		r.reset();
-				
-		tempArray = getState().getLayers(tempArray, -1);
-		for (int n = 0; n < tempArray.length; n++) {
-			ILayer l = tempArray[n];
-			if (l == null) break; //The array can only contain nulls at the end
-			tempArray[n] = null; //Null the array indices to allow garbage collection
-			
-			if (!l.isDestroyed()) {
-				l.draw(r);
-				r.render(l.getBounds());
-				r.reset();
-			}
-		}
 	}
 		
 	@Override
@@ -155,7 +96,7 @@ public class BaseImageState implements IImageState {
 		}
 		
 		State oldState = sstack.remove(sstack.size()-1);
-		oldState.clear();
+		oldState.destroy();
 		markChanged();
 	}
 	
@@ -185,163 +126,54 @@ public class BaseImageState implements IImageState {
 	}
 	
 	@Override
-	public Map<String, ILayer> getLayers() {
-		return getState().getLayers();		
+	public ILayer getRootLayer() {
+		return getState().getRootLayer();
 	}
 	
 	@Override
-	public ILayer getLayer(String id) {
-		if (id == null) id = DEFAULT_LAYER_ID;
-		
-		ILayer layer = getState().getLayer(id);
-		if (layer == null || layer.isDestroyed()) {
-			if (DEFAULT_LAYER_ID.equals(id)) {
-				//Create default layer if it doesn't exist already
-				layer = createLayer(DEFAULT_LAYER_ID);
-			}
-		}
-		
-		return layer;
+	public ILayer getDefaultLayer() {
+		return getState().getDefaultLayer();
 	}
-
+	
 	@Override
-	public ILayer getTopLayer() {
-		ILayer layer = getState().getTopLayer();
-		if (layer == null || layer.isDestroyed()) {
-			getLayer(DEFAULT_LAYER_ID);
-		}
-		return layer;
+	public ILayer getOverlayLayer() {
+		return getState().getOverlayLayer();		
 	}
 		
 	//Setters
 
 	//Inner Classes
 	@LuaSerializable
-	private static class State implements Serializable {
+	private class State implements Serializable {
 
 		private static final long serialVersionUID = BaseImageState.serialVersionUID;
 				
-		private final Map<String, ILayer> layers;
-		private final LayersSorted backToFront;
+		private ILayer rootLayer;
+		private ILayer defaultLayer;
+		private ILayer overlayLayer;
 		
-		public State() {
-			layers = new HashMap<String, ILayer>();
-			backToFront = new LayersSorted(layers);
+		public State(ILayer rootLayer, ILayer defaultLayer, ILayer overlayLayer) {
+			this.rootLayer = rootLayer;
+			this.defaultLayer = defaultLayer;
+			this.overlayLayer = overlayLayer;
 		}
 
-		//Functions
-		protected void invalidatePreSorted() {
-			backToFront.invalidateSorting();
+		public void destroy() {			
 		}
 		
-		public void clear() {
-			ILayer[] ls = layers.values().toArray(new ILayer[layers.size()]);
-			layers.clear();
-			invalidatePreSorted();
-			for (ILayer layer : ls) {
-				layer.destroy();
+		public ILayer getRootLayer() {
+			if (rootLayer == null || rootLayer.isDestroyed()) {
+				rootLayer = imgfac.createLayer(0, 0, width, height);
 			}
+			return rootLayer;
 		}
 		
-		protected void removeDestroyedLayers() {
-			Iterator<Entry<String, ILayer>> itr = layers.entrySet().iterator();
-			while (itr.hasNext()) {
-				Entry<String, ILayer> entry = itr.next();
-				if (entry.getValue().isDestroyed()) {
-					itr.remove();
-					invalidatePreSorted();
-				}
-			}
+		public ILayer getDefaultLayer() {
+			return defaultLayer;
 		}
 		
-		//Getters
-		public Map<String, ILayer> getLayers() {
-			removeDestroyedLayers();
-			return new HashMap<String, ILayer>(layers);			
-		}
-		
-		public ILayer[] getLayers(ILayer[] out, int zDirection) {
-			removeDestroyedLayers();
-
-			if (zDirection > 0) {
-				return backToFront.getSorted(out, true);
-			} else if (zDirection < 0) {
-				return backToFront.getSorted(out, false);
-			}
-			return layers.values().toArray(out != null ? out : new ILayer[layers.size()]);
-		}
-
-		public ILayer getTopLayer() {
-			return backToFront.getTopLayer();
-		}
-		
-		public ILayer getLayer(String id) {
-			ILayer layer = layers.get(id);
-			if (layer != null && layer.isDestroyed()) {
-				removeDestroyedLayers();
-				layer = null;
-			}
-			return layer;
-		}
-		
-		//Setters
-		public ILayer setLayer(String id, ILayer layer) {		
-			ILayer oldLayer = layers.put(id, layer);
-			if (oldLayer != null) {
-				oldLayer.destroy();
-			}
-			invalidatePreSorted();
-			return layer;
-		}
-
-	}
-	
-	@LuaSerializable
-	private static final class LayersSorted extends PreSortedState<ILayer> implements Serializable {
-
-		private static final long serialVersionUID = BaseImpl.serialVersionUID;
-		
-		private static final Comparator<ILayer> zBackToFrontComparator = new Comparator<ILayer>() {
-			public int compare(ILayer l1, ILayer l2) {
-				return (int)l2.getZ() - (int)l1.getZ();
-			}
-		};
-		
-		private final Map<?, ? extends ILayer> layers;
-		
-		public LayersSorted(Map<?, ? extends ILayer> ls) {
-			layers = ls;
-		}
-		
-		@Override
-		protected ILayer[] newArray(int length) {
-			return new ILayer[length];
-		}
-
-		@Override
-		protected ILayer[] getUnsorted(ILayer[] out) {
-			return layers.values().toArray(out);
-		}
-
-		@Override
-		public int size() {
-			return layers.size();
-		}
-
-		@Override
-		protected Comparator<? super ILayer> getComparator() {
-			return zBackToFrontComparator;
-		}
-		
-		public ILayer getTopLayer() {
-			ILayer[] sorted = initSorted();
-			for (int n = size()-1; n >= 0; n--) {
-				ILayer l = sorted[n];
-				if (l != null && !l.isDestroyed()) {
-					return l;
-				}
-			}
-			return null;
+		public ILayer getOverlayLayer() {
+			return overlayLayer;
 		}
 		
 	}

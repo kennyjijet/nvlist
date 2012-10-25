@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import nl.weeaboo.vn.IButtonDrawable;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.IPolygon;
 import nl.weeaboo.vn.math.MutableMatrix;
@@ -89,7 +89,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			markChanged();
 		}
 
-		boolean visibleEnough = (getAlpha() >= alphaEnableThreshold);
+		boolean visibleEnough = isVisible(alphaEnableThreshold);
 		
 		double x = input.getMouseX();
 		double y = input.getMouseY();
@@ -137,10 +137,10 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	@Override
-	public void draw(IRenderer r) {
+	public void draw(IDrawBuffer d) {
 		updateTexture();
 		
-		super.draw(r);
+		super.draw(d);
 	}
 	
 	@Override
@@ -223,7 +223,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		double padding = getPadding();
 		
 		MutableMatrix mm = getTransform().mutableCopy();
-		mm.translate(getImageOffsetX(), getImageOffsetY());
+		mm.translate(getAlignOffsetX(), getAlignOffsetY());
 		return new Polygon(mm.immutableCopy(), -padding, -padding,
 				getUnscaledWidth()+padding*2, getUnscaledHeight()+padding*2);
 	}

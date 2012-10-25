@@ -2,22 +2,74 @@ package nl.weeaboo.vn;
 
 import java.util.Collection;
 
-public interface IButtonDrawable extends IDrawable {
+public interface IButtonDrawable extends IImageDrawable {
 
 	// === Functions ===========================================================
+	
+	/**
+	 * Buttons store internally if they've been pressed. This method returns if
+	 * that has been the case and clears the internal pressed flag.
+	 */
 	public boolean consumePress();
+	
+	/**
+	 * Adds a list of global hotkeys that may be used to activate the button.
+	 */
 	public void addActivationKeys(int... key);
+	
+	/**
+	 * Removes some keys from the internal list of activation keys.
+	 * @see #addActivationKeys(int...)
+	 */
 	public void removeActivationKeys(int... key);
 	
 	// === Getters =============================================================
+	
+	/**
+	 * @return <code>true</code> if the mouse is hovering over this button.
+	 */
 	public boolean isRollover();
+	
+	/**
+	 * @return <code>true</code> if this button is currently being pressed.
+	 */
 	public boolean isPressed();
+	
+	/**
+	 * @return <code>true</code> if this button is enabled.
+	 */
 	public boolean isEnabled();
+		
+	/**
+	 * @return <code>true</code> if {@link #setSelected(boolean)} has been used
+	 *         to manually set the selected state, or if this button is a toggle
+	 *         button and is currently toggled (pressed).
+	 */
 	public boolean isSelected();
+	
+	/**
+	 * @return <code>true</code> if this button is a toggle button.
+	 */
 	public boolean isToggle();
+	
+	/**
+	 * @return <code>true</code> if this button is considered to have keyboard
+	 *         focus and can thus be activated by pressing the confirm
+	 *         keyboard/joypad button.
+	 */
 	public boolean isKeyboardFocus();
+	
+	/**
+	 * @see #setPadding(double) 
+	 */
 	public double getPadding();
+	
+	/**
+	 * @return The current list of global activation keys.
+	 * @see #addActivationKeys(int...)
+	 */
 	public Collection<Integer> getActivationKeys();
+		
 	public ITexture getNormalTexture();
 	public ITexture getRolloverTexture();
 	public ITexture getPressedTexture();
@@ -32,10 +84,36 @@ public interface IButtonDrawable extends IDrawable {
 	public void setPressedRolloverTexture(ITexture i);
 	public void setDisabledTexture(ITexture i);
 	public void setDisabledPressedTexture(ITexture i);
-	public void setEnabled(boolean e);
+	
+	/**
+	 * Adds some padding to the area in which {@link #contains(double, double)}
+	 * returns <code>true</code>. This primarily done to make buttons easier to
+	 * press on small touchscreen devices.
+	 * 
+	 * @param p The amount of padding to add to each side of the button.
+	 */
 	public void setPadding(double p);
+
+	/**
+	 * Enables or disables the button. A disabled button can't be pressed. 
+	 */
+	public void setEnabled(boolean e);
+	
+	/**
+	 * Changes the selected state for this button. For toggle buttons, the
+	 * selected state determines whether the buttons stays pressed or not.
+	 */
 	public void setSelected(boolean s);
+	
+	/**
+	 * Changes if this button functions as a regular button or a toggle button
+	 * (stays selected when pressed).
+	 */
 	public void setToggle(boolean t);
+	
+	/**
+	 * @see #isKeyboardFocus()
+	 */
 	public void setKeyboardFocus(boolean f);
 	
 }

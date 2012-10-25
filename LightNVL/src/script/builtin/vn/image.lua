@@ -282,16 +282,22 @@ function createCamera(layer)
 end
 
 ---Creates a new layer
--- @param id A string uniquely identifying the layer
+-- @param layer The parent layer for the newly created layer. 
 -- @return The newly created layer, or <code>null</code> if a layer with the
 -- given id already exists.
-function createLayer(id)
-	return imageState:createLayer(id)
+function createLayer(layer)
+	layer = layer or getImageLayer()
+	return Image.createLayer(layer)
+end
+
+---Returns the root layer
+function getRootLayer()
+	return imageState:getRootLayer()
 end
 
 ---Returns the current image layer
 function getImageLayer()
-	return getImageStateAttribute("layer") or imageState:getLayer()
+	return getImageStateAttribute("layer") or imageState:getDefaultLayer()
 end
 
 ---Changes the current image layer
@@ -301,7 +307,7 @@ end
 
 ---Returns the <code>overlay</code> layer which is usually the topmost layer.
 function getOverlayLayer()
-	return imageState:getLayer("overlay")
+	return imageState:getOverlayLayer()
 end
 
 ---Saves the current images onto a stack to be restored later with

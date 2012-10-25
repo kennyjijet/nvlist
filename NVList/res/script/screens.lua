@@ -482,6 +482,7 @@ function TextLogScreen:run()
 	--Create viewport and fill with text pages
 	viewport = Viewport.new{pad=vpad, scrollBarPad=vpad}
 	viewport:setBounds(0, vpad, lw, lh)
+	viewport:setZ(1000)
 	
 	local pd = {}
 	local x = 0

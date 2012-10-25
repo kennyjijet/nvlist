@@ -6,8 +6,9 @@ import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.styledtext.MutableTextStyle;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.textlayout.TextLayout;
-import nl.weeaboo.vn.IRenderer;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.impl.base.BaseTextDrawable;
+import nl.weeaboo.vn.impl.base.RenderEnv;
 
 @LuaSerializable
 public class TextDrawable extends BaseTextDrawable {
@@ -27,10 +28,11 @@ public class TextDrawable extends BaseTextDrawable {
 	
 	//Functions	
 	@Override
-	public void draw(IRenderer r) {
-		Renderer rr = (Renderer)r;
+	public void draw(IDrawBuffer d) {
+		DrawBuffer dd = DrawBuffer.cast(d);
+		RenderEnv env = dd.getEnv();
 		
-		setTexScale(1.0 / r.getScale());
+		setTexScale(1.0 / env.scale);
 		
 		int bgColor = getBackgroundColorARGB();
 		int bgAlpha = ((bgColor>>24)&0xFF);
@@ -40,7 +42,7 @@ public class TextDrawable extends BaseTextDrawable {
 			}
 			if (bgAlpha > 0) {
 				int c = (bgAlpha<<24)|(bgColor&0xFFFFFF);
-				rr.drawQuad((short)(getZ()+1), isClipEnabled(), getBlendMode(), c, null,
+				dd.drawQuad((short)(getZ()+1), isClipEnabled(), getBlendMode(), c, null,
 						getTransform(), 0, 0, getWidth(), getHeight(),
 						getPixelShader());
 			}
@@ -67,7 +69,7 @@ public class TextDrawable extends BaseTextDrawable {
 		}
 		
 		double pad = getPadding();
-		rr.drawText(getZ(), isClipEnabled(), getBlendMode(), getColorARGB(),
+		dd.drawText(getZ(), isClipEnabled(), getBlendMode(), getColorARGB(),
 				getLayout(), getStartLine(), getEndLine(), getVisibleChars(),
 				getX() + pad + tx, getY() + pad + ty, getPixelShader());
 
@@ -216,6 +218,12 @@ public class TextDrawable extends BaseTextDrawable {
 			textLayout = null;			
 			texScale = ts;
 		}
+	}
+
+	@Override
+	public void setBounds(double x, double y, double w, double h) {
+		setPos(x, y);
+		setSize(w, h);
 	}
 	
 }

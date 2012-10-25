@@ -22,6 +22,7 @@ import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseShader;
+import nl.weeaboo.vn.impl.base.RenderEnv;
 
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -58,7 +59,8 @@ public class GLSLPS extends BaseShader implements IPixelShader {
 	
 	@Override
 	public void preDraw(IRenderer r) {
-		Renderer rr = (Renderer)r;
+		Renderer rr = Renderer.cast(r);
+		RenderEnv env = rr.getEnv();
 		GLManager glm = rr.getGLManager();
 		
 		if (shader == null) {
@@ -66,15 +68,9 @@ public class GLSLPS extends BaseShader implements IPixelShader {
 		}
 		
 		if (shader != null) {
-			int rx = r.getRealX();
-			int ry = r.getRealY();
-			int rw = r.getRealWidth();
-			int rh = r.getRealHeight();
-			double sw = r.getScreenWidth();
-			double sh = r.getScreenHeight();
 			Rect2D screen;
-			if (sw > 0 && sh > 0) {
-				screen = new Rect2D(-1+2*rx/sw, -1+2*ry/sh, 2*rw/sw, 2*rh/sh);
+			if (env.sw > 0 && env.sh > 0) {
+				screen = new Rect2D(-1+2*env.rx/env.sw, -1+2*env.ry/env.sh, 2*env.rw/env.sw, 2*env.rh/env.sh);
 			} else {
 				screen = new Rect2D(0, 0, 1, 1);
 			}

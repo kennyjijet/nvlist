@@ -1,11 +1,10 @@
 package nl.weeaboo.vn.impl.base;
 
-import java.io.Serializable;
-
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.vn.IDistortGrid;
 
 @LuaSerializable
-public final class DistortGrid implements Serializable {
+public final class DistortGrid implements IDistortGrid {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -30,12 +29,15 @@ public final class DistortGrid implements Serializable {
 	//Functions
 	
 	//Getters
+	@Override
 	public float getDistortX(int x, int y) {
 		if (x < 0 || y < 0 || x > width || y > height) {
 			return 0;
 		}
 		return data[y * scansize + x * 2];
 	}
+
+	@Override
 	public float getDistortY(int x, int y) {
 		if (x < 0 || y < 0 || x > width || y > height) {
 			return 0;
@@ -43,9 +45,12 @@ public final class DistortGrid implements Serializable {
 		return data[y * scansize + x * 2 + 1];
 	}
 	
+	@Override
 	public int getWidth() {
 		return width;
 	}
+
+	@Override
 	public int getHeight() {
 		return height;
 	}

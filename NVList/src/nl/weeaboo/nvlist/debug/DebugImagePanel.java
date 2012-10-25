@@ -12,13 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -160,7 +155,7 @@ public class DebugImagePanel extends JPanel {
 			TreeNode rootNode;				
 			synchronized (lock) {
 				IImageState imageState = novel.getImageState();
-				rootNode = new ImageStateNode(imageState);
+				rootNode = new LayerNode(imageState.getRootLayer());
 			}
 			
 			tree.setModel(new DefaultTreeModel(rootNode));
@@ -184,15 +179,18 @@ public class DebugImagePanel extends JPanel {
 	
 	//Inner Classes
 	private static class ObjectTreeNode extends DefaultMutableTreeNode {
+
+		private int hashCode;
 		
 		public ObjectTreeNode(Object userObject) {
 			super(userObject);
+			
+			this.hashCode = (userObject != null ? userObject.hashCode() : 0);
 		}
 		
 		@Override
 		public int hashCode() {
-			Object obj = getUserObject();
-			return (obj != null ? obj.hashCode() : 0);
+			return hashCode;
 		}
 		
 		@Override
@@ -201,91 +199,67 @@ public class DebugImagePanel extends JPanel {
 			if (other instanceof DefaultMutableTreeNode) {
 				other = ((DefaultMutableTreeNode)other).getUserObject();
 			}
-			return obj == other || (obj != null && obj.equals(other));
+			return obj == other;
 		}
 		
-	}
-	
-	private static class ImageStateNode extends ObjectTreeNode {
-		
-		public final IImageState imageState;
-		
-		public ImageStateNode(IImageState is) {
-			super(is);
+		@Override
+		public void setUserObject(Object obj) {
+			super.setUserObject(obj);
 			
-			imageState = is;
-			
-			List<Entry<String, ILayer>> layers = new ArrayList<Entry<String, ILayer>>(imageState.getLayers().entrySet());
-			Collections.sort(layers, new Comparator<Entry<String, ILayer>>() {
-				public int compare(Entry<String, ILayer> e1, Entry<String, ILayer> e2) {
-					ILayer l1 = e1.getValue();
-					ILayer l2 = e2.getValue();
-					return (int)l2.getZ() - (int)l1.getZ();
-				}
-			});			
-			for (Entry<String, ILayer> entry : layers) {
-				add(new LayerNode(entry.getKey(), entry.getValue()));
-			}
+			hashCode = (obj != null ? obj.hashCode() : 0);
 		}
-		
-		@Override
-		public int hashCode() {
-			return super.hashCode();
-		}
-		
-		@Override
-		public boolean equals(Object other) {
-			return super.equals(other);
-		}
-		
-		@Override
-		public String toString() {
-			return "imageState";
-		}
-		
 	}
 	
 	private static class LayerNode extends DefaultMutableTreeNode {
 		
-		public final String id;
 		public final ILayer layer;
+		private final int hashCode;
 		
-		public LayerNode(String id, ILayer layer) {
-			this.id = id;
+		public LayerNode(ILayer layer) {
 			this.layer = layer;
+			this.hashCode = layer.hashCode();
 			
-			IDrawable[] drawables = layer.getDrawables();
+			IDrawable[] drawables = layer.getContents();
 			Arrays.sort(drawables, Layer.zBackToFrontComparator);
 			for (IDrawable d : drawables) {
-				add(new DrawableNode(d));
+				if (d instanceof ILayer) {
+					ILayer l = (ILayer)d;
+					add(new LayerNode(l));
+				} else {
+					add(new DrawableNode(d));
+				}
 			}
 		}
 		
 		@Override
 		public int hashCode() {
-			return id.hashCode() ^ layer.hashCode();
+			return hashCode;
 		}
 		
 		@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof LayerNode) {
 				LayerNode ln = (LayerNode)obj;
-				return (id == ln.id || (id != null && id.equals(ln.id)))
-					&& layer.equals(ln.layer);
+				return layer == ln.layer;
 			}
 			return false;
 		}
 		
 		@Override
 		public String toString() {
-			String visibleS = "";
-			if (!layer.isVisible()) {
-				visibleS = "<font color=red size=-2>invisible</font>"; 
-			}
-
-			return String.format("<html>%s [%.0f,%.0f,%.0f,%.0f] %s</html>",
-					(id != null ? id : "(default)"), layer.getX(), layer.getY(),
-					layer.getWidth(), layer.getHeight(), visibleS);
+			//We're calling some getters without a lock, from the wrong thread.
+			//Unless the implementation is very odd, the worst we'll get is outdated values.
+			
+			String core = String.format("Layer [%.0f,%.0f,%.0f,%.0f] z=%d",
+					layer.getX(), layer.getY(), layer.getWidth(), layer.getHeight(), layer.getZ());
+			
+			if (!layer.isVisible(.001)) {
+				//HTML tags are very heavy to render, only include them when needed.
+				return String.format("<html>%s %s</html>", core, "<font color=red size=-2>invisible</font>"); 
+			} else {
+				return core;
+			}			
+			
 		}
 		
 	}
@@ -297,26 +271,16 @@ public class DebugImagePanel extends JPanel {
 		public DrawableNode(IDrawable d) {
 			super(d);
 			
-			drawable = d;
-		}
-		
-		@Override
-		public int hashCode() {
-			return super.hashCode();
-		}
-		
-		@Override
-		public boolean equals(Object other) {
-			return super.equals(other);
+			this.drawable = d;
 		}
 		
 		@Override
 		public String toString() {
-			String core = String.format("[%.0f,%.0f,%.0f,%.0f]",
-					drawable.getX(), drawable.getY(),
-					drawable.getWidth(), drawable.getHeight());
+			String core = String.format("[%.0f,%.0f,%.0f,%.0f] z=%d",
+					drawable.getX(), drawable.getY(), drawable.getWidth(), drawable.getHeight(),
+					drawable.getZ());
 			
-			if (drawable.getAlpha() <= 0) {
+			if (!drawable.isVisible(.001)) {
 				//HTML tags are very heavy to render, only include them when needed.
 				return String.format("<html>%s %s</html>", core, "<font color=red size=-2>invisible</font>"); 
 			} else {

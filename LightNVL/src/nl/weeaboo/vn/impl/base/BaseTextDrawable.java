@@ -8,7 +8,6 @@ import nl.weeaboo.styledtext.TextStyle;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITextDrawable;
 
 public abstract class BaseTextDrawable extends BaseDrawable implements ITextDrawable {
@@ -108,19 +107,15 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 				}
 			}
 			cursor.setAlpha(Math.min(getAlpha(), newAlpha));
+			cursor.setVisible(isVisible());
 		}		
 	}
 	
-	protected void updateTextureSize(IRenderer r) {
-		int w = r.getWidth();
-		int h = r.getHeight();
-		int rw = r.getRealWidth();
-		int rh = r.getRealHeight();
-		
+	protected void updateTextureSize(RenderEnv env) {
 		int texW = getTextureWidth();
 		int texH = getTextureHeight();
-		int targetW = (int)Math.round(getInnerWidth() * rw / w);
-		int targetH = (int)Math.round(getInnerHeight() * rh / h);
+		int targetW = (int)Math.round(getInnerWidth() * env.scale);
+		int targetH = (int)Math.round(getInnerHeight() * env.scale);
 		if (texW != targetW || texH != targetH) {
 			setTextureSize(targetW, targetH);
 		}		
@@ -351,12 +346,6 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			texDirty = true;			
 			onSizeChanged();
 		}
-	}
-	
-	@Override
-	public void setBounds(double x, double y, double w, double h) {
-		setPos(x, y);
-		setSize(w, h);
 	}
 	
 	protected void setTextureSize(int tw, int th) {

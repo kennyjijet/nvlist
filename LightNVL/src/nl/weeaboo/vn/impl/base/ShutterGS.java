@@ -2,10 +2,10 @@ package nl.weeaboo.vn.impl.base;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Vec2;
@@ -29,11 +29,9 @@ public class ShutterGS extends BaseShader implements IGeometryShader {
 
 	//Functions
 	@Override
-	public void draw(IRenderer r, IImageDrawable image, ITexture tex,
+	public void draw(IDrawBuffer d, IImageDrawable image, ITexture tex,
 			double alignX, double alignY, IPixelShader ps)
 	{
-		BaseRenderer rr = (BaseRenderer)r;
-				
 		short z = image.getZ();
 		boolean clip = image.isClipEnabled();
 		BlendMode blend = image.getBlendMode();
@@ -47,7 +45,7 @@ public class ShutterGS extends BaseShader implements IGeometryShader {
 		
 		if (frac <= 0 || frac >= 1) {
 			if ((frac >= 1 && fadeIn) || (frac <= 0 && !fadeIn)) {
-				rr.drawQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps);
+				d.drawQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps);
 			}
 		} else {
 			double t = 1.0 / steps;
@@ -72,13 +70,13 @@ public class ShutterGS extends BaseShader implements IGeometryShader {
 				}
 
 				if (dir == 4 || dir == 6) {
-					rr.drawQuad(z, clip, blend, argb, tex, trans,
+					d.drawQuad(z, clip, blend, argb, tex, trans,
 							offset.x+(u+a)*w, offset.y, w*(b-a), h,
 							u+a, 0, (b-a), 1.0, ps);
 						
 					u += t;										
 				} else {
-					rr.drawQuad(z, clip, blend, argb, tex, trans,
+					d.drawQuad(z, clip, blend, argb, tex, trans,
 							offset.x, offset.y+(v+a)*h, w, h*(b-a),
 							0, v+a, 1.0, (b-a), ps);
 						

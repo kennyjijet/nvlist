@@ -67,7 +67,7 @@ local function textfade(targetAlpha, speed, predicate)
 		nameLookup[d] = k
 	end
 	
-	local drawables = getTextLayer():getDrawables()
+	local drawables = getTextLayer():getContents()
 	for i=1,#drawables do
 		local d = drawables[i]
 		local k = nameLookup[d]
@@ -378,7 +378,7 @@ function setTextMode(m, clear)
 		--Create text layer
 		local newLayer = getTextLayer()
 		if newLayer == nil then
-			newLayer = createLayer("text" .. m)
+			newLayer = createLayer(getRootLayer())
 			newLayer:setZ(-2000)
 			setImageStateAttribute("textLayer" .. textMode, newLayer)
 			

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.IRenderer;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IScreenshot;
 
 @LuaSerializable
@@ -31,9 +31,9 @@ public class ScreenshotBuffer implements Serializable {
 		screenshots.clear();
 	}
 	
-	public void flush(IRenderer r) {
+	public void flush(IDrawBuffer d) {
 		for (ScreenshotEntry entry : screenshots) {
-			r.screenshot(entry.screenshot, entry.clip);
+			d.screenshot(entry.screenshot, entry.clip);
 		}
 		screenshots.clear();
 	}

@@ -302,8 +302,6 @@ Viewport = {
 	snap=0,
 }
 
-local viewportLayerCount = 0
-
 ---Creates a new Viewport; a scrollable section of the screen containing other
 -- Drawables or GUI components.
 function Viewport.new(self)
@@ -323,8 +321,7 @@ function Viewport.new(self)
 		end
 	end
 	
-	viewportLayerCount = viewportLayerCount + 1
-	self.layer = createLayer("viewport" .. viewportLayerCount)	
+	self.layer = createLayer()	
 	
 	return self
 end

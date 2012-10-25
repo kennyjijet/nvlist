@@ -22,11 +22,13 @@ import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IAnalytics;
 import nl.weeaboo.vn.IButtonDrawable;
+import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
+import nl.weeaboo.vn.impl.base.Layer;
 import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
 
 @LuaSerializable
@@ -70,6 +72,13 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	@Override
 	protected void preloadNormalized(String filename) {
 		texCache.preload(filename, false);
+	}
+	
+	@Override
+	public ILayer createLayer(double x, double y, double w, double h) {
+		ILayer layer = new Layer();
+		layer.setBounds(x, y, w, h);
+		return layer;
 	}
 	
 	@Override

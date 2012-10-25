@@ -3,20 +3,21 @@ package nl.weeaboo.vn.impl.base;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EmptyStackException;
+import java.util.LinkedList;
 import java.util.List;
 
-import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderer;
 
 @LuaSerializable
-public final class Layer implements ILayer {
+public final class Layer extends BaseDrawable implements ILayer {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
@@ -35,15 +36,15 @@ public final class Layer implements ILayer {
 		}
 	};
 	
-	private boolean destroyed;
 	private List<LayerState> sstack;
 	private ScreenshotBuffer screenshotBuffer;
+	private double width, height;
 	private transient boolean changed;
 	private transient IDrawable[] tempArray;
 
-	public Layer(double w, double h) {
+	public Layer() {
 		sstack = new ArrayList<LayerState>();
-		sstack.add(new LayerState(w, h));
+		sstack.add(new LayerState());
 		
 		screenshotBuffer = new ScreenshotBuffer();		
 		initTransients();
@@ -62,7 +63,7 @@ public final class Layer implements ILayer {
 	
 	@Override
 	public void add(IDrawable d) {
-		if (destroyed) return;
+		if (isDestroyed()) return;
 
 		if (getState().add(d)) {
 			markChanged();
@@ -70,10 +71,10 @@ public final class Layer implements ILayer {
 	}
 
 	@Override
-	public void clear() {
-		if (destroyed) return;
+	public void clearContents() {
+		if (isDestroyed()) return;
 
-		Collection<IDrawable> removed = getState().clear();
+		Collection<IDrawable> removed = getState().destroy();
 		if (!removed.isEmpty()) {
 			for (IDrawable d : removed) {
 				if (d != null && !containsRecursive(d)) {				
@@ -86,55 +87,63 @@ public final class Layer implements ILayer {
 	
 	@Override
 	public void destroy() {
-		if (destroyed) return;
+		if (isDestroyed()) return;
 		
-		destroyed = true;
 		while (!sstack.isEmpty()) {
-			pop();
+			popContents();
 		}
-		markChanged();
+		
+		super.destroy();
 	}
 	
-	public void push() {
-		push(Short.MIN_VALUE);
+	@Override
+	public void pushContents() {
+		pushContents(Short.MIN_VALUE);
 	}
 
 	@Override
-	public void push(short z) {
-		if (destroyed) return;
+	public void pushContents(short z) {
+		if (isDestroyed()) return;
 		
 		sstack.add(new LayerState(getState(), z));
 		markChanged();
 	}
 	
 	@Override
-	public void pop() throws EmptyStackException {
-		if (!destroyed && sstack.size() <= 1) {
+	public void popContents() throws EmptyStackException {
+		if (!isDestroyed() && sstack.size() <= 1) {
 			throw new EmptyStackException();
 		}
 		
 		if (!sstack.isEmpty()) {
 			LayerState oldState = sstack.remove(sstack.size()-1);
-			oldState.clear();
+			oldState.destroy();
 			markChanged();
 		}
 	}
 
 	@Override
-	public boolean update(IInput input, double effectSpeed) {
+	public boolean update(ILayer parent, IInput input, double effectSpeed) {
 		LayerState state = getState();
 		
 		if (isVisible()) {
-			tempArray = state.getDrawables(tempArray, 1);
-			for (int n = 0; n < tempArray.length; n++) {
-				IDrawable d = tempArray[n];
-				if (d == null) break; //The array can only contain nulls at the end
-				tempArray[n] = null; //Null the array indices to allow garbage collection
-				
-				if (!d.isDestroyed() && d.update(this, input, effectSpeed)) {
-					markChanged();
+			final double x = getX();
+			final double y = getY();
+			input.translate(-x, -y);
+			try {
+				tempArray = state.getContents(tempArray, 1);
+				for (int n = 0; n < tempArray.length; n++) {
+					IDrawable d = tempArray[n];
+					if (d == null) break; //The array can only contain nulls at the end
+					tempArray[n] = null; //Null the array indices to allow garbage collection
+					
+					if (!d.isDestroyed() && d.update(this, input, effectSpeed)) {
+						markChanged();
+					}
 				}
-			}
+			} finally {
+				input.translate(x, y);
+			}			
 		}
 		
 		if (!screenshotBuffer.isEmpty()) {
@@ -145,22 +154,41 @@ public final class Layer implements ILayer {
 	}
 
 	@Override
-	public void draw(IRenderer r) {
-		screenshotBuffer.flush(r);
-		
+	public void draw(IDrawBuffer buf) {		
 		if (isVisible()) {
+			BaseDrawBuffer baseBuf = BaseDrawBuffer.cast(buf);
+			baseBuf.startLayer(this);
+			
 			LayerState state = getState();
-			tempArray = state.getDrawables(tempArray, -1);
-			for (int n = 0; n < tempArray.length; n++) {
-				IDrawable d = tempArray[n];
-				if (d == null) break; //The array can only contain nulls at the end
-				tempArray[n] = null; //Null the array indices to allow garbage collection
-				
-				if (!d.isDestroyed()) {
-					d.draw(r);
+			tempArray = state.getContents(tempArray, -1);
+			
+			int t = 0;
+			for (int pass = 0; pass < 2; pass++) {
+				for (t = 0; t < tempArray.length; t++) {
+					IDrawable d = tempArray[t];
+					if (d == null) break; //The array can only contain nulls at the end
+					
+					if (!d.isDestroyed() && d.isVisible(.001)) {
+						if (pass == 0) {
+							if (d instanceof ILayer) {
+								ILayer l = (ILayer)d;
+								baseBuf.draw(new LayerRenderCommand(l));
+							} else {
+								d.draw(baseBuf);
+							}
+						} else {
+							if (d instanceof ILayer) {
+								d.draw(baseBuf);
+							}
+						}
+						
+					}
 				}
 			}
+			Arrays.fill(tempArray, 0, t, null);
 		}
+		
+		screenshotBuffer.flush(buf);		
 	}
 	
 	protected void markChanged() {
@@ -173,21 +201,11 @@ public final class Layer implements ILayer {
 		return result;
 	}
 	
-	@Override
-	public boolean contains(double x, double y) {
-		return getState().getBounds().contains(x, y);
-	}
-	
 	//Getters
 	protected LayerState getState() {
-		if (destroyed) return null;
+		if (isDestroyed()) return null;
 
 		return sstack.get(sstack.size()-1);
-	}
-	
-	@Override
-	public final boolean isDestroyed() {
-		return destroyed;
 	}
 	
 	@Override
@@ -196,124 +214,85 @@ public final class Layer implements ILayer {
 	}
 	
 	@Override
-	public IDrawable[] getDrawables() {
-		return getDrawables(null);
+	public Collection<ILayer> getSubLayers(boolean recursive) {
+		List<ILayer> result = new ArrayList<ILayer>();
+		IDrawable[] temp = new IDrawable[16];
+		
+		//Add ourselves to the work list
+		LinkedList<ILayer> workQ = new LinkedList<ILayer>();
+		workQ.add(this);
+		
+		//Keep processing layers
+		while (!workQ.isEmpty()) {
+			ILayer layer = workQ.removeFirst();
+			temp = layer.getContents(temp);
+			for (IDrawable d : temp) {
+				if (d == null) break;
+				
+				if (!d.isDestroyed() && d instanceof ILayer) {
+					ILayer sub = (ILayer)d;
+					
+					result.add(sub);
+					if (recursive) {
+						workQ.add(sub);
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	@Override
+	public IDrawable[] getContents() {
+		return getContents(null);
 	}
 
 	@Override
-	public IDrawable[] getDrawables(IDrawable[] out) {
-		if (destroyed) return new IDrawable[0];
-		return getState().getDrawables(out);
+	public IDrawable[] getContents(IDrawable[] out) {
+		if (isDestroyed()) return new IDrawable[0];
+		return getState().getContents(out);
 	}
 	
 	@Override
 	public boolean contains(IDrawable d) {
-		if (destroyed) return false;
+		if (isDestroyed()) return false;
 		
 		return getState().contains(d);
 	}
 	
 	protected boolean containsRecursive(IDrawable d) {
-		if (destroyed) return false;
+		if (isDestroyed()) return false;
 
 		for (LayerState state : sstack) {
 			if (state.contains(d)) return true;
 		}
 		return false;
 	}
-	
-	@Override
-	public double getX() {
-		if (destroyed) return 0;
-
-		return getState().getBounds().x;
-	}
-
-	@Override
-	public double getY() {
-		if (destroyed) return 0;
-
-		return getState().getBounds().y;
-	}
 
 	@Override
 	public double getWidth() {
-		if (destroyed) return 0;
-
-		return getState().getBounds().w;
+		return width;
 	}
 
 	@Override
 	public double getHeight() {
-		if (destroyed) return 0;
-
-		return getState().getBounds().h;
+		return height;
 	}
-	
-	@Override
-	public Rect2D getBounds() {
-		if (destroyed) return new Rect2D(0, 0, 0, 0);
 
-		return getState().getBounds();
-	}
-	
-	@Override
-	public short getZ() {
-		if (destroyed) return 0;
-
-		return getState().getZ();
-	}
-	
-	@Override
-	public boolean isVisible() {
-		if (destroyed) return false;
-
-		return getState().isVisible();
-	}
-	
 	//Setters
 	@Override
-	public void setPos(double x, double y) {
-		if (destroyed) return;
-		
-		setBounds(x, y, getWidth(), getHeight());
-	}
-
-	@Override
 	public void setSize(double w, double h) {
-		if (destroyed) return;
-
-		setBounds(getX(), getY(), w, h);
+		if (width != w || height != h) {
+			width = w;
+			height = h;
+			markChanged();
+		}
 	}
-	
+
 	@Override
 	public void setBounds(double x, double y, double w, double h) {
-		if (destroyed) return;
-
-		if (getX() != x || getY() != y || getWidth() != w || getHeight() != h) {
-			getState().setBounds(new Rect2D(x, y, w, h));
-			markChanged();
-		}
-	}
-
-	@Override
-	public void setZ(short z) {
-		if (destroyed) return;
-
-		if (getZ() != z) {
-			getState().setZ(z);
-			markChanged();
-		}
-	}
-
-	@Override
-	public void setVisible(boolean v) {
-		if (destroyed) return;
-
-		if (isVisible() != v) {
-			getState().setVisible(v);
-			markChanged();
-		}
+		setPos(x, y);
+		setSize(w, h);
 	}
 	
 }
