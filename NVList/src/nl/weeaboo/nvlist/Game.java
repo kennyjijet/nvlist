@@ -4,7 +4,7 @@ import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
 import static nl.weeaboo.game.BaseGameConfig.TITLE;
 import static nl.weeaboo.game.BaseGameConfig.WIDTH;
 import static nl.weeaboo.vn.NovelPrefs.ENABLE_PROOFREADER_TOOLS;
-import static nl.weeaboo.vn.NovelPrefs.ENGINE_MIN_VERSION;
+import static nl.weeaboo.vn.NovelPrefs.*;
 import static nl.weeaboo.vn.vnds.VNDSUtil.VNDS;
 
 import java.awt.event.KeyEvent;
@@ -94,10 +94,11 @@ import nl.weeaboo.vn.impl.nvlist.VideoState;
 
 public class Game extends BaseGame {
 
-	public static final int VERSION_MAJOR = 2;
-	public static final int VERSION_MINOR = 9;
+	public static final int VERSION_MAJOR = 3;
+	public static final int VERSION_MINOR = 0;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
-	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR;
+	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
+	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support
 	
 	private final ParagraphRenderer pr;
 	
@@ -153,9 +154,13 @@ public class Game extends BaseGame {
 		IConfig config = getConfig();		
 		if (StringUtil.compareVersion(VERSION_STRING, config.get(ENGINE_MIN_VERSION)) < 0) {
 			//Our version number is too old to run the game
-			AwtUtil.showError(String.format( "NVList version number (%s) " +
+			AwtUtil.showError(String.format("NVList version number (%s) " +
 				"is below the minimum acceptable version for this game (%s)",
 				VERSION_STRING, config.get(ENGINE_MIN_VERSION)));			
+		} else if (StringUtil.compareVersion(config.get(ENGINE_TARGET_VERSION), MIN_COMPAT_VERSION) < 0) {
+			//The game version is too old
+			AwtUtil.showError(String.format("vn.engineTargetVersion is too old (%s), minimum is (%s)",
+				config.get(ENGINE_TARGET_VERSION), MIN_COMPAT_VERSION));			
 		}
 		
 		//We're using the volume settings from NovelPrefs instead...
