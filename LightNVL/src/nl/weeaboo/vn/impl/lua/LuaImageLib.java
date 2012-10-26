@@ -218,8 +218,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 	protected ILayer getLayerArg(Varargs args, int index) {		
 		if (args.isuserdata(index) && args.touserdata(index) instanceof ILayer) {
 			return (ILayer)args.touserdata(index);
-		}
-		
+		}		
 		throw new LuaError("Invalid layer arg: " + args.tojstring(1));
 	}
 

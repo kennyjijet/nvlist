@@ -13,10 +13,10 @@ public final class LayoutUtil {
 		if (tex == null) {
 			return new Vec2(0, 0);
 		}
-		return new Vec2(getImageOffset(tex.getWidth(), alignX),
-				getImageOffset(tex.getHeight(), alignY));
+		return new Vec2(getOffset(tex.getWidth(), alignX),
+				getOffset(tex.getHeight(), alignY));
 	}
-	public static double getImageOffset(double size, double align) {
+	public static double getOffset(double size, double align) {
 		return -align * (size == 0 ? 1 : size);
 	}
 	
@@ -38,7 +38,7 @@ public final class LayoutUtil {
 		}
 	}
 	public static Rect2D getBounds(double w, double h, double alignX, double alignY) {
-		return new Rect2D(getImageOffset(w, alignX), getImageOffset(h, alignY), w, h);
+		return new Rect2D(getOffset(w, alignX), getOffset(h, alignY), w, h);
 	}
 	
 	public static Rect2D getBounds(ITexture tex0, double alignX0, double alignY0,
@@ -53,35 +53,36 @@ public final class LayoutUtil {
 		return new Rect2D(x, y, Math.max(0, w), Math.max(0, h));
 	}
 
-	public static Vec2 layoutSubRect(double boundsW, double boundsH,
-			double subW, double subH, int anchor)
-	{
-		double dx = 0, dy = 0;			
+	public static double alignAnchorX(double outer, double inner, int anchor) {		
 		if (anchor == 2 || anchor == 5 || anchor == 8) {
-			dx = (boundsW-subW) / 2;
+			return (outer-inner) / 2;
 		} else if (anchor == 3 || anchor == 6 || anchor == 9) {
-			dx = (boundsW-subW);
-		}			
-		if (anchor >= 4 && anchor <= 6) {
-			dy = (boundsH-subH) / 2;
-		} else if (anchor >= 1 && anchor <= 3) {
-			dy = (boundsH-subH);
+			return (outer-inner);
 		}
-		
-		return new Vec2(dx, dy);
+		return 0;
 	}
-
+	
+	public static double alignAnchorY(double outer, double inner, int anchor) {		
+		if (anchor >= 4 && anchor <= 6) {
+			return (outer-inner) / 2;
+		} else if (anchor >= 1 && anchor <= 3) {
+			return (outer-inner);
+		}
+		return 0;
+	}
+	
 	public static Vec2 alignSubRect(Rect2D base, double w, double h, int anchor) {
-		Vec2 p = layoutSubRect(base.w, base.h, 0, 0, anchor);
-		Vec2 offset = layoutSubRect(w, h, 0, 0, anchor);
+		Vec2 p = new Vec2(alignAnchorX(base.w, 0, anchor), alignAnchorY(base.h, 0, anchor));
+		Vec2 offset = new Vec2(alignAnchorX(w, 0, anchor), alignAnchorY(h, 0, anchor));
 		
 		//System.out.println(base + " " + p + " " + offset);
 		
 		offset.x -= p.x + base.x;
 		if (w != 0) offset.x /= w;
+		
 		offset.y -= p.y + base.y;
 		if (h != 0) offset.y /= h;
 		
 		return offset;
-	}	
+	}
 }

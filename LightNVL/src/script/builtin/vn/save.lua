@@ -128,9 +128,9 @@ local function saveLoadScreen(isSave)
 	return setMode("saveLoadScreen", function()
 		local guiScreen = nil
 		if isSave then
-			guiScreen = System.createSaveScreen()
+			guiScreen = GUI.createSaveScreen()
 		else
-			guiScreen = System.createLoadScreen()
+			guiScreen = GUI.createLoadScreen()
 		end
 
 		if guiScreen ~= nil then

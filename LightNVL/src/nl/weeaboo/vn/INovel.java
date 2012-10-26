@@ -31,6 +31,7 @@ public interface INovel {
 	public ISoundState getSoundState();
 	public IVideoFactory getVideoFactory();
 	public IVideoState getVideoState();
+	public IGUIFactory getGUIFactory();
 	public ITextState getTextState();
 	public INotifier getNotifier();
 	public IInput getInput();

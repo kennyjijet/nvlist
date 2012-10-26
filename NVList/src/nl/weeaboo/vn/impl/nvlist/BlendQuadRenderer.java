@@ -137,6 +137,7 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		gl.glDisable(GL_TEXTURE_2D);
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glm.setTexture(glm.getTexture(), true); //Make sure OpenGL and GLManager agree on which texture is current
 	}
 	
 	//Getters

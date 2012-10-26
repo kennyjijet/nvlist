@@ -89,11 +89,11 @@ public final class Layer extends BaseDrawable implements ILayer {
 	public void destroy() {
 		if (isDestroyed()) return;
 		
+		super.destroy();
+		
 		while (!sstack.isEmpty()) {
 			popContents();
-		}
-		
-		super.destroy();
+		}		
 	}
 	
 	@Override

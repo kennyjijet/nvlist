@@ -36,7 +36,15 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	}
 	
 	protected IPolygon createCollisionShape() {
-		return new Polygon(getTransform(), 0, 0, getUnscaledWidth(), getUnscaledHeight());
+		Matrix transform = getTransform();
+		double dx = getAlignOffsetX();
+		double dy = getAlignOffsetY();
+		if (dx != 0 || dy != 0) {
+			MutableMatrix mm = transform.mutableCopy();
+			mm.translate(dx, dy);
+			transform = mm.immutableCopy();
+		}
+		return new Polygon(transform, 0, 0, getUnscaledWidth(), getUnscaledHeight());
 	}
 	
 	protected void invalidateCollisionShape() {
@@ -88,12 +96,12 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	
 	@Override
 	public final double getAlignOffsetX() {
-		return LayoutUtil.getImageOffset(getUnscaledWidth(), getAlignX());
+		return LayoutUtil.getOffset(getUnscaledWidth(), getAlignX());
 	}
 	
 	@Override
 	public final double getAlignOffsetY() {
-		return LayoutUtil.getImageOffset(getUnscaledHeight(), getAlignY());
+		return LayoutUtil.getOffset(getUnscaledHeight(), getAlignY());
 	}
 	
 	@Override

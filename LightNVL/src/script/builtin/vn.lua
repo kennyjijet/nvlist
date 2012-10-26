@@ -487,7 +487,7 @@ function choice2(uniqueChoiceId, ...)
 	while selected < 0 do
 		local thread = nil
 		
-		local c = System.createChoice(...)
+		local c = GUI.createChoice(...)
 		if c == nil then
 			c = Screens.choice.new(uniqueChoiceId, ...)
 			

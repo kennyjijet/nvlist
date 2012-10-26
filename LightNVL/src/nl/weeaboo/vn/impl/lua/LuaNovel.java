@@ -61,6 +61,7 @@ import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.NovelPrefs;
 import nl.weeaboo.vn.SoundType;
+import nl.weeaboo.vn.impl.base.BaseGUIFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFxLib;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
@@ -121,12 +122,12 @@ public abstract class LuaNovel extends BaseNovel {
 	private transient int wait;
 	
 	protected LuaNovel(INovelConfig gc, BaseImageFactory imgfac, IImageState is, BaseImageFxLib imgfxlib,
-			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs,
+			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs, BaseGUIFactory gf,
 			ITextState ts, BaseNotifier n, IInput in, BaseSystemLib guifac, LuaSaveHandler sh,
 			final BaseScriptLib scrlib, LuaTweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
 			ISeenLog seenLog, IAnalytics analytics, ITimer tmr)
 	{
-		super(gc, imgfac, is, imgfxlib, sndfac, ss, vf, vs, ts, n, in, guifac, sh, scrlib,
+		super(gc, imgfac, is, imgfxlib, sndfac, ss, vf, vs, gf, ts, n, in, guifac, sh, scrlib,
 				tl, sharedGlobals, globals, seenLog, analytics, tmr);
 		
 		bootstrapScripts = new String[] {"main.lua"};
@@ -372,9 +373,10 @@ public abstract class LuaNovel extends BaseNovel {
 		ISoundState ss = getSoundState();
 		BaseVideoFactory vidfac = getVideoFactory();
 		IVideoState vs = getVideoState();
+		BaseGUIFactory guifac = getGUIFactory();
 		ITextState ts = getTextState();
 		IInput input = getInput();
-		BaseSystemLib guifac = getSystemLib();
+		BaseSystemLib syslib = getSystemLib();
 		LuaSaveHandler sh = (LuaSaveHandler)getSaveHandler();
 		ITimer timer = getTimer();
 		IStorage gs = getGlobals();
@@ -441,8 +443,9 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.load(new LuaImageFxLib(fxlib));
 			globals.load(new LuaSoundLib(ntf, sndfac, ss));
 			globals.load(new LuaVideoLib(ntf, vidfac, vs));
+			globals.load(new LuaGUILib(ntf, guifac, is));
 			globals.load(new LuaTextLib(ts));
-			globals.load(new LuaSystemLib(ntf, guifac));
+			globals.load(new LuaSystemLib(ntf, syslib));
 			globals.load(new LuaSaveLib(sh));
 			globals.load(tweenLib);
 		} catch (LuaException le) {

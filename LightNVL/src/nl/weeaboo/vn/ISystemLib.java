@@ -15,21 +15,6 @@ public interface ISystemLib {
 	public void exit(boolean force);
 	
 	/**
-	 * Optional operation, returns <code>null</code> if not supported.  
-	 */
-	public IChoice createChoice(String... options);
-
-	/**
-	 * Optional operation, returns <code>null</code> if not supported.  
-	 */
-	public ISaveLoadScreen createSaveScreen();
-
-	/**
-	 * Optional operation, returns <code>null</code> if not supported.  
-	 */
-	public ISaveLoadScreen createLoadScreen();
-	
-	/**
 	 * Opens the website specified by <code>url</code> in an external web browser. 
 	 * @param url The URL of the website
 	 */

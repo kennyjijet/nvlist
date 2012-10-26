@@ -11,6 +11,7 @@ import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.IPolygon;
+import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.math.Polygon;
 
@@ -221,10 +222,16 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	@Override
 	protected IPolygon createCollisionShape() {
 		double padding = getPadding();
-		
-		MutableMatrix mm = getTransform().mutableCopy();
-		mm.translate(getAlignOffsetX(), getAlignOffsetY());
-		return new Polygon(mm.immutableCopy(), -padding, -padding,
+
+		Matrix transform = getTransform();
+		double dx = getAlignOffsetX();
+		double dy = getAlignOffsetY();
+		if (dx != 0 || dy != 0) {
+			MutableMatrix mm = transform.mutableCopy();
+			mm.translate(dx, dy);
+			transform = mm.immutableCopy();
+		}
+		return new Polygon(transform, -padding, -padding,
 				getUnscaledWidth()+padding*2, getUnscaledHeight()+padding*2);
 	}
 	

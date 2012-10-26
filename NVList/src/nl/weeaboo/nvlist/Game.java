@@ -70,6 +70,7 @@ import nl.weeaboo.vn.impl.base.Timer;
 import nl.weeaboo.vn.impl.lua.EnvLuaSerializer;
 import nl.weeaboo.vn.impl.nvlist.Analytics;
 import nl.weeaboo.vn.impl.nvlist.DrawBuffer;
+import nl.weeaboo.vn.impl.nvlist.GUIFactory;
 import nl.weeaboo.vn.impl.nvlist.Globals;
 import nl.weeaboo.vn.impl.nvlist.ImageFactory;
 import nl.weeaboo.vn.impl.nvlist.ImageFxLib;
@@ -234,7 +235,8 @@ public class Game extends BaseGame {
 				an, seenLog, notifier, syslib.isTouchScreen(), nvlSize.w, nvlSize.h);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
-		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);		
+		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);
+		GUIFactory guifac = new GUIFactory(imgfac, notifier);
 		ScriptLib scrlib = new ScriptLib(fm, notifier);
 		TweenLib tweenLib = new TweenLib(imgfac, notifier);
 		
@@ -251,7 +253,7 @@ public class Game extends BaseGame {
 		IInput in = new InputAdapter(getInput());	
 		IStorage globals = new Globals();
 		
-		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, ts,
+		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
 				notifier, in, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
 				seenLog, an, timer,
 				fm, getKeyConfig(), isVNDS());

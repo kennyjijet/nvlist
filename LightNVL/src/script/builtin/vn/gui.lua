@@ -829,3 +829,8 @@ function alignAnchorY(outer, inner, anchor)
 	end
 	return 0		
 end
+
+---Creates a new panel
+function createPanel()
+	return GUI.createPanel(getImageLayer())
+end
