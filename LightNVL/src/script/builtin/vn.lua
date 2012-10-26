@@ -379,18 +379,6 @@ function waitClick(unskippable)
     yield()
 end
 
----Deprecated, use <code>setSharedGlobal</code> instead.
-function setSystemVar(name, value)
-	deprecated("2.7")
-	setSharedGlobal(name, value)
-end
-
----Deprecated, use <code>getSharedGlobal</code> instead.
-function getSystemVar(name)
-	deprecated("2.7")
-	return getSharedGlobal(name)
-end
-
 ---Sets a shared global. All save slots have access to the same set of shared
 -- globals. Commonly used to mark routes as cleared or unlocked.
 -- @param name The name of the shared global. Names starting with

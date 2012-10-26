@@ -2,7 +2,6 @@ package nl.weeaboo.vn.impl.lua;
 
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ;
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ_WAIT;
-import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
 import static nl.weeaboo.vn.NovelPrefs.FPS;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_LOOK_AHEAD;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_MAX_PER_LINE;
@@ -79,6 +78,8 @@ import nl.weeaboo.vn.impl.base.Looper;
 import nl.weeaboo.vn.impl.base.ShaderImageTween;
 import nl.weeaboo.vn.impl.base.ShutterGS;
 import nl.weeaboo.vn.impl.base.WipeGS;
+import nl.weeaboo.vn.layout.FlowLayout;
+import nl.weeaboo.vn.layout.NullLayout;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.parser.LVNFile;
 import nl.weeaboo.vn.parser.LVNParser;
@@ -364,7 +365,6 @@ public abstract class LuaNovel extends BaseNovel {
 		LuaValue globals = lrs.getGlobalEnvironment();
 		PackageLib.getCurrent().setLuaPath("?.lvn;?.lua");
 
-		IConfig prefs = getPrefs();
 		BaseNotifier ntf = getNotifier();
 		BaseImageFactory imgfac = getImageFactory();
 		BaseImageFxLib fxlib = getImageFxLib();
@@ -395,29 +395,31 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.rawset("input",        LuajavaLib.toUserdata(input, IInput.class));
 			globals.rawset("notifier",     LuajavaLib.toUserdata(ntf, INotifier.class));
 			globals.rawset("globals",      LuajavaLib.toUserdata(gs, IStorage.class));
-			LuaValue sharedGlobalsLua = LuajavaLib.toUserdata(sg, IPersistentStorage.class);
-			if (StringUtil.compareVersion("2.7", prefs.get(ENGINE_TARGET_VERSION)) < 0) {
-				globals.rawset("systemVars", sharedGlobalsLua);		
-			}
-			globals.rawset("sharedGlobals", sharedGlobalsLua);						
+			globals.rawset("sharedGlobals",LuajavaLib.toUserdata(sg, IPersistentStorage.class));						
 			globals.rawset("seenLog",      LuajavaLib.toUserdata(sl, ISeenLog.class));		
 			globals.rawset("analytics",    LuajavaLib.toUserdata(an, IAnalytics.class));
 			globals.rawset("timer",        LuajavaLib.toUserdata(timer, ITimer.class));
 			linkedProperties.flush(globals);
 			
 			//--- Register types ---
+			LuaUtil.registerClass(globals, MutableMatrix.class, "Matrix");
+			LuaUtil.registerClass(globals, Looper.class);
+			// Enums
 			LuaUtil.registerClass(globals, ErrorLevel.class);
 			LuaUtil.registerClass(globals, BlendMode.class);			
 			LuaUtil.registerClass(globals, SoundType.class);
-			LuaUtil.registerClass(globals, LoopMode.class);			
-			LuaUtil.registerClass(globals, Looper.class);
-			LuaUtil.registerClass(globals, ShaderImageTween.class);
+			LuaUtil.registerClass(globals, LoopMode.class);
+			// Layouts
+			LuaUtil.registerClass(globals, NullLayout.class);
+			LuaUtil.registerClass(globals, FlowLayout.class);
+			// Shaders
 			LuaUtil.registerClass(globals, ShutterGS.class);
 			LuaUtil.registerClass(globals, WipeGS.class);
 			LuaUtil.registerClass(globals, BlendGS.class);
 			LuaUtil.registerClass(globals, DistortGS.class);
 			LuaUtil.registerClass(globals, BlurGS.class);
-			LuaUtil.registerClass(globals, MutableMatrix.class, "Matrix");
+			// Tweens
+			LuaUtil.registerClass(globals, ShaderImageTween.class);
 
 			//--- Register special libraries ---
 			
