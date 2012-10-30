@@ -96,7 +96,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		double y = input.getMouseY();
 				
 		boolean inputHeld = isInputHeld(input);
-		boolean contains = layer.contains(x, y) && contains(x, y) && visibleEnough;
+		boolean contains = (isClipEnabled() || layer.contains(x, y)) && contains(x, y) && visibleEnough;
 		boolean r = contains && (mouseArmed || keyArmed || !inputHeld);
 		if (rollover != r) {
 			rollover = r;

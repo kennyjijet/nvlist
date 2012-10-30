@@ -663,7 +663,7 @@ local function createTextCursor(textBox)
 		if prefs.textStyle ~= nil then
 			scale = 1.2 * prefs.textStyle:getFontSize() / cursor:getUnscaledHeight()
 		end
-		cursor:setScale(scale, scale)
+		cursor:setScale(scale)
 		textBox:setCursor(cursor, true, true)
 	end
 	return cursor

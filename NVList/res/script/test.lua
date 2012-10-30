@@ -179,4 +179,123 @@ local anim = Anim.par(anim1, anim2, anim3):run(3)
 text("Done")
 ]]
 
+--[[ NVList 3.0 GUI panel/layout test ]]
+
+textoff()
+
+local panel = createPanel(300, 300)
+
+local layouts = {}
+
+local layout = FlowLayout.new()
+layout:setPadding(10)
+table.insert(layouts, layout)
+
+local layout = GridLayout.new()
+layout:setCols(5)
+layout:setPack(2)
+layout:setAnchor(5)
+layout:setPadding(10)
+table.insert(layouts, layout)
+
+local layoutIndex = 1
+layout = layouts[layoutIndex]
+panel:setLayout(layout)
+
+local cs = {}
+for n=1,20 do
+    cs[n] = img("white", {size={100, 100}})
+    panel:add(cs[n])
+end
+
+local frame = 0
+while not input:consumeConfirm() do
+    frame = (frame + 1) % 512
+
+    if input:consumeKey(Keys.Q) then
+        layoutIndex = layoutIndex + 1
+        if layoutIndex > #layouts then
+            layoutIndex = 1
+        end
+        layout = layouts[layoutIndex]
+        panel:setLayout(layout)
+    elseif input:consumeKey(Keys.R) then
+        for i,d in ipairs(cs) do
+            d:setColor(1.0 - (.1 * i) % 1, 1.0, 1.0 - (.03 * i) % 1)
+            d:setSize(math.random(50, 200), math.random(50, 200))
+        end
+        panel:invalidateLayout()
+    elseif input:consumeKey(Keys.W) then
+        layout:setLeftToRight(true)
+        panel:invalidateLayout()
+    elseif input:consumeKey(Keys.E) then
+        layout:setLeftToRight(false)
+        panel:invalidateLayout()
+    elseif input:consumeKey(Keys.B) then
+        panel:setBackground(tex("bg/bg" .. math.random(1, 3)))
+    elseif input:consumeKey(Keys.N) then        
+        local corners = {}
+        for i=1,4 do corners[i] = tex("bg/bg" .. math.random(1, 3)) end
+        
+        local sides = {}
+        for i=1,4 do sides[i] = tex("bg/bg" .. math.random(1, 3)) end
+        
+        panel:setBorderInsets(20)
+        panel:setBorder(sides, corners)
+    else
+        --Allow changing the layout anchor by pressing the numpad
+        for i=1,9 do
+            if input:consumeKey(Keys["NUMPAD" .. i]) then
+                layout:setAnchor(i)
+            end
+        end
+    end
+    
+    local pad = (screenHeight/3) * (.5 - .5*math.fastCos(.5 * frame))
+    panel:setBounds(pad, pad, screenWidth-2*pad, screenHeight-2*pad)
+    panel:layout()
+    
+    yield()
+end
+
+panel:destroy()
+
+--[[ NVList 3.0 viewport test ]]
+
+viewports = {}
+for i=1,4 do
+    local viewport = createViewport(150, 225)
+    viewport:setPos(50 + 200 * i, 50)
+        
+    --local layout = GridLayout.new()
+    --layout:setCols(1)
+    --layout:setPack(7)
+    --layout:setAnchor(5)
+    --layout:setPadding(10)
+    --viewport:setLayout(layout)
+    
+    setViewportScrollBar(viewport)
+    setViewportScrollBar(viewport, true)
+    
+    local cs = {
+        img("white", {y=0, size={100, 100}}),
+        img("white", {y=125, size={100, 100}, colorRGB=0xFF0000}),
+        img("white", {x=75, y=250, size={100, 100}, colorRGB=0x00FF00}),
+        img("white", {y=375, size={100, 100}, colorRGB=0xFFFF00})
+    }
+    for j=i+1,4 do
+        rm(cs[j])
+        cs[j] = nil
+    end
+    for _,i in pairs(cs) do
+        viewport:add(i)
+    end
+    table.insert(viewports, viewport)
+end
+
+while not input:consumeConfirm() do
+    yield()
+end
+destroyValues(viewports)
+
 return titlescreen()

@@ -6,8 +6,10 @@ import java.io.Serializable;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IChoice;
+import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.ISaveLoadScreen;
+import nl.weeaboo.vn.IViewport;
 import nl.weeaboo.vn.impl.base.BaseGUIFactory;
 
 @LuaSerializable
@@ -29,6 +31,11 @@ public class GUIFactory extends BaseGUIFactory implements Serializable {
 	@Override
 	public Panel createPanel() {
 		return new Panel();
+	}
+	
+	@Override
+	public IViewport createViewport(ILayer layer) {
+		return new Viewport(layer);
 	}
 	
 	@Override

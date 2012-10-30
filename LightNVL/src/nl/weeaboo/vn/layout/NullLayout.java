@@ -6,7 +6,7 @@ import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
 @LuaSerializable
-public final class NullLayout implements ILayout {
+public final class NullLayout extends AbstractLayout {
 
 	private static final long serialVersionUID = LayoutImpl.serialVersionUID;
 
@@ -17,7 +17,7 @@ public final class NullLayout implements ILayout {
 	
 	//Functions
 	@Override
-	public void layout(Rect2D bounds, Collection<LayoutComponent> components) {
+	public void layout(Rect2D bounds, Collection<ILayoutComponent> components) {
 	}
 
 	//Getters

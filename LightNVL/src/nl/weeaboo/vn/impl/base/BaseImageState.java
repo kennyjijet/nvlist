@@ -17,17 +17,16 @@ public class BaseImageState implements IImageState {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
-	private final IImageFactory imgfac;
-	private final int width, height;
-	
-	private List<State> sstack;
+	private final int width, height;	
+	private final List<State> sstack;
+	private final DrawableRegistry registry;
 	private transient boolean changed;
 	
 	protected BaseImageState(IImageFactory fac, int w, int h) {
-		imgfac = fac;
 		width = w;
 		height = h;
 		sstack = new ArrayList<State>();
+		registry = new DrawableRegistry();
 		
 		initTransients();
 		reset0();
@@ -42,7 +41,7 @@ public class BaseImageState implements IImageState {
 		in.defaultReadObject();
 		
 		initTransients();
-	}	
+	}
 	
 	private void reset0() {
 		while (!sstack.isEmpty()) {
@@ -54,16 +53,26 @@ public class BaseImageState implements IImageState {
 	}
 	
 	private State newState() {
-		ILayer rootLayer = imgfac.createLayer(0, 0, width, height);
+		ILayer rootLayer = createLayer(null);
 		
-		ILayer defaultLayer = imgfac.createLayer(0, 0, width, height);
-		rootLayer.add(defaultLayer);
+		ILayer defaultLayer = createLayer(rootLayer);
 		
-		ILayer overlayLayer = imgfac.createLayer(0, 0, width, height);
+		ILayer overlayLayer = createLayer(rootLayer);
 		overlayLayer.setZ((short)(-30000));
-		rootLayer.add(overlayLayer);
 		
 		return new State(rootLayer, defaultLayer, overlayLayer);
+	}
+	
+	@Override
+	public ILayer createLayer(ILayer parentLayer) {
+		ILayer layer = new Layer(registry);
+		if (parentLayer != null) {
+			layer.setBounds(parentLayer.getX(), parentLayer.getY(), parentLayer.getWidth(), parentLayer.getHeight());
+			parentLayer.add(layer);
+		} else {
+			layer.setBounds(0, 0, width, height);
+		}
+		return layer;
 	}
 	
 	@Override
@@ -139,7 +148,7 @@ public class BaseImageState implements IImageState {
 	public ILayer getOverlayLayer() {
 		return getState().getOverlayLayer();		
 	}
-		
+			
 	//Setters
 
 	//Inner Classes
@@ -158,12 +167,15 @@ public class BaseImageState implements IImageState {
 			this.overlayLayer = overlayLayer;
 		}
 
-		public void destroy() {			
+		public void destroy() {
+			rootLayer.destroy();
+			defaultLayer.destroy();
+			overlayLayer.destroy();
 		}
 		
 		public ILayer getRootLayer() {
 			if (rootLayer == null || rootLayer.isDestroyed()) {
-				rootLayer = imgfac.createLayer(0, 0, width, height);
+				rootLayer = createLayer(null);
 			}
 			return rootLayer;
 		}

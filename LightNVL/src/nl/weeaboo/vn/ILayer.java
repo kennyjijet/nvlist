@@ -1,6 +1,5 @@
 package nl.weeaboo.vn;
 
-import java.util.Collection;
 import java.util.EmptyStackException;
 
 import nl.weeaboo.vn.impl.base.ScreenshotBuffer;
@@ -9,6 +8,10 @@ public interface ILayer extends IDrawable {
 
 	//Functions
 	/**
+	 * Adds <code>d</code> to this layer and removes it from its old layer. When
+	 * this layer is destroyed or the drawable ever becomes unassociated with
+	 * any layer, the drawable is destroyed.
+	 * 
 	 * @param d The new drawable to add
 	 * @throws IllegalArgumentException If <code>d</code> is <code>null</code>
 	 */
@@ -37,14 +40,7 @@ public interface ILayer extends IDrawable {
 	 */
 	public void popContents() throws EmptyStackException;
 		
-	//Getters
-	/**
-	 * @return All layers contained inside this layer. If
-	 *         <code>recursive == true</code>, also returns all layers contained
-	 *         in sub-layers.
-	 */
-	public Collection<ILayer> getSubLayers(boolean recursive);
-	
+	//Getters	
 	/**
 	 * @return All active drawables contained in the layer.
 	 */

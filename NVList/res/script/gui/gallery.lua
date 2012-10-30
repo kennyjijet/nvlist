@@ -18,8 +18,8 @@ local ImageSlot = {
 	label=nil,
     x=0,
     y=0,
-    w=0,
-    h=0
+    w=nil,
+    h=nil
 	}
 
 function ImageSlot.new(self)
@@ -33,6 +33,9 @@ function ImageSlot.new(self)
 	end
 	self.button:setToggle(true)
 
+    self.w = self.w or self.button:getWidth()
+    self.h = self.h or self.button:getHeight()
+    
 	if #self.fullpaths > 1 then
 		self.label = textimg("(" .. #self.fullpaths .. ")")
 		self.label:setAnchor(3)
@@ -45,29 +48,19 @@ function ImageSlot.new(self)
 end
 
 function ImageSlot:destroy()
-	self.button:destroy()
-	if self.label ~= nil then
-		self.label:destroy()
-	end
+    destroyValues{self.button, self.label}
 end
 
-function ImageSlot:getWidth()
-    return self.w
+function ImageSlot:getBounds()
+    return {self.x, self.y, self.w, self.h}
 end
 
-function ImageSlot:getHeight()
-    return self.h
-end
-
-function ImageSlot:setPos(x, y)
+function ImageSlot:setBounds(x, y, w, h)
     self.x = x
     self.y = y
-    self:layout()
-end
-
-function ImageSlot:setSize(w, h)
     self.w = w
     self.h = h
+    
     self:layout()
 end
 
@@ -239,9 +232,6 @@ local ImageGallery = {
 	selected=0,
 	rows=2,
 	cols=3,
-	pageButtonLayout=nil,
-	slotLayout=nil,
-	buttonBarLayout=nil,
 	}
 
 function ImageGallery.new(folder, self)
@@ -278,13 +268,19 @@ function ImageGallery:layout()
     local mainPadV = h / 5.33333333333
 	local mainH = h - mainPadV*2
 
-	self.pageButtonLayout = GridLayout.new{w=w, h=vpad, pad=ipad, pack=5, children=self.pageButtons}
-	self.pageButtonLayout:layout()
-	self.slotLayout = GridLayout.new{x=ipad, y=mainPadV, w=mainW, h=mainH, cols=self.cols, pad=0, pack=5,
-		children=self.slots, fillW=true, fillH=true}
-	self.slotLayout:layout()
-	self.buttonBarLayout = GridLayout.new{y=h-vpad, w=w, h=vpad, pad=ipad, pack=5, children={self.returnButton}}
-	self.buttonBarLayout:layout()
+	doLayout(GridLayout, 0, 0, w, vpad,
+        {padding=ipad, pack=5},
+        self.pageButtons)
+        
+	for i=1,2 do
+        doLayout(GridLayout, ipad, mainPadV, mainW, mainH,
+            {cols=self.cols, pack=5, stretch=true},
+            self.slots)
+    end
+    
+    doLayout(GridLayout, 0, h-vpad, w, vpad,
+        {padding=ipad, pack=5},
+        {self.returnButton})
 		
 	self.topFade:setBounds(0, 0, w, vpad)
 	self.bottomFade:setBounds(0, math.ceil(h-vpad), w, vpad)

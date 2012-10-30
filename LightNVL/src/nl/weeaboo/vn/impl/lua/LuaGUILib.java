@@ -9,7 +9,10 @@ import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IPanel;
 import nl.weeaboo.vn.ISaveLoadScreen;
+import nl.weeaboo.vn.IViewport;
 import nl.weeaboo.vn.impl.base.BaseGUIFactory;
+import nl.weeaboo.vn.layout.ILayoutComponent;
+import nl.weeaboo.vn.layout.MockLayoutComponent;
 
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
@@ -24,6 +27,9 @@ public class LuaGUILib extends LuaLibrary {
 		"createChoice",
 		"createSaveScreen",
 		"createLoadScreen",
+		"createPanel",
+		"createViewport",
+		"createLayoutComponent",
 	};
 
 	private static final int INIT                = 0;
@@ -31,6 +37,8 @@ public class LuaGUILib extends LuaLibrary {
 	private static final int CREATE_SAVE_SCREEN  = 2;
 	private static final int CREATE_LOAD_SCREEN  = 3;
 	private static final int CREATE_PANEL        = 4;
+	private static final int CREATE_VIEWPORT     = 5;
+	private static final int CREATE_LAYOUT_COMPONENT = 6;
 	
 	private final INotifier notifier;
 	private final BaseGUIFactory guifac;
@@ -55,6 +63,8 @@ public class LuaGUILib extends LuaLibrary {
 		case CREATE_SAVE_SCREEN: return createSaveScreen(args);
 		case CREATE_LOAD_SCREEN: return createLoadScreen(args);
 		case CREATE_PANEL: return createPanel(args);
+		case CREATE_VIEWPORT: return createViewport(args);
+		case CREATE_LAYOUT_COMPONENT: return createLayoutComponent(args);
 		default: return super.invoke(args);
 		}
 	}
@@ -112,6 +122,24 @@ public class LuaGUILib extends LuaLibrary {
 		IPanel panel = guifac.createPanel();
 		layer.add(panel);
 		return LuajavaLib.toUserdata(panel, panel.getClass());
+	}
+	
+	protected Varargs createViewport(Varargs args) {
+		ILayer parentLayer = getLayerArg(args, 1);
+		
+		IViewport viewport = guifac.createViewport(imageState.createLayer(parentLayer));
+		parentLayer.add(viewport);
+		return LuajavaLib.toUserdata(viewport, viewport.getClass());
+	}
+		
+	protected Varargs createLayoutComponent(Varargs args) {
+		double x = args.optdouble(1, 0.0);
+		double y = args.optdouble(2, 0.0);
+		double w = args.optdouble(3, 1.0);
+		double h = args.optdouble(4, 1.0);
+		
+		ILayoutComponent lc = new MockLayoutComponent(x, y, w, h, null);
+		return LuajavaLib.toUserdata(lc, lc.getClass());
 	}
 	
 }

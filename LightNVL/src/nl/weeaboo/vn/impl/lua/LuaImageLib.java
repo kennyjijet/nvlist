@@ -225,9 +225,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 	protected Varargs createLayer(Varargs args) {
 		ILayer parentLayer = getLayerArg(args, 1);
 		
-		ILayer layer = imageFactory.createLayer(0, 0, parentLayer.getWidth(), parentLayer.getHeight());
-		parentLayer.add(layer);
-		
+		ILayer layer = imageState.createLayer(parentLayer);		
 		return LuajavaLib.toUserdata(layer, layer.getClass());
 	}
 	

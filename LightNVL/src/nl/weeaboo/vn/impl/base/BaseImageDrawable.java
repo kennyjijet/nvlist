@@ -30,6 +30,7 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 		tween = null;
 		image = null;
 		geometryShader = null;
+		updateUnscaledSize();
 	}
 	
 	@Override
@@ -69,7 +70,18 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 				markChanged();
 			}
 			tween = null;
+			updateUnscaledSize();
 		}		
+	}
+	
+	private void updateUnscaledSize() {
+		if (tween != null) {
+			setUnscaledSize(tween.getWidth(), tween.getHeight());
+		} else if (image != null) {			
+			setUnscaledSize(image.getWidth(), image.getHeight());
+		} else {
+			setUnscaledSize(0, 0);
+		}
 	}
 		
 	//Getters
@@ -79,23 +91,7 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 
 		return image;
 	}
-	
-	@Override
-	public double getUnscaledWidth() {
-		if (tween != null) return tween.getWidth();
 		
-		ITexture tex = getTexture();
-		return (tex != null ? tex.getWidth() : 0);
-	}
-		
-	@Override
-	public double getUnscaledHeight() {
-		if (tween != null) return tween.getHeight();
-
-		ITexture tex = getTexture();
-		return (tex != null ? tex.getHeight() : 0);
-	}	
-	
 	@Override
 	public IGeometryShader getGeometryShader() {
 		return geometryShader;
@@ -126,8 +122,8 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 			image = i;
 			
 			markChanged();
-			invalidateCollisionShape();
-			
+			updateUnscaledSize();
+			invalidateCollisionShape();			
 			setAlign(imageAlignX, imageAlignY);
 		}
 	}
@@ -139,12 +135,13 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 		if (tween != t) {
 			t.setStartImage(this);
 
-			tween = t;
-			markChanged();
-			
+			tween = t;			
 			if (!tween.isPrepared()) {
 				tween.prepare();
 			}
+			
+			markChanged();
+			updateUnscaledSize();			
 		}
 	}
 	

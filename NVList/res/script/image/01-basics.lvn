@@ -2,7 +2,7 @@ Fading in background.
 @bgf("bg/bg1")
 
 Adding a sprite.
---Each call to img(f) adds a new sprite
+#Each call to img(f) adds a new sprite
 @local i = imgf("arm01m", "c") --"c" is the sprite slot, valid values: "l", "lc", "c", "rc", "r"
 
 Changing background image.

@@ -98,7 +98,9 @@ end
 
 ---Gets called right before saving
 function onSave(slot)
-	setSharedGlobal("vn.save.lastSaved", slot)
+	if slot < math.min(Save.getQuickSaveSlot(1), Save.getAutoSaveSlot(1)) then
+		setSharedGlobal("vn.save.lastSaved", slot)
+	end
 end
 
 ---Gets called when a regular load failed and the script must restore its

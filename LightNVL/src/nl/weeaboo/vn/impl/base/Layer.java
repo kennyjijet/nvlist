@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EmptyStackException;
-import java.util.LinkedList;
 import java.util.List;
 
+import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IDrawable;
@@ -36,15 +36,19 @@ public final class Layer extends BaseDrawable implements ILayer {
 		}
 	};
 	
-	private List<LayerState> sstack;
+	private final DrawableRegistry registry;
+	
+	private List<LayerContents> sstack;
 	private ScreenshotBuffer screenshotBuffer;
 	private double width, height;
 	private transient boolean changed;
 	private transient IDrawable[] tempArray;
 
-	public Layer() {
-		sstack = new ArrayList<LayerState>();
-		sstack.add(new LayerState());
+	public Layer(DrawableRegistry registry) {
+		this.registry = registry;
+		
+		sstack = new ArrayList<LayerContents>();
+		sstack.add(new LayerContents());
 		
 		screenshotBuffer = new ScreenshotBuffer();		
 		initTransients();
@@ -63,9 +67,32 @@ public final class Layer extends BaseDrawable implements ILayer {
 	
 	@Override
 	public void add(IDrawable d) {
-		if (isDestroyed()) return;
-
+		if (isDestroyed() || d.isDestroyed()) return;
+				
 		if (getState().add(d)) {
+			registry.addReference(d);
+			
+			//Change drawable's current parent to this layer and remove it from its previous layer if any
+			Layer oldLayer = registry.setParentLayer(d, this);
+			if (oldLayer != null && oldLayer != this) {
+				oldLayer.remove(d);
+			}		
+			
+			markChanged();
+		}		
+	}
+
+	private void onRemoved(IDrawable d) {
+		registry.removeReference(d);
+	}
+	
+	/**
+	 * This remove operation removes the given drawable from this layer
+	 * completely, including from any pushed states.
+	 */
+	protected void remove(IDrawable d) {
+		if (getState().remove(d)) {
+			onRemoved(d);
 			markChanged();
 		}
 	}
@@ -74,12 +101,10 @@ public final class Layer extends BaseDrawable implements ILayer {
 	public void clearContents() {
 		if (isDestroyed()) return;
 
-		Collection<IDrawable> removed = getState().destroy();
+		Collection<IDrawable> removed = getState().clear();
 		if (!removed.isEmpty()) {
 			for (IDrawable d : removed) {
-				if (d != null && !containsRecursive(d)) {				
-					d.destroy();
-				}
+				onRemoved(d);
 			}
 			markChanged();
 		}
@@ -87,13 +112,17 @@ public final class Layer extends BaseDrawable implements ILayer {
 	
 	@Override
 	public void destroy() {
-		if (isDestroyed()) return;
+		if (isDestroyed()) {
+			return;
+		}
 		
 		super.destroy();
 		
+		//We need to be marked destroyed before we're allowed to pop the final stack entry
+		
 		while (!sstack.isEmpty()) {
 			popContents();
-		}		
+		}
 	}
 	
 	@Override
@@ -105,7 +134,25 @@ public final class Layer extends BaseDrawable implements ILayer {
 	public void pushContents(short z) {
 		if (isDestroyed()) return;
 		
-		sstack.add(new LayerState(getState(), z));
+		LayerContents oldState = getState();
+		sstack.add(new LayerContents());
+		
+		tempArray = oldState.getDrawables(tempArray, 0);
+		for (int n = 0; n < tempArray.length; n++) {
+			IDrawable d = tempArray[n];
+			if (d == null) break; //The array can only contain nulls at the end
+			tempArray[n] = null; //Null the array indices to allow garbage collection
+			
+			if (d.getZ() <= z) {
+				add(d); //Re-add and increase reference count
+				if (d instanceof ILayer) {
+					//We need to also recursively push the contents of nested layers
+					ILayer l = (ILayer)d;
+					l.pushContents();
+				}
+			}
+		}
+		
 		markChanged();
 	}
 	
@@ -116,22 +163,52 @@ public final class Layer extends BaseDrawable implements ILayer {
 		}
 		
 		if (!sstack.isEmpty()) {
-			LayerState oldState = sstack.remove(sstack.size()-1);
-			oldState.destroy();
+			LayerContents oldState = sstack.remove(sstack.size()-1);
+			
+			Collection<IDrawable> removed = oldState.clear();
+			for (IDrawable d : removed) {
+				onRemoved(d); //Decrease reference count
+				
+				if (d instanceof ILayer) {
+					//Pop the recursively pushed layers
+					ILayer l = (ILayer)d;
+					l.popContents();
+				}
+			}
+
+			if (!sstack.isEmpty()) {
+				//Set the drawables's parent back to this layer
+				for (IDrawable d : getContents()) {
+					Layer oldLayer = registry.setParentLayer(d, this);
+					if (oldLayer != null && oldLayer != this) {
+						oldLayer.remove(d);
+					}		
+				}
+			}
+			
 			markChanged();
+		}
+	}
+	
+	protected void removeDestroyed() {
+		Collection<IDrawable> removed = getState().removeDestroyed();
+		if (!removed.isEmpty()) {
+			for (IDrawable d : removed) {
+				onRemoved(d);
+			}
 		}
 	}
 
 	@Override
 	public boolean update(ILayer parent, IInput input, double effectSpeed) {
-		LayerState state = getState();
-		
+		LayerContents state = getState();
+				
 		if (isVisible()) {
 			final double x = getX();
 			final double y = getY();
 			input.translate(-x, -y);
 			try {
-				tempArray = state.getContents(tempArray, 1);
+				tempArray = state.getDrawables(tempArray, 1);
 				for (int n = 0; n < tempArray.length; n++) {
 					IDrawable d = tempArray[n];
 					if (d == null) break; //The array can only contain nulls at the end
@@ -150,6 +227,8 @@ public final class Layer extends BaseDrawable implements ILayer {
 			markChanged();
 		}
 		
+		removeDestroyed();
+		
 		return consumeChanged();
 	}
 
@@ -159,8 +238,12 @@ public final class Layer extends BaseDrawable implements ILayer {
 			BaseDrawBuffer baseBuf = BaseDrawBuffer.cast(buf);
 			baseBuf.startLayer(this);
 			
-			LayerState state = getState();
-			tempArray = state.getContents(tempArray, -1);
+			LayerContents state = getState();
+			tempArray = state.getDrawables(tempArray, -1);
+			
+			final Rect2D r = getBounds();
+			final double lw = r.w;
+			final double lh = r.h;
 			
 			int t = 0;
 			for (int pass = 0; pass < 2; pass++) {
@@ -174,14 +257,15 @@ public final class Layer extends BaseDrawable implements ILayer {
 								ILayer l = (ILayer)d;
 								baseBuf.draw(new LayerRenderCommand(l));
 							} else {
-								d.draw(baseBuf);
+								if (d.getBounds().intersects(0, 0, lw, lh)) {
+									d.draw(baseBuf);
+								}
 							}
 						} else {
 							if (d instanceof ILayer) {
 								d.draw(baseBuf);
 							}
-						}
-						
+						}						
 					}
 				}
 			}
@@ -202,7 +286,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 	}
 	
 	//Getters
-	protected LayerState getState() {
+	protected LayerContents getState() {
 		if (isDestroyed()) return null;
 
 		return sstack.get(sstack.size()-1);
@@ -214,56 +298,31 @@ public final class Layer extends BaseDrawable implements ILayer {
 	}
 	
 	@Override
-	public Collection<ILayer> getSubLayers(boolean recursive) {
-		List<ILayer> result = new ArrayList<ILayer>();
-		IDrawable[] temp = new IDrawable[16];
-		
-		//Add ourselves to the work list
-		LinkedList<ILayer> workQ = new LinkedList<ILayer>();
-		workQ.add(this);
-		
-		//Keep processing layers
-		while (!workQ.isEmpty()) {
-			ILayer layer = workQ.removeFirst();
-			temp = layer.getContents(temp);
-			for (IDrawable d : temp) {
-				if (d == null) break;
-				
-				if (!d.isDestroyed() && d instanceof ILayer) {
-					ILayer sub = (ILayer)d;
-					
-					result.add(sub);
-					if (recursive) {
-						workQ.add(sub);
-					}
-				}
-			}
-		}
-		return result;
-	}
-	
-	@Override
 	public IDrawable[] getContents() {
 		return getContents(null);
 	}
 
 	@Override
 	public IDrawable[] getContents(IDrawable[] out) {
-		if (isDestroyed()) return new IDrawable[0];
-		return getState().getContents(out);
+		if (isDestroyed()) {
+			return new IDrawable[0];
+		}
+		
+		removeDestroyed();
+		return getState().getDrawables(out, 0);
 	}
 	
 	@Override
 	public boolean contains(IDrawable d) {
-		if (isDestroyed()) return false;
+		if (isDestroyed() || d == null || d.isDestroyed()) return false;
 		
 		return getState().contains(d);
 	}
 	
 	protected boolean containsRecursive(IDrawable d) {
-		if (isDestroyed()) return false;
+		if (isDestroyed() || d == null || d.isDestroyed()) return false;
 
-		for (LayerState state : sstack) {
+		for (LayerContents state : sstack) {
 			if (state.contains(d)) return true;
 		}
 		return false;

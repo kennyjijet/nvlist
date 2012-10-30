@@ -23,6 +23,11 @@ public interface IImageState extends Serializable {
 	public void pop();
 	
 	/**
+	 * Creates a new layer object and adds it to <code>parentLayer</code>.
+	 */
+	public ILayer createLayer(ILayer parentLayer);
+	
+	/**
 	 * Updates the image state and all layers it contains
 	 * 
 	 * @param input The current user input

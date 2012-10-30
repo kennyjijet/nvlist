@@ -68,56 +68,14 @@ function SaveSlot.new(self)
 end
 
 function SaveSlot:destroy()
-	self.button:destroy()
-	if self.image ~= nil then
-		self.image:destroy()
-	end
-	if self.newImage ~= nil then
-		self.newImage:destroy()
-	end
-	self.label:destroy()
+	destroyValues{self.button, self.image, self.newImage, self.label}
 end
 
-function SaveSlot:setPos(x, y)
-	local b = self.button
-	local l = self.label
-	local i = self.image
-
-	b:setPos(x, y)
-	l:setPos(x, y + b:getHeight() - l:getHeight())
-
-	if i ~= nil then	
-		local pad = (b:getWidth() - i:getWidth())/2
-		i:setPos(x + pad, y + pad)
-	end	
-	
-	self:layout()
+function SaveSlot:getBounds()
+	return self.button:getBounds()
 end
 
-function SaveSlot:layout()
-	local i = self.image
-	local b = self.button	
-	local newI = self.newImage
-	if newI ~= nil then
-		if i ~= nil then	
-			--Align with top-right of screenshot
-			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
-		else
-			--Align with top-right of button
-			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
-		end
-	end
-end
-
-function SaveSlot:getWidth()
-	return self.button:getWidth()
-end
-
-function SaveSlot:getHeight()
-	return self.button:getHeight()
-end
-
-function SaveSlot:setSize(w, h)
+function SaveSlot:setBounds(x, y, w, h)
 	local b = self.button
 	local l = self.label
 	local i = self.image
@@ -135,8 +93,25 @@ function SaveSlot:setSize(w, h)
 	else	
 		l:setSize(b:getWidth(), b:getHeight())
 	end	
+	
+	b:setPos(x, y)
+	l:setPos(x, y + b:getHeight() - l:getHeight())
 
-	self:layout()
+	if i ~= nil then	
+		local pad = (b:getWidth() - i:getWidth())/2
+		i:setPos(x + pad, y + pad)
+	end		
+	
+	local newI = self.newImage
+	if newI ~= nil then
+		if i ~= nil then	
+			--Align with top-right of screenshot
+			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
+		else
+			--Align with top-right of button
+			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
+		end
+	end	
 end
 
 function SaveSlot:update()
@@ -180,11 +155,7 @@ local SaveLoadScreen = {
 	okButton=nil,
 	cancelButton=nil,
 	topFade=nil,
-	bottomFade=nil,
-	pageButtonLayout=nil,
-	saveLayout=nil,
-	qsaveLayout=nil,
-	buttonBarLayout=nil,
+	bottomFade=nil
 	}
 
 function SaveLoadScreen.new(self)
@@ -247,21 +218,28 @@ function SaveLoadScreen:layout()
 	
 	local ipad = self.pad
 	local vpad = h / 7
-	local mainW = w-ipad*2
+	local mainW = w - ipad*2
 	local mainH = h - vpad*2 - qh - ipad*3
 
-	self.pageButtonLayout = GridLayout.new{x=x, y=y, w=w, h=vpad, pad=ipad, pack=5,
-		children=self.pageButtons}
-	self.pageButtonLayout:layout()
-	self.saveLayout = GridLayout.new{x=x+ipad, y=y+vpad+ipad, w=mainW, h=mainH, cols=self.cols, pad=ipad,
-		children=self.saves, fillW=true, fillH=true, pack=self.pack}
-	self.saveLayout:layout()
-	self.qsaveLayout = GridLayout.new{x=x+ipad, y=y+h-vpad-qh-ipad, w=mainW, h=qh, cols=self.qcols,
-		pad=ipad, children=self.qsaves, fillW=true, fillH=true, pack=self.qpack}
-	self.qsaveLayout:layout()
-	self.buttonBarLayout = GridLayout.new{x=x, y=y+h-vpad, w=w, h=vpad, pad=ipad, pack=5,
-		children={self.okButton, self.cancelButton}}
-	self.buttonBarLayout:layout()
+	doLayout(GridLayout, x, y, w, vpad,
+		{padding=ipad, pack=5},
+		self.pageButtons)
+	
+	for i=1,2 do
+		--Because of the peculiar implementation of SaveSlot, we need to layout twice;
+		--once for the size and then once again for the position.
+		doLayout(GridLayout, x+ipad, y+vpad+ipad, mainW, mainH,
+			{cols=self.cols, padding=ipad, pack=self.pack, stretch=true},
+			self.saves)
+		
+		doLayout(GridLayout, x+ipad, y+h-vpad-qh-ipad, mainW, qh,
+			{cols=self.qcols, padding=ipad, pack=self.qpack, stretch=true},
+			self.qsaves)
+	end
+	
+	doLayout(GridLayout, x, y+h-vpad, w, vpad,
+		{padding=ipad, pack=5},
+		{self.okButton, self.cancelButton})
 		
 	self.topFade:setBounds(x, y, w, vpad)
 	self.bottomFade:setBounds(x, y+math.ceil(h-vpad), w, vpad)
@@ -330,6 +308,7 @@ function SaveLoadScreen:setPage(p, force)
 		local pageStart = 1 + (p - 1) * slotsPerPage
 		local pageEnd   = 1 + (p    ) * slotsPerPage
 		local saved = Save.getSaves(pageStart, pageEnd)	
+		local lastSaved = getSharedGlobal(KEY_SAVE_LAST)
 		
 		for i=pageStart,pageEnd-1 do
 			local slot = i
@@ -344,7 +323,7 @@ function SaveLoadScreen:setPage(p, force)
 				screenshot = si:getScreenshot()
 				label = si:getLabel()
 				empty = false
-				new = (getSharedGlobal(KEY_SAVE_LAST) == i)
+				new = (lastSaved == i)
 			end
 			
 			local ss = self.newSaveSlot{slot=slot, label=label, empty=empty, screenshot=screenshot,
@@ -458,7 +437,7 @@ function TextLogScreen:run()
 		pages = math.min(pages, 25) --Limit number of pages
 	end
 	local page = pages-1
-	local lw = w-vpad
+	local lw = w
 	local lh = h-bh-vpad*2
     
     --Create edge images
@@ -469,41 +448,45 @@ function TextLogScreen:run()
     
 	--Create controls
 	local returnButton = tbutton("return-")
-    local returnButtonScale = math.min(1, (.90 * bh) / returnButton:getHeight())
-    returnButton:setScale(returnButtonScale, returnButtonScale)
+    returnButton:setScale(math.min(1, (.90 * bh) / returnButton:getHeight()))
 	if System.isTouchScreen() then
 		returnButton:setPadding(bh/2)
 	end
 	returnButton:addActivationKeys(Keys.RIGHT, Keys.DOWN)
     
-	local buttonBarLayout = GridLayout.new{y=h-bh-vpad, w=w, h=bh+vpad, pad=bh/4, pack=5, children={returnButton}}
-	buttonBarLayout:layout()    
+	doLayout(GridLayout, 0, h-bh-vpad, w, bh+vpad,
+		{padding=bh/4, pack=5},
+		{returnButton})
 
 	--Create viewport and fill with text pages
-	viewport = Viewport.new{pad=vpad, scrollBarPad=vpad}
-	viewport:setBounds(0, vpad, lw, lh)
+	local viewport = createViewport(lw, math.ceil(lh))
+	viewport:setPos(0, vpad)
 	viewport:setZ(1000)
+	viewport:setPadding(vpad)
+	local si = {top=vpad, right=vpad, bottom=vpad, left=vpad}
+	if android then
+		si.top = si.top + vpad * 3
+	end
+	setViewportScrollBar(viewport, false, si)
+	self.viewport = viewport
 	
-	local pd = {}
 	local x = 0
 	local y = 0
     local defaultStyle = prefs.textLogStyle or createStyle{color=0xFFFFFF80}
-    local iw = viewport:getInnerWidth()
+    local iw = viewport:getInnerWidth() - vpad*2
     
-    viewport:openLayer()
 	for p=pages,1,-1 do
 		local t = textimg()
 		t:setPos(x, y)
 		t:setSize(iw, 999999)
 		t:setDefaultStyle(defaultStyle)
 		t:setText(tl:getPage(-p))
-		t:setSize(iw, t:getTextHeight())
-		
+		t:setSize(iw, t:getTextHeight())		
 		if System.isLowEnd() then
 			t:setBlendMode(BlendMode.OPAQUE)
 		end
+		viewport:add(t)
 		
-		pd[p] = t
 		y = y + t:getTextHeight()
 		if p > 1 then
 			--Not the final page, add spacing equal to
@@ -513,15 +496,14 @@ function TextLogScreen:run()
 			end
 		end
 	end
-	viewport:closeLayer(pd)
-	viewport:scrollTo(0, 1)
+	
+	viewport:setScrollFrac(0, 1)
 		
 	--User interaction loop
-	while not input:consumeCancel() and not input:consumeDown() do
+	while not input:consumeCancel() do
 		if returnButton:consumePress() then
 			break
 		end
-		viewport:update()		
 		yield()
 	end	
 end

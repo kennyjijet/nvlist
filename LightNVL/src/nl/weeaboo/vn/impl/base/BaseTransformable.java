@@ -16,9 +16,11 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	private double rotation;
 	private double scaleX, scaleY;
 	private double imageAlignX, imageAlignY;
+	private double unscaledWidth, unscaledHeight;
 	private Matrix baseTransform;
 
 	private transient IPolygon collisionShape;
+	private transient Rect2D _bounds;
 
 	public BaseTransformable() {
 		scaleX = scaleY = 1;
@@ -55,10 +57,25 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	protected void invalidateTransform() {
 		super.invalidateTransform();
 		
+		invalidateBounds();
 		invalidateCollisionShape();
 	}
 	
+	protected void invalidateBounds() {
+		_bounds = null;
+	}
+	
 	//Getters
+	@Override
+	public double getUnscaledWidth() {
+		return unscaledWidth;
+	}
+	
+	@Override
+	public double getUnscaledHeight() {
+		return unscaledHeight;
+	}
+	
 	@Override
 	public double getWidth() {
 		return getScaleX() * getUnscaledWidth();
@@ -111,27 +128,30 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	
 	@Override
 	public Rect2D getBounds() {
-		float xa = (float)(getX() + getAlignOffsetX());
-		float xb = xa + (float)getWidth();
-		float ya = (float)(getY() + getAlignOffsetY());
-		float yb = ya + (float)getHeight();
-		
-		Matrix transform = getTransform();
-		float[] coords = new float[] {xa, ya, xb, ya, xa, yb, xb, yb};
-		transform.transform(coords, 0, coords.length);
-		
-		xa = Float.POSITIVE_INFINITY;
-		xb = Float.NEGATIVE_INFINITY;
-		ya = Float.POSITIVE_INFINITY;
-		yb = Float.NEGATIVE_INFINITY;
-		for (int n = 0; n < coords.length; n+=2) {
-			xa = Math.min(xa, coords[n  ]);
-			xb = Math.max(xb, coords[n  ]);
-			ya = Math.min(ya, coords[n+1]);
-			yb = Math.max(yb, coords[n+1]);
+		if (_bounds == null) {
+			float xa = (float)getAlignOffsetX();
+			float xb = xa + (float)getUnscaledWidth();
+			float ya = (float)getAlignOffsetY();
+			float yb = ya + (float)getUnscaledHeight();
+			
+			Matrix transform = getTransform();
+			float[] coords = new float[] {xa, ya, xb, ya, xa, yb, xb, yb};
+			transform.transform(coords, 0, coords.length);
+			
+			xa = Float.POSITIVE_INFINITY;
+			xb = Float.NEGATIVE_INFINITY;
+			ya = Float.POSITIVE_INFINITY;
+			yb = Float.NEGATIVE_INFINITY;
+			for (int n = 0; n < coords.length; n+=2) {
+				xa = Math.min(xa, coords[n  ]);
+				xb = Math.max(xb, coords[n  ]);
+				ya = Math.min(ya, coords[n+1]);
+				yb = Math.max(yb, coords[n+1]);
+			}
+			
+			_bounds = new Rect2D(xa, ya, xb-xa, yb-ya);
 		}
-		
-		return new Rect2D(xa, ya, xb-xa, yb-ya);
+		return _bounds;
 	}
 	
 	@Override
@@ -198,6 +218,16 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	public void setSize(double w, double h) {
 		setScale(w / getUnscaledWidth(), h / getUnscaledHeight());
 	}
+	
+	protected void setUnscaledSize(double w, double h) {
+		if (unscaledWidth != w || unscaledHeight != h) {
+			unscaledWidth = w;
+			unscaledHeight = h;
+			markChanged();
+			invalidateBounds();
+		}
+	}
+	
 
 	@Override
 	public void setBounds(double x, double y, double w, double h) {
@@ -212,8 +242,9 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 		if (imageAlignX != xFrac || imageAlignY != yFrac) {
 			imageAlignX = xFrac;
 			imageAlignY = yFrac;
-			
+						
 			markChanged();
+			invalidateBounds();
 		}
 	}
 	

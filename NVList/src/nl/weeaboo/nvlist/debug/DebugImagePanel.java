@@ -14,6 +14,8 @@ import java.awt.event.HierarchyListener;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -42,8 +44,10 @@ import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IImageState;
 import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.IPanel;
 import nl.weeaboo.vn.ITextDrawable;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.IViewport;
 import nl.weeaboo.vn.impl.base.Layer;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 import nl.weeaboo.vn.impl.nvlist.TextureAdapter;
@@ -54,7 +58,7 @@ public class DebugImagePanel extends JPanel {
 	private final Object lock;
 	private final Novel novel;
 	
-	private final ImageIcon layerI, unknownI, imageI, buttonI, textI;
+	private final LinkedHashMap<Class<?>, ImageIcon> drawableIcons;
 	private final JTree tree;
 	private final Timer timer;
 	
@@ -64,11 +68,15 @@ public class DebugImagePanel extends JPanel {
 		lock = l;
 		novel = nvl;
 		
-		layerI   = new ImageIcon(getClass().getResource("res/drawable-layer.png"));
-		unknownI = new ImageIcon(getClass().getResource("res/drawable-unknown.png"));
-		imageI   = new ImageIcon(getClass().getResource("res/drawable-image.png"));
-		buttonI  = new ImageIcon(getClass().getResource("res/drawable-button.png"));
-		textI    = new ImageIcon(getClass().getResource("res/drawable-text.png"));
+		drawableIcons = new LinkedHashMap<Class<?>, ImageIcon>();
+		registerDrawableIcon("layer", ILayer.class);
+		registerDrawableIcon("viewport", IViewport.class);
+		registerDrawableIcon("panel", IPanel.class);
+		//registerDrawableIcon("textbutton", ITextButtonDrawable.class);
+		registerDrawableIcon("button", IButtonDrawable.class);
+		registerDrawableIcon("text", ITextDrawable.class);
+		registerDrawableIcon("image", IImageDrawable.class);
+		registerDrawableIcon("unknown", null);
 		
 		tree = new JTree();
 		tree.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -80,18 +88,19 @@ public class DebugImagePanel extends JPanel {
 				if (c instanceof JLabel) {
 					JLabel label = (JLabel)c;
 					if (value instanceof LayerNode) {
-						label.setIcon(layerI);
+						label.setIcon(drawableIcons.get(ILayer.class));
 					} else if (value instanceof DrawableNode) {
 						IDrawable d = ((DrawableNode)value).drawable;
-						if (d instanceof IButtonDrawable) {
-							label.setIcon(buttonI);
-						} else if (d instanceof ITextDrawable) {
-							label.setIcon(textI);
-						} else if (d instanceof IImageDrawable) {
-							label.setIcon(imageI);
-						} else {
-							label.setIcon(unknownI);
+						
+						ImageIcon icon = null;
+						for (Entry<Class<?>, ImageIcon> entry : drawableIcons.entrySet()) {
+							Class<?> clazz = entry.getKey();
+							if (clazz != null && clazz.isInstance(d)) {
+								icon = entry.getValue();
+								break;
+							}
 						}
+						label.setIcon(icon != null ? icon : drawableIcons.get(null));
 					} else {
 						label.setIcon(null);
 					}
@@ -146,6 +155,11 @@ public class DebugImagePanel extends JPanel {
 	}
 	
 	//Functions
+	private void registerDrawableIcon(String filename, Class<?> clazz) {
+		ImageIcon icon = new ImageIcon(getClass().getResource("res/drawable-" + filename + ".png"));
+		drawableIcons.put(clazz, icon);
+	}
+	
 	public void update() {
 		disableTreeSelection++;
 		try {

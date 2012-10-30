@@ -9,10 +9,12 @@ public abstract class BaseGUIFactory implements IGUIFactory, Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
+	protected final BaseImageFactory imgfac;
 	protected final INotifier notifier;
 	
 	public BaseGUIFactory(BaseImageFactory imgfac, INotifier ntf) {
-		notifier = ntf;
+		this.imgfac = imgfac;
+		this.notifier = ntf;
 	}
 	
 	//Functions

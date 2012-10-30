@@ -124,6 +124,9 @@ end
 function rmbg(...)
 	local bg = getBackground()
 	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
 	return rm(bg, ...)
 end
 
@@ -131,6 +134,9 @@ end
 function rmbgf(...)
 	local bg = getBackground()
 	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
 	return rmf(bg, ...)
 end
 
@@ -297,7 +303,12 @@ end
 
 ---Returns the current image layer
 function getImageLayer()
-	return getImageStateAttribute("layer") or imageState:getDefaultLayer()
+	local layer = getImageStateAttribute("layer")
+	if layer == nil or layer:isDestroyed() then
+		layer = imageState:getDefaultLayer()
+		setImageStateAttribute("layer", layer)
+	end
+	return layer
 end
 
 ---Changes the current image layer

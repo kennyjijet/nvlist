@@ -5,11 +5,6 @@ import java.util.Collection;
 public interface IImageFactory {
 
 	// === Functions ===========================================================
-
-	/**
-	 * Creates a new layer with the specified bounds.
-	 */
-	public ILayer createLayer(double x, double y, double w, double h);
 	
 	/**
 	 * Creates a new image drawable.

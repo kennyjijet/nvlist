@@ -111,7 +111,7 @@ local SaveSlot = {
 	}
 
 function SaveSlot.new(self)
-	self = GUIComponent.new(extend(SaveSlot, self))
+	self = extend(SaveSlot, self)
 	
 	local buttonImagePath = "gui/savescreen#slotButton-"
 	if self.compact then
@@ -150,28 +150,15 @@ function SaveSlot.new(self)
 	self.label = l
 	self.newImage = newI
 	
-    self:setSize(b:getWidth(), b:getHeight())
-
 	return self
 end
 
 function SaveSlot:destroy()
-    destroyValues(self.button, self.image, self.newImage, self.label)
+	destroyValues{self.button, self.image, self.newImage, self.label}
 end
 
-function SaveSlot:layout()
-	local i = self.image
-	local b = self.button	
-	local newI = self.newImage
-	if newI ~= nil then
-		if i ~= nil then	
-			--Align with top-right of screenshot
-			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
-		else
-			--Align with top-right of button
-			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
-		end
-	end
+function SaveSlot:getBounds()
+	return self.button:getBounds()
 end
 
 function SaveSlot:setBounds(x, y, w, h)
@@ -181,16 +168,10 @@ function SaveSlot:setBounds(x, y, w, h)
 	
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
 	b:setScale(scale, scale)
-	b:setPos(x + (w-b:getWidth())/2, y + (h-b:getHeight())/2)
-    
-    GUIComponent.setBounds(self, b:getX(), b:getY(), b:getWidth(), b:getHeight())
 
-	l:setPos(x, y + b:getHeight() - l:getHeight())
 	l:setDefaultStyle(createStyle{fontName="sans serif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
-	if i ~= nil then	
-		local pad = (b:getWidth() - i:getWidth())/2
-		i:setPos(x + pad, y + pad)
+	if i ~= nil then
 		local imgScale = scale * math.min(224 / i:getUnscaledWidth(), 126 / i:getUnscaledHeight())
 		i:setScale(imgScale, imgScale)
 		
@@ -198,8 +179,25 @@ function SaveSlot:setBounds(x, y, w, h)
 	else	
 		l:setSize(b:getWidth(), b:getHeight())
 	end	
+	
+	b:setPos(x, y)
+	l:setPos(x, y + b:getHeight() - l:getHeight())
 
-	self:layout()
+	if i ~= nil then	
+		local pad = (b:getWidth() - i:getWidth())/2
+		i:setPos(x + pad, y + pad)
+	end		
+	
+	local newI = self.newImage
+	if newI ~= nil then
+		if i ~= nil then	
+			--Align with top-right of screenshot
+			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
+		else
+			--Align with top-right of button
+			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
+		end
+	end	
 end
 
 function SaveSlot:update()
@@ -281,21 +279,22 @@ function SaveScreen:layout()
     local viewport = self.viewport    
     viewport:setBounds(x+ipad, y+ipad, mainW, mainH)
 
-    local saveLayout = FlowLayout.new{w=viewport:getInnerWidth(true), cols=1, pad=ipad, children=self.saves, pack=8}
-	saveLayout:layout()
-    viewport:layoutVirtual()
-    viewport:layout()
+    doLayout(FlowLayout, 0, 0, viewport:getInnerWidth(), 0,
+        {cols=1, padding=ipad, anchor=8},
+        self.saves)
     
-	local buttonBarLayout = GridLayout.new{x=x, y=y+h-vpad, w=w, h=vpad, pad=ipad, pack=5,
-		children={self.okButton, self.cancelButton}}
-    buttonBarLayout:layout()
+	doLayout(GridLayout, x, y+h-vpad, w, vpad,
+        {padding=ipad, pack=5},
+		{self.okButton, self.cancelButton})
 end
 
 function SaveScreen:initSaves()
     self:destroyViewport()
 
-    local viewport = Viewport.new{pad=screenHeight*.03}
-    viewport:openLayer()
+    local viewport = createViewport()
+    viewport:setPadding(screenHeight*.03)
+    setImageLayer(viewport:getLayer())
+    
     --local temp = img("white", {size={screenWidth, screenHeight}})
 	for pass=1,3 do
 		local defaultLabel = "autosave"
@@ -357,7 +356,8 @@ function SaveScreen:initSaves()
 			end
 		end
 	end
-    viewport:closeLayer(self.saves)
+    
+    setImageLayer(nil)
     self.viewport = viewport
 end
 
@@ -388,7 +388,6 @@ function SaveScreen:run()
 			break
 		end
 		
-        self.viewport:update()
 		yield()
 	end
 	

@@ -5,9 +5,14 @@ public interface IGUIFactory {
 	// === Functions ===========================================================
 	
 	/**
-	 * @return A newly created panel, added to the current layer.
+	 * @return A newly created panel.
 	 */
 	public IPanel createPanel();
+	
+	/**
+	 * @return A newly created viewport.
+	 */
+	public IViewport createViewport(ILayer layer);
 	
 	/**
 	 * Optional operation, returns <code>null</code> if not supported.  

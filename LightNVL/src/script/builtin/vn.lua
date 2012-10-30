@@ -379,17 +379,35 @@ function waitClick(unskippable)
     yield()
 end
 
+---Sets a value in the <code>globals</code> object. The main benefit of storing
+-- data inside the <code>globals</code> object instead of a regular Lua variable
+-- is to be able to recover their values in case of a broken save file.
+-- @param name The name of the global. Names starting with <code>vn.</code> are
+--        reserved for use by NVList.
+-- @param value The new value for the global.
+function setGlobal(name, value)
+	globals:set(name, value)
+end
+
+---Returns a value previously stored using <code>setGlobal</code>.
+-- @param name The name of the global.
+-- @return The stored value, or <code>nil</code> if none exists.
+function getGlobal(name)
+	return globals:get(name)
+end
+
 ---Sets a shared global. All save slots have access to the same set of shared
 -- globals. Commonly used to mark routes as cleared or unlocked.
 -- @param name The name of the shared global. Names starting with
 --        <code>vn.</code> are reserved for use by NVList.
--- @param value The new value for the shared global
+-- @param value The new value for the shared global.
 function setSharedGlobal(name, value)
 	sharedGlobals:set(name, value)
 end
 
----Returns the value of the specified shared global.
--- @param name The name of the shared global
+---Returns the value of a previously stored shared global.
+-- @param name The name of the shared global.
+-- @return The stored value, or <code>nil</code> if none exists.
 -- @see setSharedGlobal
 function getSharedGlobal(name)
 	return sharedGlobals:get(name)
@@ -402,17 +420,17 @@ function call(filename)
 end
 
 ---Creates a new Lua thread
--- @param func The function to run in the new thread
--- @param ... The parameters to pass to the function
--- @return A new thread object
+-- @param func The function to run in the new thread.
+-- @param ... The parameters to pass to the function.
+-- @return A new thread object.
 function newThread(func, ...)
     return threadGroups[mode]:newThread(func, ...)
 end
 
 ---Calls the default setter function corresponding to a property called
 -- <code>name</code>.
--- @param obj The object to set the property value on
--- @param name The name of the property to change
+-- @param obj The object to set the property value on.
+-- @param name The name of the property to change.
 -- @param ... The parameters to pass to the setter function (the new value for
 --        the property).
 function setProperty(obj, name, ...)
@@ -426,12 +444,24 @@ function setProperty(obj, name, ...)
 	return setter(obj, unpack(vals))
 end
 
+---Calls the <code>setProperty</code> function for each key/value pair in
+-- <code>props</code>.
+-- @param obj The object to set the property value on.
+-- @param props The table of properties to set.
+function setProperties(obj, props)
+	if props ~= nil then
+		for k,v in pairs(props) do
+			setProperty(obj, k, v)
+		end
+	end
+end
+
 ---Calls the default getter function corresponging to a property called
 -- <code>name</code>.
--- @param obj The object to get the property value of
--- @param name The name of the property to get the value of
+-- @param obj The object to get the property value of.
+-- @param name The name of the property to get the value of.
 -- @return The value of the property (result of calling the property getter
---         function)
+--         function).
 function getProperty(obj, name)
 	local getterName = "get" .. string.upper(string.sub(name, 1, 1)) .. string.sub(name, 2)
 	
@@ -460,12 +490,24 @@ function getProperty(obj, name)
 		
 		error("Invalid property: " .. getterName)
 	end
-	return getter(obj)
+	
+	local val = getter(obj)
+	if type(val) == "userdata" then
+		local clazz = val:getClass():getSimpleName()
+		if clazz == "Rect2D" or clazz == "Rect" then
+			return {val.x, val.y, val.w, val.h}
+		elseif clazz == "Dim2D" or clazz == "Dim" then
+			return {val.w, val.h}
+		elseif clazz == "Insets2D" or clazz == "Insets" then
+			return {val.top, val.right, val.bottom, val.left}
+		end
+	end
+	return val
 end
 
----Asks the user to select an option
--- @param ... A vararg with all selectable options
--- @return The index of the selected option, starting at <code>1</code>
+---Asks the user to select an option.
+-- @param ... A vararg with all selectable options.
+-- @return The index of the selected option, starting at <code>1</code>.
 function choice(...)
 	return choice2(getScriptPos(1), ...)
 end

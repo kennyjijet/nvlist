@@ -79,6 +79,7 @@ import nl.weeaboo.vn.impl.base.ShaderImageTween;
 import nl.weeaboo.vn.impl.base.ShutterGS;
 import nl.weeaboo.vn.impl.base.WipeGS;
 import nl.weeaboo.vn.layout.FlowLayout;
+import nl.weeaboo.vn.layout.GridLayout;
 import nl.weeaboo.vn.layout.NullLayout;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.parser.LVNFile;
@@ -412,6 +413,7 @@ public abstract class LuaNovel extends BaseNovel {
 			// Layouts
 			LuaUtil.registerClass(globals, NullLayout.class);
 			LuaUtil.registerClass(globals, FlowLayout.class);
+			LuaUtil.registerClass(globals, GridLayout.class);
 			// Shaders
 			LuaUtil.registerClass(globals, ShutterGS.class);
 			LuaUtil.registerClass(globals, WipeGS.class);
