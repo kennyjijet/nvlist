@@ -149,7 +149,9 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 				yb = Math.max(yb, coords[n+1]);
 			}
 			
-			_bounds = new Rect2D(xa, ya, xb-xa, yb-ya);
+			double w = xb-xa;
+			double h = yb-ya;
+			_bounds = new Rect2D(xa, ya, Double.isNaN(w) ? 0 : w, Double.isNaN(h) ? 0 : h);
 		}
 		return _bounds;
 	}

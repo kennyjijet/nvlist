@@ -57,8 +57,8 @@ public class GridLayout extends AbstractLayout {
 			rowH = Math.min(rowH, LayoutUtil2.getMaxComponentHeight(components));
 			gridW = cols*(colW+ipad)-ipad;
 			gridH = rows*(rowH+ipad)-ipad;
-			startX += LayoutUtil.alignAnchorX(bounds.w, gridW, pack);
-			startY += LayoutUtil.alignAnchorY(bounds.h, gridH, pack);
+			if (bounds.w > gridW) startX += LayoutUtil.alignAnchorX(bounds.w, gridW, pack);
+			if (bounds.h > gridH) startY += LayoutUtil.alignAnchorY(bounds.h, gridH, pack);
 		}
 		
 		if (!leftToRight) {

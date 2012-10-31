@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.layout;
 
+import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IDrawable;
 
@@ -19,24 +20,33 @@ public class DrawableLayoutComponent extends AbstractLayoutComponent {
 	//Functions
 	
 	//Getters
+	public IDrawable getDrawable() {
+		return d;
+	}
+	
 	@Override
 	public double getX() {
-		return d.getX();
+		return getBounds().x;
 	}
 
 	@Override
 	public double getY() {
-		return d.getY();
+		return getBounds().y;
 	}
 
 	@Override
 	public double getWidth() {
-		return d.getWidth();
+		return getBounds().w;
 	}
 
 	@Override
 	public double getHeight() {
-		return d.getHeight();
+		return getBounds().h;
+	}
+	
+	@Override
+	public Rect2D getBounds() {
+		return d.getBounds();
 	}
 	
 	//Setters

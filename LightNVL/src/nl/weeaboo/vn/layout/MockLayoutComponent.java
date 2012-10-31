@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.layout;
 
+import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
 @LuaSerializable
@@ -39,6 +40,11 @@ public class MockLayoutComponent extends AbstractLayoutComponent {
 	@Override
 	public double getHeight() {
 		return h;
+	}
+	
+	@Override
+	public Rect2D getBounds() {
+		return new Rect2D(x, y, w, h);
 	}
 	
 	//Setters

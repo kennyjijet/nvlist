@@ -1,10 +1,9 @@
 package nl.weeaboo.vn.impl.base;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
@@ -27,13 +26,13 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	
 	private double width, height;
 	private Insets2D padding;
-	private LinkedHashMap<IDrawable, ILayoutComponent> components;
+	private Collection<ILayoutComponent> components;
 	private ILayout layout;
 	private boolean layoutDirty;
 	
 	public BaseContainer() {
 		padding = new Insets2D(0, 0, 0, 0);
-		components = new LinkedHashMap<IDrawable, ILayoutComponent>();
+		components = new ArrayList<ILayoutComponent>();
 		layout = NullLayout.INSTANCE;
 	}
 	
@@ -41,8 +40,9 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	@Override
 	public void destroy() {
 		if (!isDestroyed()) {
-			for (IDrawable d : components.keySet()) {
-				d.destroy();
+			for (ILayoutComponent lc : components) {
+				IDrawable d = tryGetDrawable(lc);
+				if (d != null) d.destroy();
 			}
 			components.clear();
 			super.destroy();
@@ -50,9 +50,10 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	}
 	
 	protected void removeDestroyedComponents() {
-		for (Iterator<IDrawable> itr = components.keySet().iterator(); itr.hasNext(); ) {
-			IDrawable d = itr.next();
-			if (d.isDestroyed()) {
+		for (Iterator<ILayoutComponent> itr = components.iterator(); itr.hasNext(); ) {
+			ILayoutComponent lc = itr.next();
+			IDrawable d = tryGetDrawable(lc);
+			if (d != null && d.isDestroyed()) {
 				itr.remove();
 			}
 		}
@@ -98,15 +99,25 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	
 	@Override
 	public void add(IDrawable d) {
-		add(d, null);
+		add(createLayoutComponent(d, null));
 	}
 	
 	@Override
 	public void add(IDrawable d, ILayoutConstraints c) {
-		components.put(d, createLayoutComponent(d, c));
-		if (d.getZ() >= getZ()) {
-			d.setZ((short)(getZ() - 1));
+		add(createLayoutComponent(d, c));
+	}
+	
+	@Override
+	public void add(ILayoutComponent lc) {
+		components.add(lc);
+		
+		IDrawable d = tryGetDrawable(lc);
+		if (d != null) {
+			if (d.getZ() >= getZ()) {
+				d.setZ((short)(getZ() - 1));
+			}
 		}
+		
 		invalidateLayout();
 	}
 
@@ -116,14 +127,19 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	
 	@Override
 	public void remove(IDrawable d) {
-		for (Iterator<Entry<IDrawable, ILayoutComponent>> itr = components.entrySet().iterator(); itr.hasNext(); ) {
-			Entry<IDrawable, ILayoutComponent> entry = itr.next();
-			if (entry.getKey().equals(d)) {
-				itr.remove();
-				break;
+		for (ILayoutComponent lc : components) {
+			if (d.equals(tryGetDrawable(lc))) {
+				remove(lc);
+				return;
 			}
 		}
-		invalidateLayout();
+	}
+	
+	@Override
+	public void remove(ILayoutComponent lc) {
+		if (components.remove(lc)) {
+			invalidateLayout();
+		}
 	}
 	
 	protected void translateComponents(double dx, double dy) {
@@ -131,16 +147,24 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 			return; //We don't have to do anything
 		}
 		
-		for (ILayoutComponent lc : components.values()) {
+		for (ILayoutComponent lc : components) {
 			lc.setPos(lc.getX()+dx, lc.getY()+dy);
 		}
 	}
 	
-	//Getters
-	protected Collection<ILayoutComponent> getLayoutComponents() {
-		return Collections.unmodifiableCollection(components.values());		
+	protected IDrawable tryGetDrawable(ILayoutComponent lc) {
+		if (lc instanceof DrawableLayoutComponent) {
+			DrawableLayoutComponent dlc = (DrawableLayoutComponent)lc;
+			return dlc.getDrawable();
+		}
+		return null;
 	}
 	
+	//Getters
+	protected Collection<ILayoutComponent> getLayoutComponents() {
+		return Collections.unmodifiableCollection(components);		
+	}
+		
 	@Override
 	public ILayout getLayout() {
 		return layout;
@@ -152,7 +176,17 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	
 	@Override
 	public boolean contains(IDrawable d) {
-		return components.containsKey(d);
+		for (ILayoutComponent lc : components) {
+			if (d.equals(tryGetDrawable(lc))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean contains(ILayoutComponent lc) {
+		return components.contains(lc);
 	}
 	
 	@Override

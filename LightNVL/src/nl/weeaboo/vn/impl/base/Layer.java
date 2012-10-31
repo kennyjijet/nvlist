@@ -327,6 +327,11 @@ public final class Layer extends BaseDrawable implements ILayer {
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean containsRel(double x, double y) {
+		return contains(getX()+x, getY()+y);
+	}	
 
 	@Override
 	public double getWidth() {

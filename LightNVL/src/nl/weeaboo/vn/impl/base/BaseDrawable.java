@@ -166,7 +166,9 @@ public abstract class BaseDrawable implements IDrawable {
 	
 	@Override
 	public Rect2D getBounds() {
-		return new Rect2D(x, y, getWidth(), getHeight());
+		double w = getWidth();
+		double h = getHeight();
+		return new Rect2D(x, y, Double.isNaN(w) ? 0 : w, Double.isNaN(h) ? 0 : h);
 	}
 	
 	@Override

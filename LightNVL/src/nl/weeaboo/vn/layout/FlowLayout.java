@@ -14,12 +14,14 @@ public class FlowLayout extends AbstractLayout {
 
 	private static final long serialVersionUID = LayoutImpl.serialVersionUID;
 
+	private int pack;
 	private int anchor;
 	private double ipad;
 	private int cols;
 	private boolean leftToRight;
 	
 	public FlowLayout() {
+		pack = 0;
 		anchor = 7;
 		ipad = 0;
 		cols = -1;
@@ -70,7 +72,8 @@ public class FlowLayout extends AbstractLayout {
 		}
 		
 		//Calculate minimum required width
-		double w = Math.max(0, maxLineWidth);
+		double w = (pack > 0 || maxLineWidth < 0 ? 0 : maxLineWidth);
+		double h = (lines.size()-1) * ipad;
 		double[] lws = new double[lines.size()];
 		double[] lhs = new double[lws.length];
 		int t = 0;
@@ -81,12 +84,18 @@ public class FlowLayout extends AbstractLayout {
 				lhs[t] = Math.max(lhs[t], lc.getHeight());
 			}
 			w = Math.max(w, lws[t]);
+			h += lhs[t];
 			t++;
 		}
 		
 		//Do line layout
 		double x = bounds.x;
 		double y = bounds.y;
+		if (pack > 0) {
+			if (bounds.w > w) x += LayoutUtil.alignAnchorX(bounds.w, w, pack);
+			if (bounds.h > h) y += LayoutUtil.alignAnchorY(bounds.h, h, pack);
+		}
+		
 		t = 0;
 		for (List<ILayoutComponent> line : lines) {
 			double lw = lws[t];
@@ -105,6 +114,10 @@ public class FlowLayout extends AbstractLayout {
 	}
 	
 	//Getters
+	public int getPack() {
+		return pack;
+	}
+	
 	public int getCols() {
 		return cols;
 	}
@@ -121,7 +134,16 @@ public class FlowLayout extends AbstractLayout {
 		return leftToRight;
 	}
 	
-	//Setters	
+	//Setters
+	
+	/**
+	 * The value of <code>pack</code> determines the relative alignment of the
+	 * flow layout's rows within its container.
+	 */
+	public void setPack(int p) {
+		pack = p;
+	}
+	
 	/**
 	 * Sets the maximum number of components per row. Use <code>-1</code> for no limit. 
 	 */

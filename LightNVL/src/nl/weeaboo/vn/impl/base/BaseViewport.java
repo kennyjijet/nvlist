@@ -14,7 +14,6 @@ import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.IViewport;
 import nl.weeaboo.vn.layout.ILayoutComponent;
-import nl.weeaboo.vn.layout.ILayoutConstraints;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Vec2;
 
@@ -27,7 +26,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	private double fadeSize;
 	private int fadeColorARGB;
 	private ITexture fadeTop, fadeBottom;
-	private Rect2D virtualBounds;	
+	private Rect2D generatedVirtualBounds, explicitVirtualBounds;	
 	
 	private ScrollBar scrollBarX, scrollBarY;
 	private ScrollInfo scrollX, scrollY;
@@ -53,7 +52,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		
 		super.setPos(layer.getX(), layer.getY());
 		super.setSize(w, h);
-		super.setZ(layer.getZ());
+		super.setZ((short)(layer.getZ()+1));
 	}
 	
 	//Functions
@@ -66,24 +65,27 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	}
 
 	@Override
-	public void add(IDrawable d, ILayoutConstraints c) {
-		if (!contains(d)) {
-			layer.add(d);
+	public void add(ILayoutComponent lc) {
+		if (!contains(lc)) {
+			IDrawable d = tryGetDrawable(lc);
+			if (d != null) {
+				layer.add(d);				
+			}			
 			
 			Insets2D padding = getPadding();
-			d.setPos(d.getX()+padding.left, d.getY()+padding.top);
+			lc.setPos(lc.getX()+padding.left, lc.getY()+padding.top);
 			
-			super.add(d, c);
+			super.add(lc);
 		}
 	}
 
 	@Override
-	public void remove(IDrawable d) {
-		if (contains(d)) {
+	public void remove(ILayoutComponent lc) {
+		if (contains(lc)) {
 			Insets2D padding = getPadding();
-			d.setPos(d.getX()-padding.left, d.getY()-padding.top);
+			lc.setPos(lc.getX()-padding.left, lc.getY()-padding.top);
 			
-			super.remove(d);
+			super.remove(lc);
 		}
 	}
 	
@@ -105,7 +107,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		
 		Vec2 mold = (mousePos != null ? mousePos.clone() : null);
 		Vec2 mnew = new Vec2(input.getMouseX(), input.getMouseY());
-		boolean mouseContained = (isClipEnabled() || layer.contains(mnew.x, mnew.y))
+		boolean mouseContained = (isClipEnabled() || layer.containsRel(mnew.x, mnew.y))
 				&& contains(mnew.x, mnew.y) && isVisible();
 		
 		boolean dragging = false;
@@ -195,16 +197,16 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	public void layout() {
 		super.layout();
 		
-		invalidateVirtualBounds();
+		invalidateGeneratedVirtualBounds();
 
 		calculateScrollLimits();
 	}
 	
-	protected void invalidateVirtualBounds() {
-		virtualBounds = null;
+	protected void invalidateGeneratedVirtualBounds() {
+		generatedVirtualBounds = null;
 	}
 
-	protected Rect2D calculateVirtualBounds() {
+	protected Rect2D generateVirtualBounds() {
 		//Calculate bounds
 		double minX = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
@@ -225,8 +227,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		double w = (maxX >= minX ? maxX-minX : getInnerWidth());
 		double h = (maxY >= minY ? maxY-minY : getInnerHeight());
 		
-		return new Rect2D(minX-pad.left, minY-pad.top,
-				w+pad.left+pad.right, h+pad.top+pad.bottom);
+		return new Rect2D(minX-pad.left, minY-pad.top, w+pad.left+pad.right, h+pad.top+pad.bottom);
 	}
 	
 	protected void calculateScrollLimits() {
@@ -241,6 +242,35 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		
 		//System.out.println(ibounds + " ** " + vbounds);
 		//System.out.println(scrollX + " :: " + scrollY);		
+	}
+	
+	public void scrollToVisible(IDrawable d) {
+		Rect2D r = d.getBounds();
+		scrollToVisible(r.x+getScrollX(), r.y+getScrollY(), r.w, r.h);
+	}
+	
+	public void scrollToVisible(ILayoutComponent lc) {
+		Rect2D r = lc.getBounds();
+		scrollToVisible(r.x+getScrollX(), r.y+getScrollY(), r.w, r.h);
+	}
+	
+	public void scrollToVisible(double rx, double ry, double rw, double rh) {		
+		Insets2D pad = getPadding();
+		Rect2D ibounds = getInnerBounds();
+		Rect2D visible = new Rect2D(getScrollX()+pad.left, getScrollY()+pad.top,
+				ibounds.w-pad.left-pad.right, ibounds.h-pad.top-pad.bottom);
+		
+		if (visible.contains(rx, ry, rw, rh)) {
+			//Nothing to do
+			return;
+		}
+
+		double sx = Math.min(0, rx - visible.x) + Math.max(0, (rx+rw) - (visible.x+visible.w));
+		double sy = Math.min(0, ry - visible.y) + Math.max(0, (ry+rh) - (visible.y+visible.h));
+		
+		//System.out.println(ry + "-" + rh + " " + sy + " " + visible.y);
+		
+		setScroll(getScrollX() + sx, getScrollY() + sy);
 	}
 	
 	//Getters
@@ -300,12 +330,17 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 				getInnerHeight()-padding.top-padding.bottom);
 	}
 	
-	protected Rect2D getVirtualBounds() {
-		if (virtualBounds == null) {
-			virtualBounds = calculateVirtualBounds();			
+	@Override
+	public Rect2D getVirtualBounds() {
+		if (explicitVirtualBounds != null) {
+			return explicitVirtualBounds;
+		}
+		
+		if (generatedVirtualBounds == null) {
+			generatedVirtualBounds = generateVirtualBounds();
 			calculateScrollLimits();
 		}
-		return virtualBounds;
+		return generatedVirtualBounds;
 	}
 	
 	@Override
@@ -323,7 +358,37 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		return dragSnap;
 	}
 	
+	@Override
+	public boolean canScrollX() {
+		return scrollX.max > scrollX.min;
+	}
+	
+	@Override
+	public boolean canScrollY() {
+		return scrollY.max > scrollY.min;
+	}
+	
+	@Override
+	public boolean hasScrollBarX() {
+		return scrollBarX != null;
+	}
+	
+	@Override
+	public boolean hasScrollBarY() {
+		return scrollBarY != null;
+	}
+	
 	//Setters
+	@Override
+	public void setVirtualBounds(double x, double y, double w, double h) {
+		Rect2D r = explicitVirtualBounds;
+		if (r == null || r.x != x || r.y != y || r.w != w || r.h != h) {
+			explicitVirtualBounds = new Rect2D(x, y, w, h);
+			markChanged();
+			calculateScrollLimits();
+		}
+	}
+	
 	@Override
 	public void setScroll(double sx, double sy) {
 		double oldSx = scrollX.pos;
@@ -364,7 +429,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	public void setZ(short z) {
 		if (z != getZ()) {
 			super.setZ(z);
-			layer.setZ(z);
+			layer.setZ((short)(z-1));
 		}
 	}
 		

@@ -179,7 +179,7 @@ local anim = Anim.par(anim1, anim2, anim3):run(3)
 text("Done")
 ]]
 
---[[ NVList 3.0 GUI panel/layout test ]]
+--[[ NVList 3.0 GUI panel/layout test
 
 textoff()
 
@@ -259,8 +259,9 @@ while not input:consumeConfirm() do
 end
 
 panel:destroy()
+]]
 
---[[ NVList 3.0 viewport test ]]
+--[[ NVList 3.0 viewport test
 
 viewports = {}
 for i=1,4 do
@@ -297,5 +298,12 @@ while not input:consumeConfirm() do
     yield()
 end
 destroyValues(viewports)
+]]
+
+--[[ NVList 3.0 scrolling choice test
+
+choice("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
+ 
+]]
 
 return titlescreen()

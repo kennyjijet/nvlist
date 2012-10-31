@@ -1,9 +1,28 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.layout.ILayoutComponent;
+
 
 public interface IViewport extends IContainer {
 
 	// === Functions ===========================================================
+	
+	/**
+	 * Scrolls the viewport such that <code>d</code> comes fully into view.
+	 */
+	public void scrollToVisible(IDrawable d);
+	
+	/**
+	 * Scrolls the viewport such that <code>lc</code> comes fully into view.
+	 */
+	public void scrollToVisible(ILayoutComponent lc);
+	
+	/**
+	 * Scrolls the viewport such that <code>(rx, ry, rw, rh)</code> comes fully
+	 * into view.
+	 */
+	public void scrollToVisible(double rx, double ry, double rw, double rh);
 	
 	// === Getters =============================================================
 	
@@ -48,7 +67,22 @@ public interface IViewport extends IContainer {
 	 */
 	public double getDragSnap();
 	
+	/**
+	 * @see #setVirtualBounds(double, double, double, double)
+	 */
+	public Rect2D getVirtualBounds();
+	
+	public boolean canScrollY();	
+	public boolean canScrollX();
+	public boolean hasScrollBarX();
+	public boolean hasScrollBarY();
+	
 	// === Setters =============================================================
+	
+	/**
+	 * Explicitly sets the bounds of the scrollable portion of the viewport.
+	 */
+	public void setVirtualBounds(double x, double y, double w, double h);
 	
 	/**
 	 * Sets the texture used for the fading effect at the top/bottom, indicating

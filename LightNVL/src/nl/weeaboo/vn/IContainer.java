@@ -3,6 +3,7 @@ package nl.weeaboo.vn;
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.layout.ILayout;
+import nl.weeaboo.vn.layout.ILayoutComponent;
 import nl.weeaboo.vn.layout.ILayoutConstraints;
 
 public interface IContainer extends IDrawable {
@@ -12,17 +13,27 @@ public interface IContainer extends IDrawable {
 	/**
 	 * Adds <code>d</code> to this panel. 
 	 */
-	public void add(IDrawable d); //Calls add(d, c)
+	public void add(IDrawable d); //Calls add(lc)
 	
 	/**
 	 * Adds <code>d</code> to this panel with the given layout constraints. 
 	 */
-	public void add(IDrawable d, ILayoutConstraints c);
+	public void add(IDrawable d, ILayoutConstraints c); //Calls add(lc)
 
+	/**
+	 * Adds <code>lc</code> to this panel. 
+	 */	
+	public void add(ILayoutComponent lc);
+	
 	/**
 	 * Removes <code>d</code> from this panel. 
 	 */
 	public void remove(IDrawable d);
+	
+	/**
+	 * Removes <code>lc</code> from this panel.
+	 */
+	public void remove(ILayoutComponent lc);
 	
 	/**
 	 * Performs an immediate relayout of the drawables contained within this
@@ -53,6 +64,11 @@ public interface IContainer extends IDrawable {
 	 * Returns if <code>d</code> is currently added to this panel. 
 	 */
 	public boolean contains(IDrawable d);
+	
+	/**
+	 * Returns if <code>lc</code> is currently added to this panel. 
+	 */
+	public boolean contains(ILayoutComponent lc);
 	
 	/**
 	 * @see #setPadding(double, double, double, double) 

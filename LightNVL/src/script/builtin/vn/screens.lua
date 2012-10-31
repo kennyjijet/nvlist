@@ -517,10 +517,14 @@ local ChoiceScreen = {
 	selected=-1,
 	options=nil,
 	buttons=nil,
+	viewport=nil,
+	components=nil,
 	choiceStyle=nil,
 	selectedChoiceStyle=nil,
-	offsetY=screenHeight*.05,
-	maxHeight=screenHeight*.70
+	pad=screenHeight*.03,
+	ipad=screenHeight*.015,
+	w=screenWidth,
+	h=screenHeight*.75
 }
 
 function ChoiceScreen.new(choiceId, ...)
@@ -531,7 +535,16 @@ function ChoiceScreen.new(choiceId, ...)
 		or prefs.selectedChoiceStyle
 		or extendStyle(self.choiceStyle, {color=0xFF808080})
 	
+	local viewport = createViewport(self.w-self.pad*2, self.h-self.pad*2)
+	viewport:setFadingEdges(0)
+	viewport:setPos(self.pad, self.pad)
+	viewport:setPadding(self.pad)
+	viewport:setLayout(createFlowLayout{pack=5, anchor=5, padding=self.ipad, cols=1})
+	self.viewport = viewport
+	
+	setImageLayer(viewport:getLayer())
 	self.buttons = {}
+	self.components = {}
 	for i,opt in ipairs(self.options) do
 		local b = TextButton.new("gui/choice-button", opt or "???")		
 		b:setAlpha(0)
@@ -549,8 +562,13 @@ function ChoiceScreen.new(choiceId, ...)
 			b.text:setDefaultStyle(self.choiceStyle)
 		end
 		table.insert(self.buttons, b)
+		
+		local c = toLayoutComponent(b)
+		viewport:add(c)
+		table.insert(self.components, c)
 	end
-	
+	setImageLayer(nil)
+		
 	return self
 end
 
@@ -559,36 +577,24 @@ function ChoiceScreen:destroy()
 end
 
 function ChoiceScreen:layout()
-	local lineSpacing = screenHeight / 32
-	
-	local td = textState:getTextDrawable()
-	local startY = self.offsetY
-	local height = 0
 	for pass=1,3 do
-		if pass == 2 then
-			lineSpacing = lineSpacing / 2
-		elseif pass == 3 then
-			lineSpacing = lineSpacing / 2
-			startY = lineSpacing * 4
+		self.viewport:validateLayout()
+		for i,b in ipairs(self.buttons) do
+			transferBounds(self.components[i], b)
 		end
 	
-		height = 0	
-		for _,b in ipairs(self.buttons) do
-			height = height + b:getHeight() + lineSpacing
-		end
-		height = height - lineSpacing --Remove redundant spacing after last button
-		
-		if startY + height <= self.maxHeight then
+		if not self.viewport:canScrollY() then
 			break
 		end
+		
+		if pass == 1 then
+			self.viewport:getLayout():setPadding(self.ipad / 4)
+		elseif pass == 2 then
+			if not self.viewport:hasScrollBarY() then
+				setViewportScrollBar(self.viewport)
+			end
+		end
 	end
-	
-	local y = startY + math.max(0, (self.maxHeight-height) / 2)
-	for _,b in ipairs(self.buttons) do
-		b:setAlpha(1)		
-		b:setPos((screenWidth-b:getWidth())/2, y)
-		y = y + b:getHeight() + lineSpacing
-	end	
 end
 
 function ChoiceScreen:fadeButtons(visible, speed)
@@ -619,9 +625,17 @@ function ChoiceScreen:run()
 		
 		if input:consumeUp() then
 			focusIndex = math.max(1, focusIndex - 1)
+			local c = self.components[focusIndex]
+			if c ~= nil then
+				self.viewport:scrollToVisible(c)
+			end
 		end
 		if input:consumeDown() then
 			focusIndex = math.min(#self.buttons, focusIndex + 1)
+			local c = self.components[focusIndex]
+			if c ~= nil then
+				self.viewport:scrollToVisible(c)
+			end
 		end
 
 		local newb = self.buttons[focusIndex]
@@ -648,6 +662,8 @@ function ChoiceScreen:run()
 				selected = i - 1
 				break
 			end
+			
+			transferBounds(self.components[i], b)
 		end
 
 		yield()
@@ -660,6 +676,8 @@ function ChoiceScreen:cancel()
 	self.cancelled = true
 	destroyValues(self.buttons)
 	self.buttons = {}
+	self.components = {}
+	destroyValues{self.viewport}
 end
 
 function ChoiceScreen:getOptions()

@@ -220,6 +220,7 @@ local SaveScreen = {
 	--GUI Components
     viewport=nil,
 	saves=nil,
+	saveComponents=nil,
 	okButton=nil,
 	cancelButton=nil,
 	}
@@ -230,7 +231,7 @@ function SaveScreen.new(self)
 	self.pad = self.pad or math.min(self.w, self.h) / 100
 				
 	self.saves = {}
-	self.qsaves = {}		
+	self.saveComponents = {}
 	
 	local okText = "Load"
 	if self.isSave then
@@ -258,6 +259,8 @@ end
 function SaveScreen:destroyViewport()
 	destroyValues(self.saves)
 	self.saves = {}
+	--destroyValues(self.saveComponents)
+	self.saveComponents = {}
     
 	if self.viewport ~= nil then
 		self.viewport:destroy()
@@ -279,9 +282,10 @@ function SaveScreen:layout()
     local viewport = self.viewport    
     viewport:setBounds(x+ipad, y+ipad, mainW, mainH)
 
-    doLayout(FlowLayout, 0, 0, viewport:getInnerWidth(), 0,
+	local pad = viewport:getPadding()
+    doLayout(FlowLayout, pad.left, pad.top, viewport:getInnerWidth()-pad.left-pad.right, 0,
         {cols=1, padding=ipad, anchor=8},
-        self.saves)
+        self.saveComponents)
     
 	doLayout(GridLayout, x, y+h-vpad, w, vpad,
         {padding=ipad, pack=5},
@@ -293,6 +297,7 @@ function SaveScreen:initSaves()
 
     local viewport = createViewport()
     viewport:setPadding(screenHeight*.03)
+    setViewportScrollBar(viewport)
     setImageLayer(viewport:getLayer())
     
     --local temp = img("white", {size={screenWidth, screenHeight}})
@@ -321,6 +326,9 @@ function SaveScreen:initSaves()
                 local ss = self.newSaveSlot{slot=freeSlot, label="New Save", screenshot=tex("gui/savescreen#newSlot"),
                     empty=true, isSave=true, compact=false}
                 table.insert(self.saves, ss)
+                local lc = toLayoutComponent(ss)
+                viewport:add(lc)
+			    table.insert(self.saveComponents, lc)
             end
 		end
 
@@ -353,6 +361,9 @@ function SaveScreen:initSaves()
 			    local ss = self.newSaveSlot{slot=slot, label=label, screenshot=screenshot, empty=empty,
 				    isSave=self.isSave, new=new, compact=compact}
 			    table.insert(self.saves, ss)
+			    local lc = toLayoutComponent(ss)
+			    viewport:add(lc)
+			    table.insert(self.saveComponents, lc)
 			end
 		end
 	end
@@ -386,6 +397,11 @@ function SaveScreen:run()
 		elseif self.cancelButton.button:consumePress() then
 			self.selected = 0
 			break
+		end
+		
+		local scrollY = self.viewport:getScrollY()
+		for i,lc in ipairs(self.saveComponents) do
+			self.saves[i]:setBounds(lc:getX(), lc:getY(), lc:getWidth(), lc:getHeight())
 		end
 		
 		yield()

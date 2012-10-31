@@ -62,6 +62,14 @@ public interface ILayer extends IDrawable {
 	public boolean contains(IDrawable d);
 	
 	/**
+	 * Similar to {@link #contains(double, double)}, but in coordinates relative
+	 * to the layer origin.
+	 * 
+	 * @see #contains(double, double)
+	 */
+	public boolean containsRel(double x, double y);
+	
+	/**
 	 * @return A buffer for pending screenshots. The screenshots will be
 	 *         scheduled during the next call to {@link #draw(IRenderer)}.
 	 */

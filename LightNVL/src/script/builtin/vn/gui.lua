@@ -212,6 +212,13 @@ function alignAnchorY(outer, inner, anchor)
 	return 0		
 end
 
+---Sets the bounds of <code>c</code> to <codE>lc</code>.
+-- @param lc The object containing the source bounds.
+-- @param c The destination object to update the bounds of.
+function transferBounds(lc, c)
+	return c:setBounds(unpack(getProperty(lc, "bounds")))
+end
+
 ---Creates an implementation of ILayoutComponent for use in ILayout objects
 -- like the FlowLayout and GridLayout.
 -- @param x The top-left x coordinate for the component.
@@ -220,6 +227,14 @@ end
 -- @param h The height of the component.
 function createLayoutComponent(x, y, w, h)
 	return GUI.createLayoutComponent(x, y, w, h)
+end
+
+---Creates a layout component from the given userdata or table. The initial
+-- bounds for the component are the values returned from a call
+-- <code>c:getBounds()</code>.
+-- @param c The Lua userdata or table to initialize the layout component with.
+function toLayoutComponent(c)
+	return createLayoutComponent(unpack(getProperty(c, "bounds")))
 end
 
 local function createLayout(classDef, overrides)
@@ -232,14 +247,14 @@ end
 -- @param overrides An optional table containing default values for the new
 --        layout's properties.
 function createFlowLayout(overrides)
-	return createLayout(FlowLayout)
+	return createLayout(FlowLayout, overrides)
 end
 
 ---Creates a new GridLayout object.
 -- @param overrides An optional table containing default values for the new
 --        layout's properties.
 function createGridLayout(overrides)
-	return createLayout(GridLayout)
+	return createLayout(GridLayout, overrides)
 end
 
 ---Creates a layout object and uses it to layout the given components. This
@@ -265,7 +280,7 @@ function doLayout(layout, x, y, w, h, overrides, components)
 	local lcs = {}
 	local i = 1
 	for _,c in pairs(components) do		
-		lcs[i] = createLayoutComponent(unpack(getProperty(c, "bounds")))		
+		lcs[i] = toLayoutComponent(c)		
 		i = i + 1		
 	end
 	
@@ -274,7 +289,7 @@ function doLayout(layout, x, y, w, h, overrides, components)
 	local i = 1
 	for _,c in pairs(components) do
 		local lc = lcs[i]
-		c:setBounds(unpack(getProperty(lc, "bounds")))
+		transferBounds(lc, c)
 		i = i + 1
 	end
 end
