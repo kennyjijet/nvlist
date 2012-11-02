@@ -10,6 +10,7 @@ import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.TriangleGrid.TextureWrap;
+import nl.weeaboo.vn.layout.LayoutUtil;
 
 public abstract class BaseBitmapTween extends BaseImageTween {
 

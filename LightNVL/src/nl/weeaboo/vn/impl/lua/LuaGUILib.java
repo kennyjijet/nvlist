@@ -70,21 +70,18 @@ public class LuaGUILib extends LuaLibrary {
 	}
 	
 	protected Varargs createChoice(Varargs args) {
-		String[] opts = {};
-		if (args.narg() >= 1) {
-			if (args.istable(1)) {
-				LuaTable table = (LuaTable)args.checktable(1);
-				opts = new String[table.getn().toint()];
-				for (int n = table.length(); n > 0; n--) {
-					opts[n-1] = table.get(n).tojstring();
-				}
-			} else {
-				opts = new String[args.narg()];
-				for (int n = 0; n < opts.length; n++) {
-					opts[n] = args.tojstring(n+1);
-				}
+		String[] opts = null;
+		if (args.istable(1)) {
+			LuaTable table = (LuaTable)args.checktable(1);
+			opts = new String[table.getn().toint()];
+			for (int n = table.length(); n > 0; n--) {
+				opts[n-1] = table.get(n).tojstring();
 			}
 		}
+		if (opts == null || opts.length <= 0) {
+			opts = new String[] {"Genuflect"};
+		}
+		
 		IChoice choice = guifac.createChoice(opts);
 		if (choice == null) {
 			return NIL;

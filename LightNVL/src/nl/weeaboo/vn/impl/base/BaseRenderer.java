@@ -11,6 +11,7 @@ import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderCommand;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.math.Matrix;
 
 public abstract class BaseRenderer implements IRenderer {

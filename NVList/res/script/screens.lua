@@ -39,7 +39,7 @@ function SaveSlot.new(self)
 	--l:setBackgroundColorARGB(0xA0000000)
 	l:setZ(b:getZ() - 10)
 	l:setPadding(8)
-	l:setAnchor(1)
+	l:setAnchor(2)
 	
 	local i = nil	
 	local newI = nil
@@ -169,8 +169,9 @@ function SaveLoadScreen.new(self)
 	
 	self.pageButtons = {}		
 	for p=1,self.pages do
-		local tb = TextButton.new("gui/savescreen#pageButton-", p)
-		tb.button:setToggle(true)
+		local tb = button("gui/savescreen#pageButton-")
+		tb:setText(p)
+		tb:setToggle(true)
 		self.pageButtons[p] = tb
 	end
 	
@@ -178,9 +179,14 @@ function SaveLoadScreen.new(self)
 	if self.isSave then
 		okText = "Save"
 	end
-	self.okButton = TextButton.new("gui/savescreen#button-", okText)
 	
-	self.cancelButton = TextButton.new("gui/savescreen#button-", "Cancel")
+	local cancelText = "Cancel"
+	
+	self.okButton = button("gui/savescreen#button-")
+	self.okButton:setText(okText)
+	
+	self.cancelButton = button("gui/savescreen#button-")
+	self.cancelButton:setText(cancelText)
 	
 	self.topFade = img("gui/savescreen#fade-top")
 	self.topFade:setZ(10)
@@ -190,10 +196,10 @@ function SaveLoadScreen.new(self)
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton.text:setDefaultStyle(buttonStyle)
-	self.cancelButton.text:setDefaultStyle(buttonStyle)
+	self.okButton:setDefaultStyle(buttonStyle)
+	self.cancelButton:setDefaultStyle(buttonStyle)
 	for _,tb in pairs(self.pageButtons) do
-		tb.text:setDefaultStyle(buttonStyle)
+		tb:setDefaultStyle(buttonStyle)
 	end
 		
 	self:setPage(self.page, true)
@@ -293,7 +299,7 @@ end
 
 function SaveLoadScreen:setPage(p, force)
 	for i,pb in ipairs(self.pageButtons) do
-		pb.button:setSelected(i == p) 
+		pb:setSelected(i == p) 
 	end
 
 	if self.page ~= p or force then
@@ -355,7 +361,7 @@ function SaveLoadScreen:run()
 
 	while not input:consumeCancel() do
 		for i,pb in ipairs(self.pageButtons) do
-			if pb.button:consumePress() then
+			if pb:consumePress() then
 				self:setPage(i)
 			end
 		end
@@ -374,12 +380,10 @@ function SaveLoadScreen:run()
 			end
 		end
 		
-		self.okButton.button:setEnabled(self.selected ~= 0)
-		if self.okButton.button:consumePress() then
+		self.okButton:setEnabled(self.selected ~= 0)
+		if self.okButton:consumePress() then
 			break
-		end
-		
-		if self.cancelButton.button:consumePress() then
+		elseif self.cancelButton:consumePress() then
 			self.selected = 0
 			break
 		end
@@ -450,7 +454,7 @@ function TextLogScreen:run()
 	local returnButton = tbutton("return-")
     returnButton:setScale(math.min(1, (.90 * bh) / returnButton:getHeight()))
 	if System.isTouchScreen() then
-		returnButton:setPadding(bh/2)
+		returnButton:setTouchMargin(bh/2)
 	end
 	returnButton:addActivationKeys(Keys.RIGHT, Keys.DOWN)
     
@@ -475,13 +479,14 @@ function TextLogScreen:run()
     local defaultStyle = prefs.textLogStyle or createStyle{color=0xFFFFFF80}
     local iw = viewport:getInnerWidth() - vpad*2
     
+    viewport:setLayout(createFlowLayout{padding=vpad, cols=1})
+    
 	for p=pages,1,-1 do
 		local t = textimg()
-		t:setPos(x, y)
-		t:setSize(iw, 999999)
+		t:setBounds(x, y, iw, h*2) --Initial width required to get text to linewrap properly
 		t:setDefaultStyle(defaultStyle)
 		t:setText(tl:getPage(-p))
-		t:setSize(iw, t:getTextHeight())		
+		--t:setSize(iw, t:getTextHeight()) --Shrink text bounds to what's required (causes problems when text size changes)
 		if System.isLowEnd() then
 			t:setBlendMode(BlendMode.OPAQUE)
 		end
@@ -496,14 +501,15 @@ function TextLogScreen:run()
 			end
 		end
 	end
-	
+
 	viewport:setScrollFrac(0, 1)
-		
+
 	--User interaction loop
 	while not input:consumeCancel() do
 		if returnButton:consumePress() then
 			break
 		end
+		viewport:layout() --Necessary because the text size could change at any time
 		yield()
 	end	
 end
@@ -546,20 +552,21 @@ function ChoiceScreen.new(choiceId, ...)
 	self.buttons = {}
 	self.components = {}
 	for i,opt in ipairs(self.options) do
-		local b = TextButton.new("gui/choice-button", opt or "???")		
+		local b = button("gui/choice-button")
+		b:setText(opt or "???")		
 		b:setAlpha(0)
 		b:setZ(-2000)
 		
 		local buttonScale = 1
-		if b.button:getUnscaledWidth() > screenWidth * .8 then
-			buttonScale = (screenWidth * .8) / b.button:getUnscaledWidth()
+		if b:getUnscaledWidth() > screenWidth * .8 then
+			buttonScale = (screenWidth * .8) / b:getUnscaledWidth()
 		end
-		b.button:setScale(buttonScale, buttonScale)
+		b:setScale(buttonScale)
 		
 		if seenLog:isChoiceSelected(choiceId, i) then
-			b.text:setDefaultStyle(self.selectedChoiceStyle)
+			b:setDefaultStyle(self.selectedChoiceStyle)
 		else
-			b.text:setDefaultStyle(self.choiceStyle)
+			b:setDefaultStyle(self.choiceStyle)
 		end
 		table.insert(self.buttons, b)
 		
@@ -640,8 +647,8 @@ function ChoiceScreen:run()
 
 		local newb = self.buttons[focusIndex]
 		if oldb ~= newb then
-			if oldb ~= nil then oldb.button:setKeyboardFocus(false) end
-			if newb ~= nil then newb.button:setKeyboardFocus(true) end
+			if oldb ~= nil then oldb:setKeyboardFocus(false) end
+			if newb ~= nil then newb:setKeyboardFocus(true) end
 		end
 
 		if input:consumeCancel() then
@@ -652,9 +659,9 @@ function ChoiceScreen:run()
 
 		for i,b in ipairs(self.buttons) do
 			if focusIndex == 0 or i == focusIndex then
-				b.button:setColor(1, 1, 1)
+				b:setColor(1, 1, 1)
 			else
-				b.button:setColor(.5, .5, .5)
+				b:setColor(.5, .5, .5)
 			end
 			
 			if b:consumePress() then

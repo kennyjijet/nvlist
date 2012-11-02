@@ -2,6 +2,9 @@ package nl.weeaboo.vn;
 
 import java.util.Collection;
 
+import nl.weeaboo.styledtext.StyledText;
+import nl.weeaboo.styledtext.TextStyle;
+
 public interface IButtonDrawable extends IImageDrawable {
 
 	// === Functions ===========================================================
@@ -60,9 +63,9 @@ public interface IButtonDrawable extends IImageDrawable {
 	public boolean isKeyboardFocus();
 	
 	/**
-	 * @see #setPadding(double) 
+	 * @see #setTouchMargin(double) 
 	 */
-	public double getPadding();
+	public double getTouchMargin();
 	
 	/**
 	 * @return The current list of global activation keys.
@@ -70,6 +73,19 @@ public interface IButtonDrawable extends IImageDrawable {
 	 */
 	public Collection<Integer> getActivationKeys();
 		
+	/**
+	 * @see #setText(StyledText) 
+	 */
+	public StyledText getText();
+	
+	public double getTextWidth();
+	public double getTextHeight();
+	
+	/**
+	 * @see #setDefaultStyle(TextStyle) 
+	 */
+	public TextStyle getDefaultStyle();
+	
 	public ITexture getNormalTexture();
 	public ITexture getRolloverTexture();
 	public ITexture getPressedTexture();
@@ -92,7 +108,7 @@ public interface IButtonDrawable extends IImageDrawable {
 	 * 
 	 * @param p The amount of padding to add to each side of the button.
 	 */
-	public void setPadding(double p);
+	public void setTouchMargin(double p);
 
 	/**
 	 * Enables or disables the button. A disabled button can't be pressed. 
@@ -115,5 +131,28 @@ public interface IButtonDrawable extends IImageDrawable {
 	 * @see #isKeyboardFocus()
 	 */
 	public void setKeyboardFocus(boolean f);
+
+	/**
+	 * @see #setText(StyledText)
+	 */
+	public void setText(String text); //Calls setText(StyledText)	
+	
+	/**
+	 * Sets the text displayed on top of this button.
+	 */
+	public void setText(StyledText stext);
+	
+	/**
+	 * Sets the default text style to use as a base for the text displayed on
+	 * top of this button.
+	 */
+	public void setDefaultStyle(TextStyle style);
+	
+	/**
+	 * Sets the relative position of the text within the button's bounds
+	 * 
+	 * @param a The anchor, uses numpad number positions as directions
+	 */
+	public void setTextAnchor(int a);
 	
 }

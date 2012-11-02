@@ -222,9 +222,17 @@ local function vnTask()
 				if scriptDebug and not android and not isVNDS then
 					notifier:d("Page break automatically inserted")
 				end
+			else
+				if not suspended then
+					if input:consumeTextLog() then
+						return edt.addEvent(textLog)
+					elseif input:consumeViewCG() then
+						return edt.addEvent(viewCG)
+					end
+				end			
 			end
 		end
-	
+		
 		if waitClickTime ~= 0 then
 			if not suspended then
 				if input:consumeTextLog() then
@@ -233,7 +241,7 @@ local function vnTask()
 					return edt.addEvent(viewCG)
 				end
 			end
-			
+					
 			if quickRead and not hardWaitClick and (getSkipUnread() or isLineRead()) then
 				setWaitClick(false)
 			elseif autoContinue or input:consumeTextContinue() then
@@ -513,13 +521,18 @@ function choice(...)
 end
 
 function choice2(uniqueChoiceId, ...)
+	local options = getTableOrVarArg(...)
+	if options == nil or #options == 0 then
+		options = {"Genuflect"}
+	end
+
 	local selected = -1
 	while selected < 0 do
 		local thread = nil
 		
-		local c = GUI.createChoice(...)
+		local c = GUI.createChoice(options)
 		if c == nil then
-			c = Screens.choice.new(uniqueChoiceId, ...)
+			c = Screens.choice.new(uniqueChoiceId, options)
 			
 			if thread ~= nil then thread:destroy() end
 			thread = newThread(c.run, c) --Start background thread to execute ChoiceScreen.run()			

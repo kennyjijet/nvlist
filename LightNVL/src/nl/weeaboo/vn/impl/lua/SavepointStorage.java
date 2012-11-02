@@ -10,8 +10,6 @@ import nl.weeaboo.vn.impl.base.BaseStorage;
 @LuaSerializable
 public class SavepointStorage extends BaseStorage implements Serializable {
 
-	private static final long serialVersionUID = LuaImpl.serialVersionUID;
-
 	private final EnvironmentSerializable es;
 	
 	public SavepointStorage() {		

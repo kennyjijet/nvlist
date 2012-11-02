@@ -9,6 +9,7 @@ import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IPixelShader;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.math.Matrix;
 
 public abstract class BaseDrawable implements IDrawable {
@@ -24,6 +25,7 @@ public abstract class BaseDrawable implements IDrawable {
 	private double rgba[] = {1.0, 1.0, 1.0, 1.0};
 	private BlendMode blendMode;
 	private IPixelShader pixelShader;
+	private transient RenderEnv renderEnv;
 
 	private transient int colorARGBInt;
 	private transient Matrix transform;
@@ -75,6 +77,9 @@ public abstract class BaseDrawable implements IDrawable {
 		boolean result = changed;
 		changed = false;
 		return result;
+	}
+	
+	protected void onRenderEnvChanged() {		
 	}
 	
 	//Getters
@@ -174,6 +179,10 @@ public abstract class BaseDrawable implements IDrawable {
 	@Override
 	public boolean contains(double px, double py) {
 		return getBounds().contains(px, py);
+	}
+	
+	protected RenderEnv getRenderEnv() {
+		return renderEnv;
 	}
 	
 	//Setters
@@ -298,6 +307,14 @@ public abstract class BaseDrawable implements IDrawable {
 			pixelShader = ps;
 			
 			markChanged();
+		}
+	}
+	
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		if (renderEnv != env && (renderEnv == null || !renderEnv.equals(env))) {
+			renderEnv = env;
+			onRenderEnvChanged();			
 		}
 	}
 	

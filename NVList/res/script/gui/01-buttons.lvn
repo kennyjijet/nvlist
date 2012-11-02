@@ -9,8 +9,9 @@ disabledB:setEnabled(false)
 local pad = math.min(screenWidth, screenHeight) / 64
 
 --Create layout object to position the buttons for us
-local grid = GridLayout.new{w=screenWidth, h=screenHeight, pad=pad, pack=5, children={normalB, disabledB}}
-grid:layout()
+doLayout(GridLayout, 0, 0, screenWidth, screenHeight,
+	{padding=pad, pack=5},
+	{normalB, disabledB})
 
 while true do
     if normalB:consumePress() then

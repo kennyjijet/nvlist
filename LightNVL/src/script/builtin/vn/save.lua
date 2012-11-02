@@ -165,7 +165,7 @@ local function saveLoadScreen(isSave)
 			if isSave then
 				local ss = nil
 				if selected < math.min(Save.getQuickSaveSlot(1), Save.getAutoSaveSlot(1)) then
-					ss = screenshot(getImageLayer())
+					ss = screenshot(imageState:getDefaultLayer(), -32768)
 					ss:makeTransient()
 				end
 				Save.save(selected, ss, metaData)

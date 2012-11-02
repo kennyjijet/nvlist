@@ -1,6 +1,7 @@
 
---[[
---Word wrapping tests
+--choice() --Choice without arguments test (shouldn't crash, may show one or more placeholder options)
+
+--[[ Word wrapping tests
 setTextModeNVL()
 text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis tincidunt, eros nec consectetur feugiat, neque nulla condimentum sapien, sed sagittis felis metus non nisi. Nullam id lobortis tortor. Duis consequat orci erat, ac pharetra lacus. Nulla auctor orci sed magna posuere eget laoreet massa posuere. In hac habitasse platea dictumst. Mauris eu velit tortor. In et urna lorem.")
 
@@ -305,5 +306,17 @@ destroyValues(viewports)
 choice("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
  
 ]]
+
+--[[ NVList 3.0 text on a button
+local tb = button("gui/components#button-")
+tb:setPos(alignAnchorX(screenWidth, tb:getWidth(), 5), alignAnchorY(screenHeight, tb:getHeight(), 5))
+tb:setText("Text on a button")
+
+while not input:consumeConfirm() and not tb:consumePress() do    
+    yield()
+end
+]]
+
+yield()
 
 return titlescreen()

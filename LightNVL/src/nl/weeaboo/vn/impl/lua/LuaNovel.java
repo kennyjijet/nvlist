@@ -65,7 +65,6 @@ import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFxLib;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseNovel;
-import nl.weeaboo.vn.impl.base.BaseScriptLib;
 import nl.weeaboo.vn.impl.base.BaseSoundFactory;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 import nl.weeaboo.vn.impl.base.BaseVideoFactory;

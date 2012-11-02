@@ -25,6 +25,7 @@ import nl.weeaboo.vn.IButtonDrawable;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ISeenLog;
+import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
@@ -32,6 +33,8 @@ import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
 @LuaSerializable
 public class ImageFactory extends BaseImageFactory implements Serializable {
 
+	private static final boolean RENDER_TEXT_TO_TEXTURE = false;
+	
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
 	private final TextureCache texCache;
@@ -79,12 +82,19 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 
 	@Override
 	public TextDrawable createTextDrawable() {
-		return new TextDrawable(trStore);
+		return new TextDrawable(createTextRenderer());
 	}
 
 	@Override
 	public IButtonDrawable createButtonDrawable() {
-		return new ButtonDrawable(isTouchScreen);
+		return new ButtonDrawable(isTouchScreen, createTextRenderer());
+	}
+	
+	protected ITextRenderer createTextRenderer() {
+		if (RENDER_TEXT_TO_TEXTURE) {
+			return new TextureTR(this, trStore);
+		}
+		return new GlyphTR(this, trStore);
 	}
 	
 	@Override

@@ -4,8 +4,8 @@ import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IPixelShader;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
-import nl.weeaboo.vn.impl.base.RenderEnv;
 
 public class DrawBuffer extends BaseDrawBuffer {
 

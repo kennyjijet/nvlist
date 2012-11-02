@@ -1,4 +1,4 @@
-package nl.weeaboo.vn.impl.base;
+package nl.weeaboo.vn;
 
 
 public interface ITweenLib {

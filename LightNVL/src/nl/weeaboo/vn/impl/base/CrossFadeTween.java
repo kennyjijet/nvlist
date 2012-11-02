@@ -6,6 +6,7 @@ import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.IPixelShader;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Matrix;
 
 @LuaSerializable

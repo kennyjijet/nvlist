@@ -113,5 +113,6 @@ public interface IDrawable extends Serializable {
 	public void setClipEnabled(boolean clip);
 	
 	public void setPixelShader(IPixelShader ps);
+	public void setRenderEnv(RenderEnv env);
 	
 }

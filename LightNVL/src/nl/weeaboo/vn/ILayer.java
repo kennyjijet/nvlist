@@ -2,8 +2,6 @@ package nl.weeaboo.vn;
 
 import java.util.EmptyStackException;
 
-import nl.weeaboo.vn.impl.base.ScreenshotBuffer;
-
 public interface ILayer extends IDrawable {
 
 	//Functions
@@ -73,7 +71,7 @@ public interface ILayer extends IDrawable {
 	 * @return A buffer for pending screenshots. The screenshots will be
 	 *         scheduled during the next call to {@link #draw(IRenderer)}.
 	 */
-	public ScreenshotBuffer getScreenshotBuffer();
+	public IScreenshotBuffer getScreenshotBuffer();
 	
 	//Setters
 	

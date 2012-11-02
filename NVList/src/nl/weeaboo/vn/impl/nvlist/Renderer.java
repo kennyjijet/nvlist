@@ -25,9 +25,9 @@ import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderCommand;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseRenderer;
 import nl.weeaboo.vn.impl.base.CustomRenderCommand;
-import nl.weeaboo.vn.impl.base.RenderEnv;
 import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
@@ -225,7 +225,7 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	void renderText(GLManager glm, TextLayout layout, double x, double y,
-			int lineStart, int lineEnd, double visibleChars, IPixelShader ps)
+			int startLine, int endLine, double visibleChars, IPixelShader ps)
 	{
 		flushQuadBatch();
 
@@ -235,8 +235,8 @@ public class Renderer extends BaseRenderer {
 		//gl.glPushMatrix();
 		glm.translate(x, y);
 		
-		pr.setLineOffset(lineStart);
-		pr.setVisibleLines(lineEnd - lineStart);
+		pr.setLineOffset(startLine);
+		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars(visibleChars);
 		pr.drawLayout(glm, layout);
 
@@ -326,7 +326,7 @@ public class Renderer extends BaseRenderer {
 
 		if (cmd.id == RenderTextCommand.id) {
 			RenderTextCommand rtc = (RenderTextCommand)cmd;
-			renderText(glm, rtc.textLayout, rtc.x, rtc.y - rtc.textLayout.getLineTop(rtc.lineStart),
+			renderText(glm, rtc.textLayout, rtc.x, rtc.y,
 					rtc.lineStart, rtc.lineEnd, rtc.visibleChars, rtc.ps);
 			return true;
 		}

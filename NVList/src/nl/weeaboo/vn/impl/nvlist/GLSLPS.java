@@ -20,9 +20,9 @@ import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseShader;
-import nl.weeaboo.vn.impl.base.RenderEnv;
 
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;

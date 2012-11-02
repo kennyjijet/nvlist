@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.impl.base.LayoutUtil;
 
 @LuaSerializable
 public class GridLayout extends AbstractLayout {
@@ -53,8 +52,8 @@ public class GridLayout extends AbstractLayout {
 		double gridH = bounds.h;
 		
 		if (pack > 0) {
-			colW = Math.min(colW, LayoutUtil2.getMaxComponentWidth(components));
-			rowH = Math.min(rowH, LayoutUtil2.getMaxComponentHeight(components));
+			colW = Math.min(colW, LayoutUtil.getMaxComponentWidth(components));
+			rowH = Math.min(rowH, LayoutUtil.getMaxComponentHeight(components));
 			gridW = cols*(colW+ipad)-ipad;
 			gridH = rows*(rowH+ipad)-ipad;
 			if (bounds.w > gridW) startX += LayoutUtil.alignAnchorX(bounds.w, gridW, pack);

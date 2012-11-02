@@ -25,8 +25,10 @@ import nl.weeaboo.vn.ISoundState;
 import nl.weeaboo.vn.IStorage;
 import nl.weeaboo.vn.ITextState;
 import nl.weeaboo.vn.ITimer;
+import nl.weeaboo.vn.ITweenLib;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.SoundType;
+import nl.weeaboo.vn.impl.lua.BaseScriptLib;
 
 public abstract class BaseNovel implements INovel {
 

@@ -15,6 +15,7 @@ import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.RenderEnv;
 
 @LuaSerializable
 public final class Layer extends BaseDrawable implements ILayer {
@@ -76,7 +77,9 @@ public final class Layer extends BaseDrawable implements ILayer {
 			Layer oldLayer = registry.setParentLayer(d, this);
 			if (oldLayer != null && oldLayer != this) {
 				oldLayer.remove(d);
-			}		
+			}
+			
+			d.setRenderEnv(getRenderEnv());
 			
 			markChanged();
 		}		
@@ -283,6 +286,23 @@ public final class Layer extends BaseDrawable implements ILayer {
 		boolean result = changed;
 		changed = false;
 		return result;
+	}
+	
+	protected void onRenderEnvChanged() {
+		super.onRenderEnvChanged();
+		
+		//Push the render env change through to all contained drawables, even the ones not currently active
+		RenderEnv env = getRenderEnv();
+		for (LayerContents state : sstack) {
+			tempArray = state.getDrawables(tempArray, 0);
+			for (int n = 0; n < tempArray.length; n++) {
+				IDrawable d = tempArray[n];
+				if (d == null) break; //The array can only contain nulls at the end
+				tempArray[n] = null; //Null the array indices to allow garbage collection
+
+				d.setRenderEnv(env);
+			}
+		}
 	}
 	
 	//Getters

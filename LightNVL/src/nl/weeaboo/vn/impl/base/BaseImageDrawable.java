@@ -8,6 +8,7 @@ import nl.weeaboo.vn.IImageTween;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Vec2;
 
 public abstract class BaseImageDrawable extends BaseTransformable implements IImageDrawable {

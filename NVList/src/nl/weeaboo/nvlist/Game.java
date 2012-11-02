@@ -4,7 +4,8 @@ import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
 import static nl.weeaboo.game.BaseGameConfig.TITLE;
 import static nl.weeaboo.game.BaseGameConfig.WIDTH;
 import static nl.weeaboo.vn.NovelPrefs.ENABLE_PROOFREADER_TOOLS;
-import static nl.weeaboo.vn.NovelPrefs.*;
+import static nl.weeaboo.vn.NovelPrefs.ENGINE_MIN_VERSION;
+import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
 import static nl.weeaboo.vn.vnds.VNDSUtil.VNDS;
 
 import java.awt.event.KeyEvent;
@@ -61,10 +62,10 @@ import nl.weeaboo.vn.IStorage;
 import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.NovelPrefs;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseLoggingAnalytics;
 import nl.weeaboo.vn.impl.base.BaseNovelConfig;
 import nl.weeaboo.vn.impl.base.NullAnalytics;
-import nl.weeaboo.vn.impl.base.RenderEnv;
 import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.Timer;
 import nl.weeaboo.vn.impl.lua.EnvLuaSerializer;
@@ -403,14 +404,18 @@ public class Game extends BaseGame {
 			Movie movie = (Movie)vs.getBlocking();
 			movie.draw(glm, getWidth(), getHeight());
 		} else {
+			ILayer root = is.getRootLayer();
+			
 			if (renderer == null) {
 				RenderEnv env = new RenderEnv(getWidth(), getHeight(),
 						getRealX(), getRealY(), getRealW(), getRealH(),
 						getScreenW(), getScreenH());
-				renderer = new Renderer(glm, pr, env, renderStats);
+			
+				root.setRenderEnv(env);
+				
+				renderer = new Renderer(glm, pr, env, renderStats);				
 			}
 			
-			ILayer root = is.getRootLayer();
 			DrawBuffer buffer = renderer.getDrawBuffer();
 			root.draw(buffer);
 			renderer.render(root, buffer);

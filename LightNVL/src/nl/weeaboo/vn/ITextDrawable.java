@@ -98,13 +98,10 @@ public interface ITextDrawable extends IDrawable {
 	public double getBackgroundBlue();
 	public double getBackgroundAlpha();
 	
-	public TextStyle getDefaultStyle();
-	
 	/**
-	 * @return The text anchor
-	 * @see #setAnchor(int)
+	 * @see #setDefaultStyle(TextStyle) 
 	 */
-	public int getAnchor();
+	public TextStyle getDefaultStyle();
 	
 	/**
 	 * @return The drawable used as this text drawable's continue indicator.
@@ -154,6 +151,9 @@ public interface ITextDrawable extends IDrawable {
 	public void setBackgroundColorARGB(int argb);
 	public void setBackgroundAlpha(double a);
 	
+	/**
+	 * Sets the default text style to use as a base style for displaying text.
+	 */
 	public void setDefaultStyle(TextStyle ts);
 	
 	/**

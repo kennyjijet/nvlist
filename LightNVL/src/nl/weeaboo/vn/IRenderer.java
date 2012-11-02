@@ -1,6 +1,5 @@
 package nl.weeaboo.vn;
 
-import nl.weeaboo.vn.impl.base.RenderEnv;
 
 
 public interface IRenderer {

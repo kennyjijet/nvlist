@@ -125,7 +125,7 @@ function SaveSlot.new(self)
 	--l:setBackgroundColorARGB(0xA0000000)
 	l:setZ(b:getZ() - 10)
 	l:setPadding(8)
-	l:setAnchor(1)
+	l:setAnchor(2)
 	
 	local i = nil	
 	local newI = nil
@@ -237,14 +237,19 @@ function SaveScreen.new(self)
 	if self.isSave then
 		okText = "Save"
 	end
-	self.okButton = TextButton.new("gui/savescreen#button-", okText)
 	
-	self.cancelButton = TextButton.new("gui/savescreen#button-", "Cancel")
+	local cancelText = "Cancel"
+	
+	self.okButton = button("gui/savescreen#button-")
+	self.okButton:setText(okText)
+	
+	self.cancelButton = button("gui/savescreen#button-")
+	self.cancelButton:setText(cancelText)
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton.text:setDefaultStyle(buttonStyle)
-	self.cancelButton.text:setDefaultStyle(buttonStyle)
+	self.okButton:setDefaultStyle(buttonStyle)
+	self.cancelButton:setDefaultStyle(buttonStyle)
     
 	self:initSaves()
 
@@ -391,10 +396,10 @@ function SaveScreen:run()
 			end
 		end
 		
-		self.okButton.button:setEnabled(self.selected ~= 0)
-		if self.okButton.button:consumePress() then
+		self.okButton:setEnabled(self.selected ~= 0)
+		if self.okButton:consumePress() then
 			break
-		elseif self.cancelButton.button:consumePress() then
+		elseif self.cancelButton:consumePress() then
 			self.selected = 0
 			break
 		end

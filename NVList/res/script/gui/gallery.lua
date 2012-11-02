@@ -240,8 +240,9 @@ function ImageGallery.new(folder, self)
 	self.buttonStyle = self.buttonStyle or createStyle{fontName="sans serif", fontStyle="bold", shadowColor=0}
 	
 	self.slots = self.slots or {}
-	self.returnButton = TextButton.new("gui/imagegallery#button-", "Return")
-	self.returnButton.text:setDefaultStyle(self.buttonStyle)
+	self.returnButton = button("gui/imagegallery#button-")
+	self.returnButton:setText("Return")
+	self.returnButton:setDefaultStyle(self.buttonStyle)
 	
 	self.topFade = img("gui/imagegallery#fade-top")
 	self.topFade:setZ(10)
@@ -352,9 +353,10 @@ function ImageGallery:setFolder(folder)
 	
 	self.pageButtons = {}
 	for p=1,numPages do
-		local tb = TextButton.new("gui/imagegallery#pageButton-", p)
-		tb.text:setDefaultStyle(self.buttonStyle)
-		tb.button:setToggle(true)
+		local tb = button("gui/imagegallery#pageButton-")
+		tb:setText(p)
+		tb:setDefaultStyle(self.buttonStyle)
+		tb:setToggle(true)
 		table.insert(self.pageButtons, tb)
 	end
 	
@@ -363,7 +365,7 @@ end
 
 function ImageGallery:setPage(p)
 	for i,pb in ipairs(self.pageButtons) do
-		pb.button:setSelected(i == p) 
+		pb:setSelected(i == p) 
 	end
 
 	if self.page ~= p then
@@ -433,7 +435,7 @@ function ImageGallery:run()
 
 	while not input:consumeCancel() do
 		for i,pb in ipairs(self.pageButtons) do
-			if pb.button:consumePress() then
+			if pb:consumePress() then
 				self:setPage(i)
 			end
 		end
@@ -445,7 +447,7 @@ function ImageGallery:run()
 			end
 		end
 		
-		if self.returnButton.button:consumePress() then
+		if self.returnButton:consumePress() then
 			break
 		end
 		

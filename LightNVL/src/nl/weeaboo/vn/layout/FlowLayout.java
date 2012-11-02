@@ -7,7 +7,6 @@ import java.util.List;
 
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.impl.base.LayoutUtil;
 
 @LuaSerializable
 public class FlowLayout extends AbstractLayout {

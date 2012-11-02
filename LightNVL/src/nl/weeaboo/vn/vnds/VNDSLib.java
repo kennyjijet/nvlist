@@ -14,7 +14,7 @@ import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
 import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
-import nl.weeaboo.vn.impl.base.BaseScriptLib;
+import nl.weeaboo.vn.impl.lua.BaseScriptLib;
 
 @LuaSerializable
 public class VNDSLib extends LuaLibrary {

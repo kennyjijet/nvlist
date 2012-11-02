@@ -4,6 +4,7 @@ import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Matrix;
 
 public abstract class BlendQuadHelper {

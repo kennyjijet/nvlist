@@ -9,7 +9,7 @@ import nl.weeaboo.filemanager.IFileManager;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.INotifier;
-import nl.weeaboo.vn.impl.base.BaseScriptLib;
+import nl.weeaboo.vn.impl.lua.BaseScriptLib;
 import nl.weeaboo.vn.impl.lua.LuaNovel;
 
 @LuaSerializable

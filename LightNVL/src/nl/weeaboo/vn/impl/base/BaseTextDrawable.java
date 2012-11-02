@@ -3,16 +3,25 @@ package nl.weeaboo.vn.impl.base;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITextDrawable;
+import nl.weeaboo.vn.ITextRenderer;
+import nl.weeaboo.vn.RenderEnv;
+import nl.weeaboo.vn.layout.LayoutUtil;
+import nl.weeaboo.vn.math.Matrix;
 
 public abstract class BaseTextDrawable extends BaseDrawable implements ITextDrawable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	
+	protected final ITextRenderer textRenderer;
 	
 	private StyledText text;
 	private TextStyle defaultStyle;
@@ -21,8 +30,6 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	private double textSpeed;
 	private double width, height;
 	private double pad;
-	private int texWidth, texHeight;
-	private transient boolean texDirty = true;
 	private double backgroundRGBA[] = {0, 0, 0, 0};
 	private int backgroundARGBInt;
 	private int anchor;
@@ -31,8 +38,10 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	private boolean cursorAutoPos;
 	private double targetCursorAlpha;
 	
-	protected BaseTextDrawable(StyledText t) {
-		text = t;
+	protected BaseTextDrawable(ITextRenderer tr) {
+		textRenderer = tr;
+		
+		text = StyledText.EMPTY_STRING;
 		textSpeed = -1;
 		anchor = 7;
 		defaultStyle = TextStyle.defaultInstance();
@@ -43,7 +52,6 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	//Functions
 	private void initTransients() {
 		visibleChars = (textSpeed >= 0 ? 0 : 999999);
-		texDirty = true;
 		backgroundARGBInt = BaseImpl.packRGBAtoARGB(backgroundRGBA[0], backgroundRGBA[1], backgroundRGBA[2], backgroundRGBA[3]);
 	}
 	
@@ -54,22 +62,59 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	}
 	
 	@Override
+	public void destroy() {
+		if (!isDestroyed()) {
+			textRenderer.destroy();
+			
+			super.destroy();
+		}
+	}
+	
+	@Override
 	public boolean update(ILayer layer, IInput input, double effectSpeed) {
 		if (super.update(layer, input, effectSpeed)) {
 			markChanged();
 		}
 		
 		if (!getCurrentLinesFullyVisible()) {
-			markChanged();
-			
 			setVisibleChars(textSpeed >= 0 ? getVisibleChars()+textSpeed : 999999);
 		}
+		textRenderer.setVisibleText(getStartLine(), getVisibleChars());
 		
 		targetCursorAlpha = 0;
 		updateCursorPos();
 		updateCursorAlpha(effectSpeed);
 				
 		return consumeChanged();
+	}
+	
+	@Override
+	public void draw(IDrawBuffer d) {		
+		short z = getZ();
+		boolean clip = isClipEnabled();
+		BlendMode blend = getBlendMode();
+		int argb = getColorARGB();
+		Matrix transform = getTransform();
+		
+		int bgColor = getBackgroundColorARGB();
+		int bgAlpha = ((bgColor>>24)&0xFF);
+		if (bgAlpha > 0) {
+			if (getAlpha() < 1) {
+				bgAlpha = Math.max(0, Math.min(255, (int)Math.round(bgAlpha * getAlpha())));
+			}
+			if (bgAlpha > 0) {
+				int c = (bgAlpha<<24)|(bgColor&0xFFFFFF);
+				d.drawQuad((short)(z+1), clip, blend, c, null,
+						transform, 0, 0, getWidth(), getHeight(),
+						getPixelShader());
+			}
+		}
+		
+		double pad = getPadding();
+		double x = getX() + pad + LayoutUtil.alignAnchorX(getInnerWidth(), getTextWidth(), anchor);
+		double y = getY() + pad + LayoutUtil.alignAnchorY(getInnerHeight(), getTextHeight(), anchor);
+		textRenderer.draw(d, z, clip, blend, argb, x, y);
+		updateCursorPos();
 	}
 	
 	public void updateCursorPos() {
@@ -110,26 +155,50 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			cursor.setVisible(isVisible());
 		}		
 	}
-	
-	protected void updateTextureSize(RenderEnv env) {
-		int texW = getTextureWidth();
-		int texH = getTextureHeight();
-		int targetW = (int)Math.round(getInnerWidth() * env.scale);
-		int targetH = (int)Math.round(getInnerHeight() * env.scale);
-		if (texW != targetW || texH != targetH) {
-			setTextureSize(targetW, targetH);
-		}		
-	}
 
-	protected abstract void onSizeChanged();
+	protected void onSizeChanged() {
+		textRenderer.setMaxSize(getInnerWidth(), getInnerHeight());
+		updateCursorPos();
+	}
 	
-	protected abstract void onTextChanged();
+	protected void onTextChanged() {
+		textRenderer.setText(text);
+		updateCursorPos();
+	}
+	
+	protected void onVisibleTextChanged() {
+		textRenderer.setVisibleText(startLine, visibleChars);
+		updateCursorPos();
+	}
 	
 	private boolean isInstantTextSpeed() {
 		return textSpeed < 0 || textSpeed >= 100000;		
 	}
 	
+	protected void onRenderEnvChanged() {
+		super.onRenderEnvChanged();
+		
+		RenderEnv env = getRenderEnv();
+		textRenderer.setDisplayScale(env != null ? env.getScale() : 1);
+	}
+	
 	//Getters
+	@Override
+	public Rect2D getBounds() {
+		double pad = getPadding();
+		double x = getX() + LayoutUtil.alignAnchorX(getInnerWidth(), getTextWidth(), anchor);
+		double y = getY() + LayoutUtil.alignAnchorY(getInnerHeight(), getTextHeight(), anchor);
+		double w, h;
+		if (getBackgroundAlpha() > 0) {
+			w = getWidth();
+			h = getHeight();
+		} else {
+			w = getTextWidth() + pad*2;
+			h = getTextHeight() + pad*2;
+		}
+		return new Rect2D(x, y, Double.isNaN(w) ? 0 : w, Double.isNaN(h) ? 0 : h);
+	}
+	
 	@Override
 	public StyledText getText() {
 		return text;
@@ -138,6 +207,16 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	@Override
 	public int getStartLine() {
 		return startLine;
+	}
+	
+	@Override
+	public int getEndLine() {
+		return textRenderer.getEndLine();
+	}
+	
+	@Override
+	public int getLineCount() {
+		return textRenderer.getLineCount();
 	}
 	
 	@Override
@@ -177,7 +256,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	
 	@Override
 	public double getInnerWidth() {
-		return width - pad*2 - (cursor != null ? cursor.getWidth() : 0);
+		return width - pad*2;
 	}
 	
 	@Override
@@ -190,50 +269,63 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		return pad;
 	}
 	
-	protected int getTextureWidth() {
-		return texWidth;
+	@Override
+	public double getTextWidth() {
+		return getTextWidth(startLine, getEndLine());
 	}
 	
-	protected int getTextureHeight() {
-		return texHeight;
-	}
-	
-	protected boolean isTexDirty() {
-		return texDirty;
+	public double getTextWidth(int startLine, int endLine) {
+		return textRenderer.getTextWidth(startLine, endLine);
 	}
 	
 	@Override
 	public double getTextHeight() {
-		return getTextHeight(getStartLine(), getEndLine());
+		return getTextHeight(startLine, getEndLine());
 	}
 	
-	/**
-	 * @return The width of the text in screen coordinates.
-	 */
-	public abstract int getLayoutWidth();
-	
-	/**
-	 * @return The height of the text in screen coordinates.
-	 */
-	public int getLayoutHeight() {
-		return getLayoutHeight(getStartLine(), getEndLine());		
+	@Override
+	public double getTextHeight(int startLine, int endLine) {
+		return textRenderer.getTextHeight(startLine, endLine);
 	}
-	
-	/**
-	 * @return The height of the text between the <code>start</code> and
-	 *         <code>end</code> lines in screen coordinates.
-	 */
-	public abstract int getLayoutHeight(int start, int end);
-	
-	/**
-	 * @return The X-coordinate of the right of the last visible char
-	 */
-	protected abstract double getCursorX();
 
-	/**
-	 * @return The Y-coordinate of the top of the last visible char
-	 */
-	protected abstract double getCursorY();
+	@Override
+	public int getCharOffset(int line) {
+		return textRenderer.getCharOffset(line);
+	}
+	
+	private int getCursorLine() {
+		int sl = getStartLine();
+		int el = getEndLine();
+		for (int line = el-1; line >= sl; line--) {
+			double w = textRenderer.getTextWidth(line, line+1);
+			if (w > 0) {
+				return line;
+			}
+		}
+		return sl;
+	}
+	
+	protected double getCursorX() {
+		if (getLineCount() == 0) return 0;
+
+		int cl = getCursorLine();
+		return textRenderer.getTextWidth(cl, cl+1);
+	}
+
+	protected double getCursorY() {
+		if (getLineCount() == 0) return 0;
+		
+		int sl = getStartLine();
+		int cl = getCursorLine();
+		double height = getTextHeight(sl, cl+1);
+		
+		double cursorHeight = 0;
+		if (getCursor() != null) {
+			cursorHeight = getCursor().getHeight();
+		}
+		
+		return height - cursorHeight;
+	}
 	
 	@Override
 	public int getBackgroundColorRGB() {
@@ -271,11 +363,6 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	}
 	
 	@Override
-	public int getAnchor() {
-		return anchor;
-	}
-	
-	@Override
 	public IDrawable getCursor() {
 		return cursor;
 	}
@@ -297,8 +384,6 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			}
 			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
 			markChanged();
-			texDirty = true;
-			
 			onTextChanged();
 		}
 	}
@@ -311,7 +396,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			startLine = sl;
 			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
 			markChanged();
-			texDirty = true;			
+			onVisibleTextChanged();
 		}
 	}
 	
@@ -320,7 +405,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		if (visibleChars != vc) {
 			visibleChars = vc;
 			markChanged();
-			texDirty = true;
+			onVisibleTextChanged();
 		}
 	}
 	
@@ -343,20 +428,14 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			height = h;
 			
 			markChanged();
-			texDirty = true;			
 			onSizeChanged();
 		}
 	}
 	
-	protected void setTextureSize(int tw, int th) {
-		if (texWidth != tw || texHeight != th) {
-			texWidth = tw;
-			texHeight = th;
-			
-			markChanged();
-			texDirty = true;			
-			onSizeChanged();
-		}
+	@Override
+	public void setBounds(double x, double y, double w, double h) {
+		setPos(x, y);
+		setSize(w, h);
 	}
 	
 	@Override
@@ -365,15 +444,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			pad = p;
 
 			markChanged();
-			texDirty = true;
 			onSizeChanged();
-		}
-	}
-	
-	protected void setTexDirty(boolean td) {
-		if (texDirty != td) {
-			texDirty = td;
-			markChanged();
 		}
 	}
 	
@@ -430,6 +501,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		
 		if (defaultStyle != ts && (defaultStyle == null || !defaultStyle.equals(ts))) {
 			defaultStyle = ts;
+			textRenderer.setDefaultStyle(ts);
 			markChanged();
 		}
 	}
@@ -454,8 +526,9 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 				cursor.setAlpha(targetCursorAlpha);
 			}
 			
+			textRenderer.setCursor(cursorAutoPos ? cursor : null);
+			
 			markChanged();
-			texDirty = true;
 			onSizeChanged();
 		}
 	}

@@ -9,6 +9,7 @@ import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Vec2;
 

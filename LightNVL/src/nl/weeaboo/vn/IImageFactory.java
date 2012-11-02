@@ -2,6 +2,7 @@ package nl.weeaboo.vn;
 
 import java.util.Collection;
 
+
 public interface IImageFactory {
 
 	// === Functions ===========================================================

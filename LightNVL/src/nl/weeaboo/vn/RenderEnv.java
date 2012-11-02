@@ -1,14 +1,16 @@
-package nl.weeaboo.vn.impl.base;
+package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Rect;
 
 public final class RenderEnv {
 
-	public final int vw, vh;
+	//--- Don't add properties without also comparing them in equals() ---
+	public final double scale;
 	public final int rx, ry, rw, rh;
 	public final int sw, sh;
-	public final double scale;
+	public final int vw, vh;
 	public final Rect screenClip;
+	//--- Don't add properties without also comparing them in equals() ---
 	
 	public RenderEnv(int vw, int vh, int rx, int ry, int rw, int rh, int sw, int sh) {
 		this.vw = vw;
@@ -22,6 +24,23 @@ public final class RenderEnv {
 
 		this.scale = Math.min(rw / (double)vw, rh / (double)vh);
 		this.screenClip = new Rect(rx, sh - ry - rh, rw, rh);
+	}
+	
+	@Override
+	public int hashCode() {
+		return vw ^ vh ^ (int)Double.doubleToLongBits(scale);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof RenderEnv) {
+			RenderEnv env = (RenderEnv)obj;
+			return scale == env.scale
+				&& vw == env.vw && vh == env.vh && sw == env.sw && sh == env.sh
+				&& rx == env.rx && ry == env.ry && rw == env.rw && rh == env.rh;
+			//No need to compare screenClip, generated from other attributes
+		}
+		return false;
 	}
 	
 	/**

@@ -3,6 +3,7 @@ package nl.weeaboo.vn.impl.base;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.ITransformable;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.IPolygon;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;

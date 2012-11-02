@@ -9,7 +9,7 @@ import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageTween;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.INotifier;
-import nl.weeaboo.vn.impl.base.ITweenLib;
+import nl.weeaboo.vn.ITweenLib;
 
 import org.luaj.vm2.LuaBoolean;
 import org.luaj.vm2.LuaValue;

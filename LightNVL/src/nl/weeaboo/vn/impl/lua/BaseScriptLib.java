@@ -1,4 +1,4 @@
-package nl.weeaboo.vn.impl.base;
+package nl.weeaboo.vn.impl.lua;
 
 import static org.luaj.vm2.LuaValue.valueOf;
 
@@ -7,14 +7,13 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import nl.weeaboo.vn.IScriptLib;
-import nl.weeaboo.vn.impl.lua.LuaNovel;
 
 import org.luaj.vm2.LuaString;
 import org.luaj.vm2.lib.PackageLib;
 
 public abstract class BaseScriptLib implements IScriptLib, Serializable {
 
-	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
 	private static final LuaString PATH = valueOf("path");
 	

@@ -1,7 +1,6 @@
 package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.vn.impl.base.RenderEnv;
 import nl.weeaboo.vn.math.Matrix;
 
 public interface IDrawBuffer {
