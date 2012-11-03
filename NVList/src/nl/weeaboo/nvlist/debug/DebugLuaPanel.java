@@ -88,12 +88,11 @@ public class DebugLuaPanel extends JPanel {
 				if (code.trim().length() == 0) {
 					return;
 				}
-				code = String.format("return (%s)", code);
 				commandField.setText("");
 				
 				synchronized (lock) {
 					try {
-						Varargs result = novel.exec(code);
+						Varargs result = novel.eval(code);
 						if (result != null && result.narg() > 0) {
 							logPane.append(result.tojstring());
 						}

@@ -549,7 +549,7 @@ public abstract class LuaNovel extends BaseNovel {
 	public void openSaveScreen() throws LuaException { setMode("saveScreen"); }	
 	public void openLoadScreen() throws LuaException { setMode("loadScreen"); }
 	
-	public Varargs exec(String code) throws LuaException {
+	public Varargs eval(String code) throws LuaException {
 		if (luaRunState == null) throw new LuaException("LuaRunState is null");
 		
 		luaRunState.registerOnThread();
