@@ -161,7 +161,36 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	}
 	
 	//Getters
-	protected Collection<ILayoutComponent> getLayoutComponents() {
+	@Override
+	public IDrawable[] getDrawableComponents(IDrawable[] out) {
+		int count = 0;
+		for (ILayoutComponent lc : components) {
+			if (tryGetDrawable(lc) != null) {
+				count++;
+			}
+		}
+		
+		if (out == null || out.length < count) {
+			out = new IDrawable[count];
+		}
+		count = 0;
+		
+		for (ILayoutComponent lc : components) {
+			IDrawable d = tryGetDrawable(lc);
+			if (d != null) {
+				out[count++] = d;
+			}
+		}
+		
+		if (out.length > count) {
+			out[count] = null;
+		}
+		
+		return out;
+	}
+	
+	@Override
+	public Collection<ILayoutComponent> getLayoutComponents() {
 		return Collections.unmodifiableCollection(components);		
 	}
 		

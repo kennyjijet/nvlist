@@ -1,12 +1,15 @@
 package nl.weeaboo.vn.impl.base;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IButtonDrawable;
+import nl.weeaboo.vn.IContainer;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
@@ -112,7 +115,12 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		
 		boolean dragging = false;
 		if (input.isMouseHeld()) {
-			dragging = (mold != null) || (mouseContained && input.consumeMouse());
+			if (mold != null) {
+				dragging = true;
+			} else if (mouseContained && /*input.consumeMouse()*/input.isMousePressed()) {
+				dragging = true;
+				onStartDrag();
+			}
 		}
 		
 		//Calculate mouse drag
@@ -146,6 +154,31 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		}
 				
 		return consumeChanged();
+	}
+	
+	protected void onStartDrag() {
+		//Recursively traverses this container and its children and calls cancelMouseArmed() on each drawable.
+		
+		LinkedList<IContainer> todo = new LinkedList<IContainer>();
+		todo.add(this);
+		
+		IDrawable[] tempArray = new IDrawable[16];
+		while (!todo.isEmpty()) {
+			IContainer c = todo.removeFirst();
+			tempArray = c.getDrawableComponents(tempArray);
+			for (IDrawable d : tempArray) {
+				if (d == null) break;
+
+				if (d instanceof IContainer) {
+					todo.addLast((IContainer)d);
+				}
+				
+				if (d instanceof IButtonDrawable) {
+					IButtonDrawable b = (IButtonDrawable)d;
+					b.cancelMouseArmed();
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -207,6 +240,8 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	}
 
 	protected Rect2D generateVirtualBounds() {
+		validateLayout();
+		
 		//Calculate bounds
 		double minX = Double.MAX_VALUE;
 		double maxX = Double.MIN_VALUE;
@@ -231,6 +266,8 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	}
 	
 	protected void calculateScrollLimits() {
+		validateLayout();
+		
 		Rect2D ibounds = getInnerBounds();
 		Rect2D vbounds = getVirtualBounds();
 		
@@ -254,7 +291,9 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		scrollToVisible(r.x+getScrollX(), r.y+getScrollY(), r.w, r.h);
 	}
 	
-	public void scrollToVisible(double rx, double ry, double rw, double rh) {		
+	public void scrollToVisible(double rx, double ry, double rw, double rh) {
+		validateLayout();
+		
 		Insets2D pad = getPadding();
 		Rect2D ibounds = getInnerBounds();
 		Rect2D visible = new Rect2D(getScrollX()+pad.left, getScrollY()+pad.top,
@@ -319,15 +358,15 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	
 	@Override
 	public Rect2D getInnerBounds() {
-		return new Rect2D(getX(), getY(), getInnerWidth(), getInnerHeight());
+		return new Rect2D(getX(), getY(), Math.max(0, getInnerWidth()), Math.max(0, getInnerHeight()));
 	}
 	
 	@Override
 	public Rect2D getLayoutBounds() {
 		Insets2D padding = getPadding();
 		return new Rect2D(padding.left-scrollX.pos, padding.top-scrollY.pos,
-				getInnerWidth()-padding.left-padding.right,
-				getInnerHeight()-padding.top-padding.bottom);
+				Math.max(0, getInnerWidth()-padding.left-padding.right),
+				Math.max(0, getInnerHeight()-padding.top-padding.bottom));
 	}
 	
 	@Override
@@ -360,11 +399,13 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	
 	@Override
 	public boolean canScrollX() {
+		calculateScrollLimits();
 		return scrollX.max > scrollX.min;
 	}
 	
 	@Override
 	public boolean canScrollY() {
+		calculateScrollLimits();
 		return scrollY.max > scrollY.min;
 	}
 	

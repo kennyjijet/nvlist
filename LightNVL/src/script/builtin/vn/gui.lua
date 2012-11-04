@@ -151,9 +151,7 @@ function createViewport(w, h)
 	h = h or 0
 
 	local viewport = GUI.createViewport(getImageLayer())	
-	viewport:setSize(w, h)
-	viewport:setFadingEdges(screenHeight*.02, 0x000000,
-		tex("gui/components#fade-down", true), tex("gui/components#fade-up", true))		
+	viewport:setSize(w, h)	
 	return viewport
 end
 
@@ -164,7 +162,13 @@ end
 -- @param pad A table containing <code>top, right, bottom, left</code> fields 
 --        to determine the amount of empty space that should be reserved around
 --        the scrollbar.
-function setViewportScrollBar(viewport, horizontal, pad)
+-- @param images A table containing image paths or textures to use for the
+--        scrollbar and/or fading edges:
+--        <code>(scrollBG, scrollThumb, fadeUp, fadeDown)</code>.
+function setViewportScrollBar(viewport, horizontal, pad, images)
+	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
+	images = images or {}
+	
 	local func = viewport.setScrollBarY
 	local sfx = ""
 	if horizontal then
@@ -172,8 +176,16 @@ function setViewportScrollBar(viewport, horizontal, pad)
 		sfx = "-h"
 	end
 	
-	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
+	local scrollBG = images.scrollBG or "gui/components#scroll-bg" .. sfx
+	local scrollThumb = images.scrollThumb or "gui/components#scroll-thumb" .. sfx
+	local fadeUp = images.fadeUp or "gui/components#fade-up"
+	local fadeDown = images.fadeDown or "gui/components#fade-down"
+		
+	local sz = screenHeight * .015
 	
-	func(viewport, screenHeight*.015, tex("gui/components#scroll-bg" .. sfx, true),
-		tex("gui/components#scroll-thumb" .. sfx, true), pad.top, pad.right, pad.bottom, pad.left)
+	func(viewport, sz, tex(scrollBG, true), tex(scrolllThumb, true), pad.top, pad.right, pad.bottom, pad.left)
+		
+	if not horizontal then
+		viewport:setFadingEdges(screenHeight * .02, 0x000000, tex(fadeUp, true), text(fadeDown, true))		
+	end
 end

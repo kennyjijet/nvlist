@@ -1,0 +1,130 @@
+
+Creating a large panel containing smaller images. Images are automatically positioned according to a layout.
+
+@@
+local continueB = button("gui/components#button-")
+continueB:setPos(10, 10)
+continueB:setText("Continue")
+
+local layoutB = button("gui/components#button-")
+layoutB:setPos(screenWidth-layoutB:getWidth()-10, 10)
+layoutB:setText("Switch layout")
+
+local panel = createPanel(300, 300)
+panel:setBackground(colorTex(0xFF800080, 64, 64))
+
+local corners = {}
+for i=1,4 do corners[i] = colorTex(0xC08080, 16, 16) end
+
+local sides = {}
+for i=1,4 do sides[i] = colorTex(0x80C080, 16, 16) end
+    
+panel:setBorderInsets(16)
+panel:setBorder(sides, corners)
+
+local layouts = {
+    createFlowLayout{padding=10},
+    createGridLayout{cols=4, pack=2, anchor=5, padding=10},
+}
+
+local layoutIndex = 1
+layout = layouts[layoutIndex]
+panel:setLayout(layout)
+
+local cs = {}
+for n=1,12 do
+    cs[n] = img("white", {size={100, 100}})
+    cs[n]:setColorRGB(math.random(0x202020, 0xFFFFFF))
+
+    panel:add(cs[n])
+end
+
+local frame = 0
+while not input:consumeConfirm() and not continueB:consumePress() do
+    frame = (frame + 1) % 512
+
+    if layoutB:consumePress() then
+        layoutIndex = layoutIndex + 1
+        if layoutIndex > #layouts then
+            layoutIndex = 1
+        end
+        layout = layouts[layoutIndex]
+        panel:setLayout(layout)
+    elseif input:consumeKey(Keys.R) then
+        for i,d in ipairs(cs) do
+            d:setColor(1.0 - (.1 * i) % 1, 1.0, 1.0 - (.03 * i) % 1)
+            d:setSize(math.random(50, 200), math.random(50, 200))
+        end
+        panel:invalidateLayout()
+    elseif input:consumeKey(Keys.W) then
+        layout:setLeftToRight(true)
+        panel:invalidateLayout()
+    elseif input:consumeKey(Keys.E) then
+        layout:setLeftToRight(false)
+        panel:invalidateLayout()
+    else
+        --Allow changing the layout anchor by pressing the numpad
+        for i=1,9 do
+            if input:consumeKey(Keys["NUMPAD" .. i]) then
+                layout:setAnchor(i)
+            end
+        end
+    end
+    
+    local sh = screenHeight - 100
+    local pad = (sh/4) * (.5 - .5*math.fastCos(.5 * frame))
+    panel:setBounds(pad*2, pad + 100, screenWidth-4*pad, sh-2*pad)
+    panel:layout()
+    
+    yield()
+end
+panel:destroy()
+
+rm(layoutB)
+
+continueB:setVisible(false)
+@@
+
+Scrollable viewports demo. Scroll using the mouse scroll wheel or by dragging.
+
+@@
+continueB:setVisible(true)
+
+viewports = {}
+for i=1,4 do
+    local viewport = createViewport(250, 350)
+    viewport:setPos(65 + 300 * (i-1), 200)
+        
+    local cs = {
+        img("white", {y=0, size={150, 150}}),
+        img("white", {y=175, size={150, 150}, colorRGB=0xFF0000}),
+        img("white", {x=125, y=350, size={150, 150}, colorRGB=0x00FF00}),
+        img("white", {x=50, y=525, size={150, 150}, colorRGB=0xFFFF00})
+    }
+    for j=i+1,4 do
+        rm(cs[j])
+        cs[j] = nil
+    end
+    for _,i in pairs(cs) do
+        viewport:add(i)
+    end
+
+    if viewport:canScrollY() then
+        setViewportScrollBar(viewport)
+    end
+    if viewport:canScrollX() then
+        setViewportScrollBar(viewport, true)
+    end
+    
+    table.insert(viewports, viewport)
+end
+
+while not input:consumeConfirm() and not continueB:consumePress() do
+    yield()
+end
+destroyValues(viewports)
+
+rm(continueB)
+@@
+
+Finished.

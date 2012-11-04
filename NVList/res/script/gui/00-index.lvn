@@ -4,7 +4,7 @@
 while true do
     clearText()
 
-    local selected = choice("Buttons", "Built-in Special Screens", "Buttons in the Text Box", "Sub Screens", "Image Gallery", "Custom Special Screens", "Return")
+    local selected = choice("Buttons", "Built-in Special Screens", "Buttons in the Text Box", "Sub Screens", "Image Gallery", "Custom Special Screens", "Panels and Viewports", "Return")
     if selected == 1 then
         call("gui/01-buttons")
     elseif selected == 2 then
@@ -17,6 +17,8 @@ while true do
         call("gui/05-gallery")
     elseif selected == 6 then
         call("gui/06-custom-screens")
+    elseif selected == 7 then
+        call("gui/07-panels-viewports")
     else
         break
     end

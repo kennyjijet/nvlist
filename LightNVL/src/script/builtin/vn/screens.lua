@@ -4,6 +4,35 @@
 -- Defines the standard user interface screens.
 -------------------------------------------------------------------------------
 
+---Adds a visible scroll bar to an existing viewport
+-- @param viewport The viewport to change the scrollbar of.
+-- @param horizontal A boolean <code>true/false</code> whether to change the
+--        horizontal or vertical scrollbar.
+-- @param pad A table containing <code>top, right, bottom, left</code> fields 
+--        to determine the amount of empty space that should be reserved around
+--        the scrollbar.
+function setViewportScrollBar(viewport, horizontal, pad)
+	local func = viewport.setScrollBarY
+	local sfx = ""
+	if horizontal then
+		func = viewport.setScrollBarX
+		sfx = "-h"
+	end
+	
+	local sz = screenHeight * .015
+	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
+	local scrollBgTex = tex("gui/components#scroll-bg" .. sfx, true)
+	local scrollThumbTex = tex("gui/components#scroll-thumb" .. sfx, true)
+	
+	func(viewport, sz, scrollBgTex, scrollThumbTex, pad.top, pad.right, pad.bottom, pad.left)
+		
+	if not horizontal then
+		local fadeUpTex = tex("gui/components#fade-down", true)
+		local fadeDownTex = tex("gui/components#fade-up", true)
+		viewport:setFadingEdges(screenHeight * .02, 0x000000, fadeUpTex, fadeDownTex)		
+	end
+end
+
 -- ----------------------------------------------------------------------------
 --  Save/Load Screen
 -- ----------------------------------------------------------------------------
@@ -542,7 +571,6 @@ function ChoiceScreen.new(choiceId, ...)
 		or extendStyle(self.choiceStyle, {color=0xFF808080})
 	
 	local viewport = createViewport(self.w-self.pad*2, self.h-self.pad*2)
-	viewport:setFadingEdges(0)
 	viewport:setPos(self.pad, self.pad)
 	viewport:setPadding(self.pad)
 	viewport:setLayout(createFlowLayout{pack=5, anchor=5, padding=self.ipad, cols=1})
@@ -599,6 +627,7 @@ function ChoiceScreen:layout()
 		elseif pass == 2 then
 			if not self.viewport:hasScrollBarY() then
 				setViewportScrollBar(self.viewport)
+				self.viewport:setFadingEdges(0)
 			end
 		end
 	end

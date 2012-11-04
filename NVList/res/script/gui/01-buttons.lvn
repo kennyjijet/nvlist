@@ -5,25 +5,39 @@ local normalB = button("gui/test-button") --Automatically uses specifically name
 local disabledB = button("gui/test-button")
 disabledB:setEnabled(false)
 
+local textB = button("gui/components#button-") --Empty button image
+textB:setText("Text on a button")
+
+local text2B = button("gui/components#button-")
+text2B:setTextAnchor(3) --Bottom right
+text2B:setDefaultStyle(createStyle{fontStyle="italic"})
+text2B:setText("Text on a button")
+
 --Padding between buttons is a percentage of the screen size
 local pad = math.min(screenWidth, screenHeight) / 64
 
 --Create layout object to position the buttons for us
 doLayout(GridLayout, 0, 0, screenWidth, screenHeight,
-	{padding=pad, pack=5},
-	{normalB, disabledB})
+	{padding=pad, pack=5, cols=2},
+	{normalB, disabledB, textB, text2B})
 
 while true do
     if normalB:consumePress() then
         normalB:setEnabled(false) --Prevent button from being pressed again while text is showing
         text("Button pressed")
         break
+    elseif textB:consumePress() then
+        textB:setText("Random text " .. string.sub("abcde", 1, math.random(1, 5)))
+    elseif text2B:consumePress() then
+        text2B:setTextAnchor(math.random(1, 9))
     end
     yield()
 end
 
 rm(normalB)
 rm(disabledB)
+rm(textB)
+rm(text2B)
 
 clearText()
 

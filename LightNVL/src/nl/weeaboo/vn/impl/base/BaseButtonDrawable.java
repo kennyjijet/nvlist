@@ -192,7 +192,11 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		super.invalidateTransform();
 		textRenderer.setMaxSize(getWidth(), getHeight());
 	}
-	
+		
+	@Override
+	public void cancelMouseArmed() {
+		mouseArmed = false;
+	}
 	
 	@Override
 	public boolean consumePress() {

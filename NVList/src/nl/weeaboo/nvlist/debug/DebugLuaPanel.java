@@ -59,6 +59,7 @@ public class DebugLuaPanel extends JPanel {
 		buttonPanel.add(printStackTraceButton);
 		
 		logPane = new LogPane();
+		logPane.append(LogPane.STYLE_VERBOSE, "Type some Lua code and press enter to run it.");
 		JScrollPane logScrollPane = new JScrollPane(logPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		

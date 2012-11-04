@@ -26,6 +26,11 @@ public interface IButtonDrawable extends IImageDrawable {
 	 */
 	public void removeActivationKeys(int... key);
 	
+	/**
+	 * Clears the mouse armed state.
+	 */
+	public void cancelMouseArmed();
+	
 	// === Getters =============================================================
 	
 	/**

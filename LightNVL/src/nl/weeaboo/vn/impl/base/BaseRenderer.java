@@ -102,16 +102,18 @@ public abstract class BaseRenderer implements IRenderer {
 		final int cx, cy, cw, ch; //Clip rect in screen coords
 		if (bounds == null) {			
 			cx = parentClip.x; cy = parentClip.y; cw = parentClip.w; ch = parentClip.h;
-		} else {			
-			int tx = (int)Math.round(bounds.x * env.scale);
-			int ty = (int)Math.round(bounds.y * env.scale);
-			int tw = (int)Math.round(bounds.w * env.scale);
-			int th = (int)Math.round(bounds.h * env.scale);
+		} else {
+			//Rounded to ints, crop rect should be no bigger than the non-rounded version.
+			int tx0 = (int)Math.ceil(bounds.x * env.scale);
+			int ty0 = (int)Math.ceil(bounds.y * env.scale);
+			//We can't just floor() the w/h because the ceil() of the x/y would skew the result.
+			int tx1 = (int)Math.floor((bounds.x+bounds.w) * env.scale);
+			int ty1 = (int)Math.floor((bounds.y+bounds.h) * env.scale);
 			
-			cx = parentClip.x + Math.max(0, Math.min(parentClip.w, tx));
-			cy = parentClip.y + Math.max(0, Math.min(parentClip.h, parentClip.h-ty-th));
-			cw = Math.max(0, Math.min(parentClip.w-tx, tw));
-			ch = Math.max(0, Math.min(parentClip.h-ty, th));
+			cx = parentClip.x + Math.max(0, Math.min(parentClip.w, tx0));
+			cy = parentClip.y + Math.max(0, Math.min(parentClip.h, parentClip.h-ty1));
+			cw = Math.max(0, Math.min(parentClip.w-tx0, tx1-tx0));
+			ch = Math.max(0, Math.min(parentClip.h-ty0, ty1-ty0));
 		}		
 		final Rect layerClip = new Rect(cx, cy, cw, ch);
 		

@@ -28,7 +28,7 @@
   <section title="Create CD Release" level="3">
     <a name="create-cd-release"></a>
 
-    <p>Creates a disk image (.iso) ready to burn onto a CD/DVD. If correctly set up in <code>installer-config.ini</code>, a Windows Java runtime and Java installer will be included on the CD. If these aren't included, Windows users lacking a modern Java runtime can't run the installer.</p>
+    <p>Creates a disk image (.iso) ready to burn onto a CD/DVD. If correctly set up in <code>installer-config.ini</code>, a Windows Java runtime and Java installer will be included on the CD (and the installer will offer to install Java if necessary).</p>
   </section>
   
   <section title="Distribution Settings" level="2">

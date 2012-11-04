@@ -1,5 +1,7 @@
 package nl.weeaboo.vn;
 
+import java.util.Collection;
+
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.layout.ILayout;
@@ -59,6 +61,16 @@ public interface IContainer extends IDrawable {
 	 * @see #getLayout() 
 	 */
 	public ILayout getLayout();
+	
+	/**
+	 * Returns all drawables added to this container. 
+	 */
+	public IDrawable[] getDrawableComponents(IDrawable[] out);
+	
+	/**
+	 * Returns all layout components added to this container. 
+	 */
+	public Collection<ILayoutComponent> getLayoutComponents();
 	
 	/**
 	 * Returns if <code>d</code> is currently added to this panel. 
