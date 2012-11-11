@@ -14,5 +14,5 @@ public interface IImageDrawable extends ITransformable {
 	public void setTexture(ITexture i, double imageAlignX, double imageAlignY);
 	public void setTween(IImageTween t);
 	public void setGeometryShader(IGeometryShader gs);
-		
+
 }

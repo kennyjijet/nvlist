@@ -40,14 +40,12 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	private final TextureCache texCache;
 	private final ShaderCache shCache;
 	private final GLTextRendererStore trStore;
-	private final boolean isTouchScreen;
 	
 	private int imgWidth, imgHeight;
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	
 	public ImageFactory(TextureCache tc, ShaderCache sc, GLTextRendererStore trStore,
-			IAnalytics an, ISeenLog sl, INotifier ntf, boolean isTouchScreen,
-			int w, int h)
+			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h)
 	{
 		super(sl, ntf, w, h);
 		
@@ -55,7 +53,6 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		this.texCache = tc;
 		this.shCache = sc;
 		this.trStore = trStore;		
-		this.isTouchScreen = isTouchScreen;
 		this.imgWidth = w;
 		this.imgHeight = h;
 		this.subTexLim = 128;
@@ -87,7 +84,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 
 	@Override
 	public IButtonDrawable createButtonDrawable() {
-		return new ButtonDrawable(isTouchScreen, createTextRenderer());
+		return new ButtonDrawable(createTextRenderer());
 	}
 	
 	protected ITextRenderer createTextRenderer() {

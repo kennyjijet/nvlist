@@ -83,7 +83,7 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
         stream.next();
         stream.next();
       } else if (ch == '[') {
-        state.cur = code;
+        state.cur = embeddedCode;
         return null;
       } else if (ch == '$') {
         state.cur = internalString;
@@ -141,14 +141,25 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
     return level;
   }
   
+  function embeddedCode(stream, state) {
+    var style = "code";
+    var ch = stream.next();
+    if (ch == '\\') {
+      stream.next();
+    } else if (ch == ']') {
+      state.cur = normal;
+    } else {
+      return code(stream, state);
+    }
+    return style;
+  }
+  
   function code(stream, state) {
     var style = "code";
     var ch = stream.next();
         
     if (ch == '\\') {
-        stream.next();
-    } else if (ch == ']') {
-      state.cur = normal;
+      stream.next();
     } else if (ch == "-" && stream.eat("-")) {
       if (stream.eat("[")) {
         style = (state.cur = bracketed(readBracket(stream), "comment"))(stream, state);
@@ -170,7 +181,7 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
     
     if (stream.eol()) {
         state.cur = normal;
-    }
+    }    
     return style;
   }
 

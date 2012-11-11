@@ -4,6 +4,7 @@ import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.ITextRenderer;
+import nl.weeaboo.vn.RenderEnv;
 
 public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 
@@ -17,7 +18,10 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 	private double displayScale;
 	private IDrawable cursor;
 	
+	private /*transient*/ RenderEnv renderEnv;
+	
 	private transient L layout;
+	private boolean changed;
 	
 	public AbstractTextRenderer() {
 		stext = StyledText.EMPTY_STRING;
@@ -34,17 +38,35 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		
 	protected void invalidateLayout() {
 		layout = null;
+		markChanged();
 	}
 		
-	protected void onVisibleTextChanged() {		
+	protected void onVisibleTextChanged() {	
+		markChanged();
 	}
 	
 	protected void onDisplayScaleChanged() {		
+		markChanged();
 	}
 	
 	protected abstract L createLayout(double width, double height);
 	
-	//Getters
+	protected void markChanged() {
+		changed = true;
+	}
+	
+	protected boolean consumeChanged() {
+		boolean result = changed;
+		changed = false;
+		return result;
+	}
+	
+	@Override
+	public boolean update() {
+		return consumeChanged();
+	}
+	
+	//Getters	
 	protected IDrawable getCursor() {
 		return cursor;
 	}
@@ -125,6 +147,10 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		return getLayoutHeight(startLine, endLine);
 	}
 	
+	protected RenderEnv getRenderEnv() {
+		return renderEnv;
+	}
+	
 	//Setters
 	@Override
 	public void setMaxSize(double w, double h) {
@@ -161,23 +187,19 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		}
 	}
 	
-	/**
-	 * Explicitly sets the scale factor from virtual coordinates to screen
-	 * coordinates.
-	 */
-	@Override
-	public void setDisplayScale(double s) {
-		if (displayScale != s) {
-			displayScale = s;
-
-			onDisplayScaleChanged();
-		}
-	}
-	
 	@Override
 	public void setCursor(IDrawable c) {
 		cursor = c;
 	}
-	
+		
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		if (renderEnv != env) {
+			renderEnv = env;
+			
+			displayScale = env.getScale();
+			onDisplayScaleChanged();
+		}
+	}
 	
 }

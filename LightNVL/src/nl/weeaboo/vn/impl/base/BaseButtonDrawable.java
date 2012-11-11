@@ -14,6 +14,7 @@ import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.IPolygon;
 import nl.weeaboo.vn.math.Matrix;
@@ -23,8 +24,6 @@ import nl.weeaboo.vn.math.Polygon;
 public abstract class BaseButtonDrawable extends BaseImageDrawable implements IButtonDrawable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
-	
-	private final boolean isTouchScreen;
 	
 	private boolean rollover;
 	private boolean keyArmed, mouseArmed;
@@ -48,9 +47,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	private TextStyle defaultStyle;
 	private int textAnchor;
 	
-	protected BaseButtonDrawable(boolean isTouchScreen, ITextRenderer tr) {
-		this.isTouchScreen = isTouchScreen;
-		
+	protected BaseButtonDrawable(ITextRenderer tr) {
 		enabled = true;
 		activationKeys = new HashSet<Integer>();
 		alphaEnableThreshold = 0.9;
@@ -88,9 +85,10 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	protected void updateTexture() {
+		RenderEnv env = getRenderEnv();
 		boolean isDisabled = !isEnabled();
 		boolean isPressed = (isPressed() || isSelected());
-		boolean isRollover = isRollover() && !isTouchScreen;
+		boolean isRollover = isRollover() && (env == null || !env.isTouchScreen);
 		
 		//System.out.println("pressed " + isPressed + " | rollover " + rollover);
 		
@@ -158,6 +156,11 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		}
 		
 		updateTexture();
+		
+		if (textRenderer.update()) {
+			markChanged();
+		}
+		
 		return consumeChanged();
 	}
 	
@@ -488,6 +491,12 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			}
 			markChanged();
 		}
+	}
+	
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		super.setRenderEnv(env);
+		textRenderer.setRenderEnv(env);
 	}
 	
 }

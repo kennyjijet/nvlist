@@ -475,7 +475,10 @@ end
 -- @param dy The amount to move in the y-direction
 -- @param frames The number of frames the transition should last (gets
 --        multiplied with effectSpeed internally)
-function translateRelative(i, dx, dy, frames)
+-- @param interpolator A function or interpolator object mapping an input
+--        in the range <code>(0, 1)</code> to an output in the range
+--        <code>(0, 1)</code>.
+function translateRelative(i, dx, dy, frames, interpolator)
 	if i == nil then
 		i = {}
 	elseif type(i) ~= "table" then
@@ -483,11 +486,10 @@ function translateRelative(i, dx, dy, frames)
 	end
 	dx = dx or 0
 	dy = dy or 0
-	frames = frames or 60
 
 	local threads = {}
 	for _,d in pairs(i) do
-		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, frames))
+		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, frames, interpolator))
 	end		
 	join(threads)
 end

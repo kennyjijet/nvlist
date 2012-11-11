@@ -9,8 +9,8 @@ public class ButtonDrawable extends BaseButtonDrawable {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 
-	public ButtonDrawable(boolean isTouchScreen, ITextRenderer tr) {
-		super(isTouchScreen, tr);
+	public ButtonDrawable(ITextRenderer tr) {
+		super(tr);
 	}
 	
 	//Functions

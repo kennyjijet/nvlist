@@ -35,6 +35,12 @@
   <xsl:template match="section">
     <div class="section">
       <div class="section-header{@level}">
+        <xsl:if test="@id">
+          <xsl:attribute name="id">
+            <xsl:value-of select="@id" />
+          </xsl:attribute>
+        </xsl:if>
+        
         <xsl:value-of select="@title" />
       </div>
       <br/>

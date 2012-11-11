@@ -192,7 +192,12 @@ public class AndroidGUI extends LogoPanel {
 			});
 		} catch (Exception e) {
 			e.printStackTrace();
-			AwtUtil.showError(e);
+			StringBuilder sb = new StringBuilder();
+			while (e != null) {
+				if (sb.length() > 0) sb.append(" :: ");
+				sb.append(e.toString());
+			}
+			AwtUtil.showError(sb.toString());
 		}
 	}
 	
@@ -284,7 +289,7 @@ public class AndroidGUI extends LogoPanel {
 		template.initFromTemplateFile(new File(build.getEngineFolder(), TEMPLATE_PATH));
 		
 		if (stored.compareTo(template) < 0) {
-			MessageBox mb = new MessageBox("Engine Upgrade Available", "The existing Android project appears to be built using an older version of NVList. Do you want to upgrade it to the current version?");
+			MessageBox mb = BuildGUIUtil.newMessageBox("Engine Upgrade Available", "The existing Android project appears to be built using an older version of NVList. Do you want to upgrade it to the current version?");
 			mb.setIcons(getWindowIcons(this));
 			mb.addButton("Upgrade", "");
 			mb.addButton("Not Now", "");

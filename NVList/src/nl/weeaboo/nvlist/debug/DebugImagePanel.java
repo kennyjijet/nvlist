@@ -72,7 +72,6 @@ public class DebugImagePanel extends JPanel {
 		registerDrawableIcon("layer", ILayer.class);
 		registerDrawableIcon("viewport", IViewport.class);
 		registerDrawableIcon("panel", IPanel.class);
-		//registerDrawableIcon("textbutton", ITextButtonDrawable.class);
 		registerDrawableIcon("button", IButtonDrawable.class);
 		registerDrawableIcon("text", ITextDrawable.class);
 		registerDrawableIcon("image", IImageDrawable.class);

@@ -11,7 +11,14 @@
 -- @param pad A table containing <code>top, right, bottom, left</code> fields 
 --        to determine the amount of empty space that should be reserved around
 --        the scrollbar.
-function setViewportScrollBar(viewport, horizontal, pad)
+-- @param images A table containing image paths or textures to use for the
+--        scrollbar and/or fading edges:
+--        <code>(scrollBG, scrollThumb, fadeUp, fadeDown)</code>.
+function setViewportScrollBar(viewport, horizontal, pad, images)
+	local sz = screenHeight * .015
+	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
+	images = images or {}
+
 	local func = viewport.setScrollBarY
 	local sfx = ""
 	if horizontal then
@@ -19,16 +26,19 @@ function setViewportScrollBar(viewport, horizontal, pad)
 		sfx = "-h"
 	end
 	
-	local sz = screenHeight * .015
-	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
-	local scrollBgTex = tex("gui/components#scroll-bg" .. sfx, true)
-	local scrollThumbTex = tex("gui/components#scroll-thumb" .. sfx, true)
+	local pfx = "gui/components#"
+	if android then
+		pfx = "android/components#"
+	end
 	
+	local scrollBgTex = tex(images.scrollBG or pfx .. "scroll-bg" .. sfx, true)
+	local scrollThumbTex = tex(images.scrollThumb or pfx .. "scroll-thumb" .. sfx, true)
+		
 	func(viewport, sz, scrollBgTex, scrollThumbTex, pad.top, pad.right, pad.bottom, pad.left)
 		
 	if not horizontal then
-		local fadeUpTex = tex("gui/components#fade-down", true)
-		local fadeDownTex = tex("gui/components#fade-up", true)
+		local fadeUpTex = tex(images.fadeDown or pfx .. "fade-down", true)
+		local fadeDownTex = tex(images.fadeUp or pfx .. "fade-up", true)
 		viewport:setFadingEdges(screenHeight * .02, 0x000000, fadeUpTex, fadeDownTex)		
 	end
 end
@@ -447,20 +457,18 @@ function TextLogScreen:destroy()
 end
 
 function TextLogScreen:run()	
-    local pathPrefix = "gui/textlog#"
-    if android then
-        pathPrefix = "android/textlog#"
-    end
-    
-    local function timg(filename, ...)
-        return img(pathPrefix .. filename, ...)
-    end
-    local function tbutton(filename, ...)
-        return button(pathPrefix .. filename, ...)
-    end
-    
+    local x = 0
+    local y = 0
     local w = screenWidth
     local h = screenHeight
+    local pathPrefix = "gui/textlog#"
+    local clipEnabled = true
+    
+    if android then
+        pathPrefix = "android/textlog#"
+        clipEnabled = false; --Android textlog draws outside its allotted screen bounds
+    end
+            
 	local sz = math.min(w, h)
 	local vpad  = 0.03 * sz
 	local bh    = 0.15 * sz
@@ -470,75 +478,96 @@ function TextLogScreen:run()
 		pages = math.min(pages, 25) --Limit number of pages
 	end
 	local page = pages-1
-	local lw = w
-	local lh = h-bh-vpad*2
     
     --Create edge images
+    local topEdge = nil
     if not android then
-		local topEdge = timg("edge-top", {bounds={0, 0, w, vpad}, z=10})
+		topEdge = img(pathPrefix .. "edge-top", {z=10, clipEnabled=clipEnabled})
 	end
-	local bottomEdge = timg("edge-bottom", {bounds={0, h-bh-vpad+1, w, bh+vpad}, z=10})
+	local bottomEdge = img(pathPrefix .. "edge-bottom", {z=10, clipEnabled=clipEnabled})
     
 	--Create controls
-	local returnButton = tbutton("return-")
-    returnButton:setScale(math.min(1, (.90 * bh) / returnButton:getHeight()))
+	local returnButton = button(pathPrefix .. "return-")
+    returnButton:setClipEnabled(clipEnabled)
+    local scale = math.min(2, (.90 * bh) / returnButton:getHeight())
+    if not android then
+    	scale = math.min(1, scale)
+    end
+    returnButton:setScale(scale)
 	if System.isTouchScreen() then
-		returnButton:setTouchMargin(bh/2)
+		returnButton:setTouchMargin(bh/4)
 	end
 	returnButton:addActivationKeys(Keys.RIGHT, Keys.DOWN)
     
-	doLayout(GridLayout, 0, h-bh-vpad, w, bh+vpad,
-		{padding=bh/4, pack=5},
-		{returnButton})
-
 	--Create viewport and fill with text pages
-	local viewport = createViewport(lw, math.ceil(lh))
-	viewport:setPos(0, vpad)
+	local viewport = createViewport(w, h)
+	viewport:setClipEnabled(clipEnabled)
 	viewport:setZ(1000)
 	viewport:setPadding(vpad)
+    viewport:setLayout(createFlowLayout{padding=vpad, cols=1})
 	local si = {top=vpad, right=vpad, bottom=vpad, left=vpad}
 	if android then
 		si.top = si.top + vpad * 3
 	end
 	setViewportScrollBar(viewport, false, si)
+	if android then
+		viewport:setFadingEdges(0)
+	end
 	self.viewport = viewport
-	
-	local x = 0
-	local y = 0
+	        
+    local ts = {}
     local defaultStyle = prefs.textLogStyle or createStyle{color=0xFFFFFF80}
-    local iw = viewport:getInnerWidth() - vpad*2
-    
-    viewport:setLayout(createFlowLayout{padding=vpad, cols=1})
-    
 	for p=pages,1,-1 do
 		local t = textimg()
-		t:setBounds(x, y, iw, h*2) --Initial width required to get text to linewrap properly
+		t:setClipEnabled(clipEnabled)
 		t:setDefaultStyle(defaultStyle)
 		t:setText(tl:getPage(-p))
 		--t:setSize(iw, t:getTextHeight()) --Shrink text bounds to what's required (causes problems when text size changes)
-		if System.isLowEnd() then
-			t:setBlendMode(BlendMode.OPAQUE)
-		end
+		t:setBlendMode(BlendMode.OPAQUE)
 		viewport:add(t)
-		
-		y = y + t:getTextHeight()
-		if p > 1 then
-			--Not the final page, add spacing equal to
-			local endLine = t:getEndLine()
-			if endLine > 0 then
-				y = y + t:getTextHeight(endLine-1, endLine)
-			end
-		end
+		table.insert(ts, t)
 	end
 
-	viewport:setScrollFrac(0, 1)
+	local oldBounds = {x=0, y=0, w=0, h=0}
+	local function layout()
+		if not clipEnabled then
+		    local renderEnv = imageState:getRenderEnv()
+		    local windowBounds = renderEnv:getGLScreenVirtualBounds()
+		    x = windowBounds.x
+		    y = windowBounds.y
+		    w = windowBounds.w
+		    h = windowBounds.h
+		end		
+	
+		if x ~= oldBounds.x or y ~= oldBounds.y or w ~= oldBounds.w or h ~= oldBounds.h then
+			local top = y		
+			if topEdge ~= nil then
+				topEdge:setBounds(x, y, w, vpad)
+				top = topEdge:getY() + topEdge:getHeight()
+			end
+			bottomEdge:setBounds(x, y+h-bh-vpad+1, w, bh+vpad)
+		
+			returnButton:setPos(x+(w-returnButton:getWidth())/2,
+				bottomEdge:getY() + (bottomEdge:getHeight()-returnButton:getHeight())/2)
+			
+			viewport:setBounds(x, top, w, math.ceil(h-bh-vpad-top))
+    		local iw = viewport:getInnerWidth() - vpad*2 - 2
+			for _,t in ipairs(ts) do
+				t:setSize(iw, h*2) --Initial width required to get text to linewrap properly
+			end
+			viewport:layout()
+			viewport:setScrollFrac(0, 1)
+			
+			oldBounds = {x=x, y=y, w=w, h=h}
+		end
+	end
 
 	--User interaction loop
 	while not input:consumeCancel() do
 		if returnButton:consumePress() then
 			break
 		end
-		viewport:layout() --Necessary because the text size could change at any time
+		layout() --Necessary because the text size could change at any time
 		yield()
 	end	
 end

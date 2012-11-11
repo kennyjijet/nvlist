@@ -163,7 +163,6 @@ public class Build {
 		File[] buildResContents = buildResF.listFiles();
 		if (buildResContents != null) {
 			Set<String> nonCopy = new HashSet<String>(Arrays.asList(
-				"jre.lzma", "jre.lzma2", "jre.xz", "jre.zip", "jre-installer.exe",
 				"android-template.zip"
 			));
 			
@@ -173,7 +172,7 @@ public class Build {
 					if (!file.delete()) {
 						System.err.println("Unable to delete build scripts from project build folder");
 					}
-				} else if (nonCopy.contains(name)) {
+				} else if (nonCopy.contains(name) || name.matches("jre(-installer)?(-\\w+)*\\.\\w+")) {
 					if (!file.delete()) {
 						System.err.println("Unable to delete JRE installer from project build folder");
 					}

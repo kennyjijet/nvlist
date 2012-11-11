@@ -25,7 +25,7 @@ public abstract class BaseDrawable implements IDrawable {
 	private double rgba[] = {1.0, 1.0, 1.0, 1.0};
 	private BlendMode blendMode;
 	private IPixelShader pixelShader;
-	private transient RenderEnv renderEnv;
+	private /*transient*/ RenderEnv renderEnv;
 
 	private transient int colorARGBInt;
 	private transient Matrix transform;
@@ -312,9 +312,9 @@ public abstract class BaseDrawable implements IDrawable {
 	
 	@Override
 	public void setRenderEnv(RenderEnv env) {
-		if (renderEnv != env && (renderEnv == null || !renderEnv.equals(env))) {
+		if (renderEnv != env) {
 			renderEnv = env;
-			onRenderEnvChanged();			
+			onRenderEnvChanged();
 		}
 	}
 	

@@ -203,7 +203,7 @@ final class Handlers {
 		};
 	}
 	
-	public static final FileHandler drawableHandler(final File iconFile) {
+	public static final FileHandler drawableHandler(final File iconFile, final File splashFile) {
 		return new FileHandler() {
 			@Override
 			public void process(String relpath, File srcF, File dstF) throws IOException {
@@ -216,20 +216,39 @@ final class Handlers {
 					scale = 2.0f;
 				}
 				
-				createFile(dstF);				
-				if (relpath.contains("AndroidNVList") && relpath.endsWith("icon.png") && iconFile.exists()) {
-					try {
-						BufferedImage icon = ImageIO.read(iconFile);
-						icon = ImageUtil.getScaledImageProp(icon, Math.round(48*scale), Math.round(48*scale),
-									Image.SCALE_AREA_AVERAGING);
-						ImageIO.write(icon, "png", dstF);
-						//System.out.println("Writing icon: " + dstF);
-					} catch (IOException ioe) {
-						throw new IOException("Unable to read " + iconFile, ioe);
+				createFile(dstF);
+				if (relpath.contains("AndroidNVList")) {
+					System.out.println(relpath + " " + splashFile.exists() + " " + splashFile);
+					
+					if (relpath.endsWith("icon.png") && iconFile.exists()) {
+						writeImageScaled(iconFile, Math.round(48*scale), Math.round(48*scale), true, dstF);
+						return;
+					} else if (relpath.endsWith("splash.png") && splashFile.exists()) {
+						writeImageScaled(splashFile, Math.round(256*scale), Math.round(256*scale), false, dstF);
+						return;
 					}
-				} else if (!srcF.equals(dstF)) {
+				}
+					
+				if (!srcF.equals(dstF)) {
 					FileUtil.copyFile(srcF, dstF);
 				}
+			}
+			
+			private void writeImageScaled(File srcF, int maxW, int maxH, boolean allowUpscale, File dstF)
+					throws IOException
+			{
+				try {
+					BufferedImage image = ImageIO.read(srcF);
+					if (!allowUpscale) {
+						maxW = Math.min(maxW, image.getWidth());
+						maxH = Math.min(maxH, image.getHeight());
+					}
+					image = ImageUtil.getScaledImageProp(image, maxW, maxH, Image.SCALE_AREA_AVERAGING);
+					ImageIO.write(image, "png", dstF);
+					//System.out.println("Writing icon: " + dstF);
+				} catch (IOException ioe) {
+					throw new IOException("Unable to read " + iconFile, ioe);
+				}				
 			}
 		};
 	}

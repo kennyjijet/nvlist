@@ -9,12 +9,11 @@ import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
 
 @LuaSerializable
-public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> {
+public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
-	private transient T texture;
-	private transient ITexture textureWrapper;
+	private transient ITexture texture;
 	private transient int textureW, textureH;
 	private transient boolean texContentDirty;
 	private boolean cursorSizeDirty;
@@ -28,12 +27,23 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 	public void destroy() {
 		super.destroy();
 		
-		destroyTexture(texture);
+		if (texture != null) {
+			destroyTexture(texture);
+		}
 		texture = null;
-		textureWrapper = null;
 	}
 	
-	protected abstract void destroyTexture(T texture);
+	protected abstract void destroyTexture(ITexture texture);
+	
+	@Override
+	public boolean update() {
+		if (super.update()) {
+			markChanged();
+		}
+		
+		validateCursorSize();
+		return consumeChanged();
+	}
 	
 	@Override
 	public void draw(IDrawBuffer buf, short z, boolean clipEnabled, BlendMode blendMode, int argb,
@@ -46,13 +56,13 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 		double h = 0;
 		double uw = 1;
 		double vh = 1;
-		if (textureWrapper != null) {
+		if (texture != null) {
 			w = getTextWidth();
-			uw = getLayoutWidth() / textureWrapper.getWidth();
+			uw = getLayoutWidth() / texture.getWidth();
 			h = getTextHeight();
-			vh = getLayoutHeight() / textureWrapper.getHeight();
+			vh = getLayoutHeight() / texture.getHeight();
 		}
-		buf.drawQuad(z, clipEnabled, blendMode, argb, textureWrapper, Matrix.identityMatrix(),
+		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
 				Math.round(dx), Math.round(dy), w, h, 0, 0, uw, vh, null);
 	}
 	
@@ -81,13 +91,15 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 	protected void invalidateTexture() {
 		if (texture != null) {
 			destroyTexture(texture);
-			texture = null;
 		}
+		texture = null;
+		markChanged();
 	}
 	
 	protected void invalidateTextureContents() {
 		texContentDirty = true;
 		invalidateCursorSize();
+		markChanged();
 	}
 
 	@Override
@@ -98,6 +110,7 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 
 	@Override
 	protected void onVisibleTextChanged() {
+		super.onVisibleTextChanged();
 		invalidateTextureContents();
 	}
 	
@@ -110,17 +123,12 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 	/**
 	 * Creates a new texture with pixel dimensions <code>(w, h)</code>. 
 	 */
-	protected abstract T createTexture(int w, int h);
-	
-	/**
-	 * Creates a new <code>ITexture</code> wrapping the given texture.
-	 */
-	protected abstract ITexture createTextureWrapper(T texture, double scaleX, double scaleY);
+	protected abstract ITexture createTexture(int w, int h, double scaleX, double scaleY);
 	
 	/**
 	 * Renders the text layout <code>layout</code> to <code>texture</code>. 
 	 */
-	protected abstract void renderLayoutToTexture(L layout, T texture);
+	protected abstract void renderLayoutToTexture(L layout, ITexture texture);
 	
 	protected void validateTexture() {
 		int lw = Math.max(1, (int)Math.ceil(getLayoutWidth()));
@@ -134,8 +142,7 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 			
 			textureW = lw;
 			textureH = lh;
-			texture = createTexture(textureW, textureH);
-			textureWrapper = createTextureWrapper(texture, lw / (double)textureW, lh / (double)textureH);
+			texture = createTexture(textureW, textureH, 1, 1);
 			invalidateTextureContents();
 		}
 		
@@ -146,7 +153,7 @@ public abstract class TextureTextRenderer<L, T> extends AbstractTextRenderer<L> 
 	}
 	
 	//Getters
-	protected T getTexture() {
+	protected ITexture getTexture() {
 		validateTexture();
 		return texture;
 	}

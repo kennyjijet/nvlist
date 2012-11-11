@@ -200,7 +200,7 @@ public class ProjectPropertyPanel extends JPanel {
 	}
 	
 	private void addImportantProperties() {
-		List<String> buildImp = Arrays.asList("project-name", "program-args", "obfuscate"
+		List<String> buildImp = Arrays.asList("project-name", "program-args", "obfuscate", "include-private-jre"
 				/*", applet-width", "applet-height"*/ );		
 		addAsGroup(importantProperties, GROUP_BUILD, buildImp);
 		

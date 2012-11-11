@@ -291,6 +291,7 @@ function SaveScreen:layout()
     doLayout(FlowLayout, pad.left, pad.top, viewport:getInnerWidth()-pad.left-pad.right, 0,
         {cols=1, padding=ipad, anchor=8},
         self.saveComponents)
+    viewport:layout()
     
 	doLayout(GridLayout, x, y+h-vpad, w, vpad,
         {padding=ipad, pack=5},

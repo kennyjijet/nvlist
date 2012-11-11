@@ -10,6 +10,8 @@ public interface ITextRenderer extends Serializable {
 	//Functions
 	public void destroy();
 	
+	public boolean update();
+	
 	public void draw(IDrawBuffer buf, short z, boolean clipEnabled, BlendMode blendMode, int argb,
 			double dx, double dy);
 	
@@ -35,8 +37,8 @@ public interface ITextRenderer extends Serializable {
 	
 	public void setDefaultStyle(TextStyle ts);
 	
-	public void setDisplayScale(double scale);
-	
 	public void setCursor(IDrawable cursor);
+	
+	public void setRenderEnv(RenderEnv env);
 	
 }

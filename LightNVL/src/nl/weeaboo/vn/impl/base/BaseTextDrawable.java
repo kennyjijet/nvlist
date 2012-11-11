@@ -16,6 +16,7 @@ import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Matrix;
+import nl.weeaboo.vn.math.Vec2;
 
 public abstract class BaseTextDrawable extends BaseDrawable implements ITextDrawable {
 
@@ -37,6 +38,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	private boolean cursorAuto;
 	private boolean cursorAutoPos;
 	private double targetCursorAlpha;
+	private transient boolean cursorPosValid;
 	
 	protected BaseTextDrawable(ITextRenderer tr) {
 		textRenderer = tr;
@@ -80,9 +82,13 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			setVisibleChars(textSpeed >= 0 ? getVisibleChars()+textSpeed : 999999);
 		}
 		textRenderer.setVisibleText(getStartLine(), getVisibleChars());
+
+		if (textRenderer.update()) {
+			markChanged();
+		}
 		
 		targetCursorAlpha = 0;
-		updateCursorPos();
+		validateCursorPos();
 		updateCursorAlpha(effectSpeed);
 				
 		return consumeChanged();
@@ -114,17 +120,23 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		double x = getX() + pad + LayoutUtil.alignAnchorX(getInnerWidth(), getTextWidth(), anchor);
 		double y = getY() + pad + LayoutUtil.alignAnchorY(getInnerHeight(), getTextHeight(), anchor);
 		textRenderer.draw(d, z, clip, blend, argb, x, y);
-		updateCursorPos();
+		validateCursorPos();
 	}
 	
-	public void updateCursorPos() {
+	private void validateCursorPos() {
+		if (cursorPosValid) {
+			return;
+		}
+		
+		cursorPosValid = true;
 		if (cursor == null) {
 			return;
 		}
 		
 		if (cursorAutoPos) {
 			double pad = getPadding();
-			cursor.setPos(getX() + pad + getCursorX(), getY() + pad + getCursorY());
+			Vec2 pos = getCursorXY();
+			cursor.setPos(getX() + pad + pos.x, getY() + pad + pos.y);
 		}
 		cursor.setClipEnabled(isClipEnabled());
 	}
@@ -155,31 +167,18 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			cursor.setVisible(isVisible());
 		}		
 	}
-
-	protected void onSizeChanged() {
+	
+	protected void invalidateCursorPos() {
+		cursorPosValid = false;
+	}
+	
+	private void onSizeChanged() {
 		textRenderer.setMaxSize(getInnerWidth(), getInnerHeight());
-		updateCursorPos();
-	}
-	
-	protected void onTextChanged() {
-		textRenderer.setText(text);
-		updateCursorPos();
-	}
-	
-	protected void onVisibleTextChanged() {
-		textRenderer.setVisibleText(startLine, visibleChars);
-		updateCursorPos();
+		invalidateCursorPos();
 	}
 	
 	private boolean isInstantTextSpeed() {
 		return textSpeed < 0 || textSpeed >= 100000;		
-	}
-	
-	protected void onRenderEnvChanged() {
-		super.onRenderEnvChanged();
-		
-		RenderEnv env = getRenderEnv();
-		textRenderer.setDisplayScale(env != null ? env.getScale() : 1);
 	}
 	
 	//Getters
@@ -196,7 +195,10 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			w = getTextWidth() + pad*2;
 			h = getTextHeight() + pad*2;
 		}
-		return new Rect2D(x, y, Double.isNaN(w) ? 0 : w, Double.isNaN(h) ? 0 : h);
+				
+		w = (Double.isNaN(w) ? 0 : Math.max(0, w));
+		h = (Double.isNaN(h) ? 0 : Math.max(0, h));
+		return new Rect2D(x, y, w, h);
 	}
 	
 	@Override
@@ -305,26 +307,17 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		return sl;
 	}
 	
-	protected double getCursorX() {
-		if (getLineCount() == 0) return 0;
-
-		int cl = getCursorLine();
-		return textRenderer.getTextWidth(cl, cl+1);
-	}
-
-	protected double getCursorY() {
-		if (getLineCount() == 0) return 0;
-		
-		int sl = getStartLine();
-		int cl = getCursorLine();
-		double height = getTextHeight(sl, cl+1);
-		
-		double cursorHeight = 0;
-		if (getCursor() != null) {
-			cursorHeight = getCursor().getHeight();
+	protected Vec2 getCursorXY() {
+		Vec2 out = new Vec2();		
+		if (getLineCount() > 0) {
+			int sl = getStartLine();
+			int cl = getCursorLine();
+			IDrawable cursor = getCursor();
+			
+			out.x = textRenderer.getTextWidth(cl, cl+1);		
+			out.y = getTextHeight(sl, cl+1) - (cursor != null ? cursor.getHeight() : 0);
 		}
-		
-		return height - cursorHeight;
+		return out;
 	}
 	
 	@Override
@@ -383,20 +376,22 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 				cursor.setAlpha(isInstantTextSpeed() ? getAlpha() : 0);
 			}
 			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
+			invalidateCursorPos();
+			textRenderer.setText(text);
 			markChanged();
-			onTextChanged();
 		}
 	}
 	
 	@Override
 	public void setStartLine(int sl) {
-		sl = Math.max(0, Math.min(getLineCount(), sl));
+		//sl = Math.max(0, Math.min(getLineCount()-1, sl));
 		
 		if (startLine != sl) {
 			startLine = sl;
 			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
+			invalidateCursorPos();
+			textRenderer.setVisibleText(startLine, visibleChars);
 			markChanged();
-			onVisibleTextChanged();
 		}
 	}
 	
@@ -404,8 +399,8 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	public void setVisibleChars(double vc) {
 		if (visibleChars != vc) {
 			visibleChars = vc;
+			textRenderer.setVisibleText(startLine, visibleChars);
 			markChanged();
-			onVisibleTextChanged();
 		}
 	}
 	
@@ -422,6 +417,14 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	}
 	
 	@Override
+	public void setPos(double x, double y) {
+		if (getX() != x || getY() != y) {
+			super.setPos(x, y);
+			invalidateCursorPos();
+		}
+	}
+	
+	@Override
 	public void setSize(double w, double h) {
 		if (width != w || height != h) {
 			width = w;
@@ -431,7 +434,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			onSizeChanged();
 		}
 	}
-	
+		
 	@Override
 	public void setBounds(double x, double y, double w, double h) {
 		setPos(x, y);
@@ -528,9 +531,15 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			
 			textRenderer.setCursor(cursorAutoPos ? cursor : null);
 			
-			markChanged();
 			onSizeChanged();
+			markChanged();
 		}
 	}
 			
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		super.setRenderEnv(env);
+		textRenderer.setRenderEnv(env);
+	}
+	
 }

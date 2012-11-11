@@ -72,7 +72,7 @@ public class BuildCommandPanel extends JPanel {
 		buildInstallerAction = new AbstractAction("Create Release") {
 			public void actionPerformed(ActionEvent e) {
 				if (preReleaseCheck()) {
-					dist("clean dist make-installer-zip make-installer make-installer-mac");
+					dist("clean dist make-installer make-installer-mac make-installer-zip clean-dist-jre");
 				}
 			}
 		};
@@ -80,7 +80,7 @@ public class BuildCommandPanel extends JPanel {
 		buildInstallerCDAction = new AbstractAction("Create CD Release") {
 			public void actionPerformed(ActionEvent e) {
 				if (preReleaseCheck()) {
-					dist("clean dist make-installer-cd");
+					dist("clean dist make-installer-cd clean-dist-jre");
 				}
 			}
 		};
@@ -208,7 +208,7 @@ public class BuildCommandPanel extends JPanel {
 		INIFile ini = build.getProperties();
 
 		if (ini.getBoolean("debug", false)) {
-			MessageBox mb = new MessageBox("Confirm action", "Debug mode is still on. "
+			MessageBox mb = BuildGUIUtil.newMessageBox("Confirm action", "Debug mode is still on. "
 					+ "Are you sure you want to build a release with it turned on?");
 			mb.setIcons(getWindowIcons(this));
 			mb.addButton("Build a debug release", "");
@@ -219,7 +219,7 @@ public class BuildCommandPanel extends JPanel {
 		}
 		
 		if (ini.getBoolean("vn.enableProofreaderTools", false)) {
-			MessageBox mb = new MessageBox("Confirm action", "Proofreader tools are currently turned on. "
+			MessageBox mb = BuildGUIUtil.newMessageBox("Confirm action", "Proofreader tools are currently turned on. "
 					+ "Are you sure you want to build a release with proofreader tools enabled?");
 			mb.setIcons(getWindowIcons(this));
 			mb.addButton("I want proofreader tools enabled", "");
@@ -271,10 +271,10 @@ public class BuildCommandPanel extends JPanel {
 		
 		File resoptF = build.getOptimizedResFolder();
 		if (!resoptF.exists()) {
-			MessageBox mb = new MessageBox("Optimize Resources", "Do you want to run the resource optimizer to decrease the file size of the release?");
+			MessageBox mb = BuildGUIUtil.newMessageBox("Optimize Resources", "Do you want to run the resource optimizer to decrease the file size of the release? The resource optimizer can recompress all images, audio and video with the click of a button.");
 			mb.setIcons(getWindowIcons(this));
-			int opt = mb.addOption("Optimize resources", "Opens a resource optimizer window that can recompress all images, audio and video with the click of a button.");
-			mb.addOption("Skip this step", "Don't optimize the contents of the res folder right now.");
+			int opt = mb.addButton("Optimize resources", "");
+			mb.addButton("Skip this step", "");
 			int cancel = mb.addButton("Cancel", "");
 			
 			int r = mb.showMessage(this);
@@ -285,7 +285,7 @@ public class BuildCommandPanel extends JPanel {
 				return;
 			}
 		} else if (build.isOptimizedResOutdated()) {
-			MessageBox mb = new MessageBox("Optimize Resources", "Optimized resources are outdated, what do you want to do?");
+			MessageBox mb = BuildGUIUtil.newMessageBox("Optimize Resources", "Optimized resources are outdated, what do you want to do?");
 			mb.setIcons(getWindowIcons(this));
 			int opt = mb.addOption("Optimize resources again", "Opens a resource optimizer window to allow you to create an up-to-date set of optimized resources.");
 			int del = mb.addOption("Delete outdated resources and continue", "Delete the outdated optimized resources and continue without optimizing.");

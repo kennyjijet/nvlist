@@ -63,7 +63,11 @@ public interface IImageState extends Serializable {
 	 * @return The virtual screen height
 	 */
 	public int getHeight();
-				
+					
+	public RenderEnv getRenderEnv();
+	
 	// === Setters =============================================================
+
+	public void setRenderEnv(RenderEnv env);
 	
 }

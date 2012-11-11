@@ -137,3 +137,17 @@ td.unsupported {
 .tooltip {
     border-bottom: 1px dotted gray;
 }
+
+.grid-table {
+}
+.grid-table td {
+    width: 50%;
+    vertical-align: top;
+}
+
+ul.drawable-icons-list {
+    list-style-type: none;
+}
+.drawable-icons-list li img {
+    vertical-align: middle;
+}

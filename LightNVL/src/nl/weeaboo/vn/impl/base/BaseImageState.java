@@ -12,6 +12,7 @@ import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageState;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.RenderEnv;
 
 public class BaseImageState implements IImageState {
 
@@ -20,6 +21,9 @@ public class BaseImageState implements IImageState {
 	private final int width, height;	
 	private final List<State> sstack;
 	private final DrawableRegistry registry;
+	
+	private /*transient*/ RenderEnv renderEnv;
+	
 	private transient boolean changed;
 	
 	protected BaseImageState(IImageFactory fac, int w, int h) {
@@ -27,6 +31,8 @@ public class BaseImageState implements IImageState {
 		height = h;
 		sstack = new ArrayList<State>();
 		registry = new DrawableRegistry();
+		
+		renderEnv = new RenderEnv(w, h, 0, 0, w, h, w, h, false);
 		
 		initTransients();
 		reset0();
@@ -71,6 +77,7 @@ public class BaseImageState implements IImageState {
 			parentLayer.add(layer);
 		} else {
 			layer.setBounds(0, 0, width, height);
+			layer.setRenderEnv(renderEnv);
 		}
 		return layer;
 	}
@@ -149,7 +156,21 @@ public class BaseImageState implements IImageState {
 		return getState().getOverlayLayer();		
 	}
 			
+	@Override
+	public RenderEnv getRenderEnv() {
+		return renderEnv;
+	}
+	
 	//Setters
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		if (renderEnv != env) {
+			renderEnv = env;
+			for (State state : sstack) {
+				state.getRootLayer().setRenderEnv(env);
+			}		
+		}
+	}
 
 	//Inner Classes
 	@LuaSerializable

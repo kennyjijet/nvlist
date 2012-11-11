@@ -96,7 +96,6 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		layer.setBounds(getX(), getY(), getInnerWidth(), getInnerHeight());
 		
 		invalidateLayout();
-		calculateScrollLimits();
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		
 		Vec2 mold = (mousePos != null ? mousePos.clone() : null);
 		Vec2 mnew = new Vec2(input.getMouseX(), input.getMouseY());
-		boolean mouseContained = (isClipEnabled() || layer.containsRel(mnew.x, mnew.y))
+		boolean mouseContained = (!isClipEnabled() || layer.containsRel(mnew.x, mnew.y))
 				&& contains(mnew.x, mnew.y) && isVisible();
 		
 		boolean dragging = false;
@@ -231,7 +230,6 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		super.layout();
 		
 		invalidateGeneratedVirtualBounds();
-
 		calculateScrollLimits();
 	}
 	

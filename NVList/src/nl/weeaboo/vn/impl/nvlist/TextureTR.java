@@ -18,7 +18,7 @@ import nl.weeaboo.vn.impl.base.TextureTextRenderer;
 import com.jogamp.common.nio.Buffers;
 
 //Inner Classes
-@LuaSerializable class TextureTR extends TextureTextRenderer<TextLayout, GLGeneratedTexture> {
+@LuaSerializable class TextureTR extends TextureTextRenderer<TextLayout> {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 	
@@ -34,18 +34,14 @@ import com.jogamp.common.nio.Buffers;
 	}
 	
 	@Override
-	protected void destroyTexture(GLGeneratedTexture texture) {
-		//Can't manually dispose GLTexRect, must wait for GC
+	protected void destroyTexture(ITexture texture) {
+		//We don't know for sure if we can dispose the texture itself, let the GC figure it out
 	}
 
 	@Override
-	protected GLGeneratedTexture createTexture(int w, int h) {
-		return imgfac.createGLTexture(null, w, h, 0, 0, 0);
-	}
-
-	@Override
-	protected ITexture createTextureWrapper(GLGeneratedTexture tex, double sx, double sy) {
-		return imgfac.createTexture(tex, sx, sy);
+	protected ITexture createTexture(int w, int h, double sx, double sy) {
+		GLGeneratedTexture inner = imgfac.createGLTexture(null, w, h, 0, 0, 0);
+		return imgfac.createTexture(inner, sx, sy);
 	}
 	
 	private BufferedImage getTempImage(int w, int h) {
@@ -73,14 +69,19 @@ import com.jogamp.common.nio.Buffers;
 	}
 	
 	@Override
-	protected void renderLayoutToTexture(TextLayout layout, GLGeneratedTexture tex) {
+	protected void renderLayoutToTexture(TextLayout layout, ITexture tex) {
 		//System.out.println("RENDER: " + layout.getText().replace("\n", "") + " -> " + tex);
 		
 		int startLine = getStartLine();
 		int endLine = getEndLine();
 		double visibleChars = getVisibleChars();
 		
-		BufferedImage image = getTempImage(tex.getTexWidth(), tex.getTexHeight());
+		TextureAdapter ta = (TextureAdapter)tex;
+		GLGeneratedTexture inner = (GLGeneratedTexture)ta.getTexture();
+		final int tw = inner.getTexWidth();
+		final int th = inner.getTexHeight();
+
+		BufferedImage image = getTempImage(tw, th);
 		Graphics2D g = image.createGraphics();
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -98,9 +99,9 @@ import com.jogamp.common.nio.Buffers;
 		pr.drawLayout(g, layout);
 		g.dispose();
 		
-		IntBuffer pixels = getTempPixels(tex.getTexWidth() * tex.getTexHeight());
-		ImageUtil.getPixelsPre(image, pixels, 0, tex.getTexWidth());
-		tex.setARGB(pixels);
+		IntBuffer pixels = getTempPixels(tw * th);
+		ImageUtil.getPixelsPre(image, pixels, 0, tw);
+		inner.setARGB(pixels);
 	}
 
 	@Override

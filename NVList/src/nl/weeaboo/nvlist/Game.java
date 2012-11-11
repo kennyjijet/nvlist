@@ -59,6 +59,7 @@ import nl.weeaboo.vn.IPersistentStorage;
 import nl.weeaboo.vn.ISaveHandler;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.IStorage;
+import nl.weeaboo.vn.ISystemLib;
 import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.NovelPrefs;
@@ -238,7 +239,7 @@ public class Game extends BaseGame {
 				
 		SystemLib syslib = new SystemLib(this, notifier);
 		ImageFactory imgfac = new ImageFactory(texCache, shCache, trStore,
-				an, seenLog, notifier, syslib.isTouchScreen(), nvlSize.w, nvlSize.h);
+				an, seenLog, notifier, nvlSize.w, nvlSize.h);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
 		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);
@@ -407,11 +408,12 @@ public class Game extends BaseGame {
 			ILayer root = is.getRootLayer();
 			
 			if (renderer == null) {
+				ISystemLib syslib = novel.getSystemLib();
 				RenderEnv env = new RenderEnv(getWidth(), getHeight(),
 						getRealX(), getRealY(), getRealW(), getRealH(),
-						getScreenW(), getScreenH());
+						getScreenW(), getScreenH(), syslib.isTouchScreen());
 			
-				root.setRenderEnv(env);
+				is.setRenderEnv(env);
 				
 				renderer = new Renderer(glm, pr, env, renderStats);				
 			}

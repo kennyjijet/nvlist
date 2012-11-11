@@ -1,7 +1,5 @@
 package nl.weeaboo.vn.impl.base;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,7 +40,6 @@ public final class Layer extends BaseDrawable implements ILayer {
 	private List<LayerContents> sstack;
 	private ScreenshotBuffer screenshotBuffer;
 	private double width, height;
-	private transient boolean changed;
 	private transient IDrawable[] tempArray;
 
 	public Layer(DrawableRegistry registry) {
@@ -52,20 +49,9 @@ public final class Layer extends BaseDrawable implements ILayer {
 		sstack.add(new LayerContents());
 		
 		screenshotBuffer = new ScreenshotBuffer();		
-		initTransients();
 	}
 	
 	//Functions	
-	private void initTransients() {
-		changed = true;
-	}
-	
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		
-		initTransients();
-	}	
-	
 	@Override
 	public void add(IDrawable d) {
 		if (isDestroyed() || d.isDestroyed()) return;
@@ -260,7 +246,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 								ILayer l = (ILayer)d;
 								baseBuf.draw(new LayerRenderCommand(l));
 							} else {
-								if (d.getBounds().intersects(0, 0, lw, lh)) {
+								if (!d.isClipEnabled() || d.getBounds().intersects(0, 0, lw, lh)) {
 									d.draw(baseBuf);
 								}
 							}
@@ -278,16 +264,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 		screenshotBuffer.flush(buf);		
 	}
 	
-	protected void markChanged() {
-		changed = true;
-	}
-	
-	protected boolean consumeChanged() {
-		boolean result = changed;
-		changed = false;
-		return result;
-	}
-	
+	@Override
 	protected void onRenderEnvChanged() {
 		super.onRenderEnvChanged();
 		

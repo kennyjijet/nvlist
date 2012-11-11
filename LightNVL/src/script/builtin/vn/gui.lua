@@ -155,37 +155,3 @@ function createViewport(w, h)
 	return viewport
 end
 
----Adds a visible scroll bar to an existing viewport
--- @param viewport The viewport to change the scrollbar of.
--- @param horizontal A boolean <code>true/false</code> whether to change the
---        horizontal or vertical scrollbar.
--- @param pad A table containing <code>top, right, bottom, left</code> fields 
---        to determine the amount of empty space that should be reserved around
---        the scrollbar.
--- @param images A table containing image paths or textures to use for the
---        scrollbar and/or fading edges:
---        <code>(scrollBG, scrollThumb, fadeUp, fadeDown)</code>.
-function setViewportScrollBar(viewport, horizontal, pad, images)
-	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
-	images = images or {}
-	
-	local func = viewport.setScrollBarY
-	local sfx = ""
-	if horizontal then
-		func = viewport.setScrollBarX
-		sfx = "-h"
-	end
-	
-	local scrollBG = images.scrollBG or "gui/components#scroll-bg" .. sfx
-	local scrollThumb = images.scrollThumb or "gui/components#scroll-thumb" .. sfx
-	local fadeUp = images.fadeUp or "gui/components#fade-up"
-	local fadeDown = images.fadeDown or "gui/components#fade-down"
-		
-	local sz = screenHeight * .015
-	
-	func(viewport, sz, tex(scrollBG, true), tex(scrolllThumb, true), pad.top, pad.right, pad.bottom, pad.left)
-		
-	if not horizontal then
-		viewport:setFadingEdges(screenHeight * .02, 0x000000, tex(fadeUp, true), text(fadeDown, true))		
-	end
-end

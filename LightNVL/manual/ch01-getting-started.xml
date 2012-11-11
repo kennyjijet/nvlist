@@ -38,7 +38,7 @@ end
 Bye
 @return titlescreen()]]></sourcecode>
     <p>By now you've probably noticed that some script files end in <code>.lua</code> and others with <code>.lvn</code>. Files ending in <code>.lua</code> are files containing regular Lua code. Files ending in <code>.lvn</code> also contain Lua code, but only the lines starting with <code>@</code>. Lines not starting with a special character are text commands that show up literally in the text box.</p>
-    <p>More comprehensive scripting information can be found in <a href="ch30-script-basics.xml">later</a> <a href="ch31-script-text.xml">chapters</a></p>
+    <p>More comprehensive scripting information can be found in later chapters.</p>
   </section>
 
   <section title="Adding Media" level="2">
@@ -57,9 +57,9 @@ Bye
     </section>
 
     <section title="Video" level="3">
-      <p>Video's should be stored in the <code>res/video</code> folder in <a href="">Ogg Theora</a> format.</p>
+      <p>Video's should be stored in the <code>res/video</code> folder in <a href="http://en.wikipedia.org/wiki/Theora">Ogg Theora</a> format.</p>
       <p>You can convert video to Theora using <a href="http://ffmpeg.org/">FFmpeg</a>. Below is an example command for converting to Theora video with reasonable quality.</p>
-      <sourcecode lang="">ffmpeg -i input.avi -vcodec libtheora -qscale 7 -acodec libvorbis output.ogv</sourcecode>
+      <sourcecode lang="sh">ffmpeg -i input.avi -vcodec libtheora -qscale 7 -acodec libvorbis output.ogv</sourcecode>
       <p>Be careful with video quality/resolutions, video playback isn't nearly as efficient as in stand-alone video players. Resolutions over 1280x720 aren't recommended.</p>
     </section>
   </section>

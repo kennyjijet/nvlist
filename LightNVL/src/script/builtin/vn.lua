@@ -404,6 +404,23 @@ function getGlobal(name)
 	return globals:get(name)
 end
 
+---Increases/decreases the value of the stored global by the specified amount.
+-- @param name The name of the global
+-- @param inc The value to add to the global, may be negative but must be a
+--        number.
+-- @return The new value of the global
+function incrGlobal(name, inc)
+	local val = getGlobal(name)
+	val = (val or 0) + (inc or 0)
+	setGlobal(name, val)
+	return val
+end
+
+---Clears all globals previously stored using <code>setGlobal</code>.
+function clearGlobals()
+	return globals:clear()
+end
+
 ---Sets a shared global. All save slots have access to the same set of shared
 -- globals. Commonly used to mark routes as cleared or unlocked.
 -- @param name The name of the shared global. Names starting with
