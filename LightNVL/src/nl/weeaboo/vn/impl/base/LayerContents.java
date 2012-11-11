@@ -42,8 +42,7 @@ final class LayerContents implements Externalizable {
 	}
 	
 	public boolean add(IDrawable d) {
-		if (!drawables.contains(d)) {
-			drawables.add(d);
+		if (drawables.add(d)) {
 			invalidatePreSorted();
 			return true;
 		} else {
@@ -60,6 +59,30 @@ final class LayerContents implements Externalizable {
 		}
 	}
 	
+	public Collection<IDrawable> removeDestroyed() {
+		//Remove destroyed objects
+		Collection<IDrawable> result = null;
+		if (!drawables.isEmpty()) {
+			for (Iterator<IDrawable> itr = drawables.iterator(); itr.hasNext(); ) {
+				IDrawable d = itr.next();
+				if (d == null || d.isDestroyed()) {
+					itr.remove();					
+					invalidatePreSorted();
+					
+					if (d != null) {
+						if (result == null) result = new HashSet<IDrawable>();
+						result.add(d);
+					}
+				}
+			}
+		}
+		
+		if (result == null) {
+			result = Collections.emptySet();
+		}
+		return result;
+	}
+	
 	public Collection<IDrawable> clear() {
 		if (size() == 0) {
 			return Collections.emptySet();
@@ -73,28 +96,13 @@ final class LayerContents implements Externalizable {
 	}
 	
 	public IDrawable[] getDrawables(IDrawable[] out, int zDirection) {
-		removeDestroyed();
-
 		if (zDirection > 0) {
 			return backToFront.getSorted(out, true);
 		} else if (zDirection < 0) {
 			return backToFront.getSorted(out, false);
 		}
 		return drawables.toArray(out != null ? out : new IDrawable[drawables.size()]);
-	}
-	
-	private void removeDestroyed() {
-		//Remove destroyed objects
-		if (!drawables.isEmpty()) {
-			for (Iterator<IDrawable> itr = drawables.iterator(); itr.hasNext(); ) {
-				IDrawable d = itr.next();
-				if (d == null || d.isDestroyed()) {
-					itr.remove();
-					invalidatePreSorted();
-				}
-			}
-		}
-	}
+	}	
 	
 	protected void invalidatePreSorted() {
 		backToFront.invalidateSorting();

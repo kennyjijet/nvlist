@@ -9,9 +9,7 @@ import java.net.URI;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.nvlist.Game;
-import nl.weeaboo.vn.IChoice;
 import nl.weeaboo.vn.INotifier;
-import nl.weeaboo.vn.ISaveLoadScreen;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 
 @LuaSerializable
@@ -52,22 +50,7 @@ public class SystemLib extends BaseSystemLib implements Serializable {
 			}
 		});
 	}
-	
-	@Override
-	public IChoice createChoice(String... options) {
-		return null;
-	}
-
-	@Override
-	public ISaveLoadScreen createSaveScreen() {
-		return null;
-	}
-
-	@Override
-	public ISaveLoadScreen createLoadScreen() {
-		return null;
-	}
-	
+		
 	@Override
 	public void openWebsite(String url) {
 		Desktop desktop = Desktop.getDesktop();

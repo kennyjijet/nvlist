@@ -38,6 +38,11 @@ public final class Vec2 implements Externalizable {
 	}
 	
 	@Override
+	public Vec2 clone() {
+		return new Vec2(x, y);
+	}
+	
+	@Override
 	public String toString() {
 		return String.format("%s[%.2f, %.2f]",
 				getClass().getSimpleName(), x, y);

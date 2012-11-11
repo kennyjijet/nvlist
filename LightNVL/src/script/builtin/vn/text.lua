@@ -67,7 +67,7 @@ local function textfade(targetAlpha, speed, predicate)
 		nameLookup[d] = k
 	end
 	
-	local drawables = getTextLayer():getDrawables()
+	local drawables = getTextLayer():getContents()
 	for i=1,#drawables do
 		local d = drawables[i]
 		local k = nameLookup[d]
@@ -378,7 +378,7 @@ function setTextMode(m, clear)
 		--Create text layer
 		local newLayer = getTextLayer()
 		if newLayer == nil then
-			newLayer = createLayer("text" .. m)
+			newLayer = createLayer(getRootLayer())
 			newLayer:setZ(-2000)
 			setImageStateAttribute("textLayer" .. textMode, newLayer)
 			
@@ -663,7 +663,7 @@ local function createTextCursor(textBox)
 		if prefs.textStyle ~= nil then
 			scale = 1.2 * prefs.textStyle:getFontSize() / cursor:getUnscaledHeight()
 		end
-		cursor:setScale(scale, scale)
+		cursor:setScale(scale)
 		textBox:setCursor(cursor, true, true)
 	end
 	return cursor
@@ -689,7 +689,6 @@ defaultTextLayerConstructors[TextMode.ADV] = function()
 		nameBox = createTextLayerText(mode)
 		nameBox:setDefaultStyle(createStyle{fontStyle="bold"})
 		nameBox:setText("???")
-		nameBox:setAnchor(7)
 		nameBox:setPadding(.01 * math.min(screenWidth, screenHeight))
 		nameBox:setSize(textBox:getWidth(), nameBox:getTextHeight() + nameBox:getPadding() * 2)
 		nameBox:setPos(textBox:getX(), textBox:getY() - nameBox:getHeight())

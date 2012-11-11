@@ -8,7 +8,7 @@ import nl.weeaboo.vn.impl.base.BaseStorage;
 @LuaSerializable
 public class Globals extends BaseStorage implements Serializable {
 
-	private static final long serialVersionUID = NVListImpl.serialVersionUID;
+	private static final long serialVersionUID = 1L;
 		
 	public Globals() {
 	}

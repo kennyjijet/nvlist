@@ -1,256 +1,52 @@
 package nl.weeaboo.vn.impl.base;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import nl.weeaboo.collections.MergeSort;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.IGeometryShader;
-import nl.weeaboo.vn.IImageDrawable;
+import nl.weeaboo.vn.IDistortGrid;
+import nl.weeaboo.vn.IDrawBuffer;
+import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderCommand;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.math.Matrix;
-import nl.weeaboo.vn.math.Vec2;
 
 public abstract class BaseRenderer implements IRenderer {
-	
-	private final int vw, vh;
-	private final int rx, ry, rw, rh;
-	private final int sw, sh;
-	private final double scale;
-	
+		
+	protected final RenderEnv env;
 	protected final RenderStats renderStats;	
-	protected final List<RenderCommand> commands;
-
-	private transient BaseRenderCommand[] tempArray;
 	
-	protected BaseRenderer(int vw, int vh, int rx, int ry, int rw, int rh, int sw, int sh,
-			RenderStats stats)
-	{
-		this.vw = vw;
-		this.vh = vh;
-		this.rx = rx;
-		this.ry = ry;
-		this.rw = rw;
-		this.rh = rh;
-		this.sw = sw;
-		this.sh = sh;
-
-		scale = Math.min(rw / (double)vw, rh / (double)vh);		
-		renderStats = stats;
-
-		commands = new ArrayList<RenderCommand>(256);
+	/** This boolean is <code>true</code> when inside a call to render() */
+	protected boolean rendering;
+	
+	//--- Properties only valid while render==true beneath this line ----------------------
+	private boolean clipping;
+	private BlendMode blendMode;
+	private int foreground;
+	//-------------------------------------------------------------------------------------
+	
+	protected BaseRenderer(RenderEnv env, RenderStats stats) {
+		this.env = env;
+		this.renderStats = stats;
+		
+		renderReset();
 	}
 	
 	//Functions	
 	@Override
-	public void reset() {		
-		commands.clear();
+	public void reset() {
+		renderReset();
 	}
 	
-	@Override
-	public void screenshot(IScreenshot ss, boolean clip) {
-		draw(new ScreenshotRenderCommand(ss, clip));
+	private void renderReset() {
+		clipping = true;
+		blendMode = BlendMode.DEFAULT;
+		foreground = 0xFFFFFFFF;
 	}
-	
-	@Override
-	public void draw(IImageDrawable id) {
-		drawWithTexture(id, id.getTexture(), id.getImageAlignX(), id.getImageAlignY(),
-				id.getGeometryShader(), id.getPixelShader());
-	}
-	
-	public void drawWithTexture(IImageDrawable id, ITexture tex, double alignX, double alignY,
-			IGeometryShader gs, IPixelShader ps)
-	{		
-		if (gs == null) {
-			Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
-			drawQuad(id.getZ(), id.isClipEnabled(), id.getBlendMode(), id.getColorARGB(),
-					tex, id.getTransform(), offset.x, offset.y,
-					id.getUnscaledWidth(), id.getUnscaledHeight(), ps);
-		} else {
-			gs.draw(this, id, tex, alignX, alignY, ps);
-		}
-	}
-	
-	public void drawQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps)
-	{
-		drawQuad(z, clipEnabled, blendMode, argb, tex, trans, x, y, w, h, 0, 0, 1, 1, ps);
-	}
-	
-	public void drawQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h,
-			double u, double v, double uw, double vh, IPixelShader ps)
-	{	
-		draw(new QuadRenderCommand(z, clipEnabled, blendMode, argb, tex,
-				trans, x, y, w, h, u, v, uw, vh, ps));
-	}
-
-	public void drawFadeQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps,
-			int dir, boolean fadeIn, double span, double time)
-	{
-		draw(new FadeQuadCommand(z, clipEnabled, blendMode, argb, tex,
-				trans, x, y, w, h, ps, dir, fadeIn, span, time));
-	}
-	
-	public void drawBlendQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex0, double alignX0, double alignY0,
-			ITexture tex1, double alignX1, double alignY1,
-			Matrix trans, IPixelShader ps,
-			double frac)
-	{
-		draw(new BlendQuadCommand(z, clipEnabled, blendMode, argb,
-				tex0, alignX0, alignY0,
-				tex1, alignX1, alignY1,
-				trans, ps,
-				frac));
-	}
-	
-	public void drawDistortQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps,
-			DistortGrid distortGrid, Rect2D clampBounds)
-	{
-		draw(new DistortQuadCommand(z, clipEnabled, blendMode, argb,
-				tex, trans, x, y, w, h, ps,
-				distortGrid, clampBounds));
-	}
-	
-	public void draw(RenderCommand cmd) {
-		commands.add(cmd);		
-	}
-	
-	public final void render(Rect2D bounds) {
-		if (commands.isEmpty()) {
-			return;
-		}
 		
-		if (renderStats != null) {
-			renderStats.startRender();
-		}
-		
-		final int rx = getRealX();
-		final int ry = getRealY();
-		final int rw = getRealWidth();
-		final int rh = getRealHeight();
-		//final int sw = getScreenWidth();
-		final int sh = getScreenHeight();
-
-		if (tempArray == null) {
-			tempArray = new BaseRenderCommand[commands.size()];
-		}
-		tempArray = commands.toArray(tempArray);
-		final int len = commands.size();
-		
-		// Merge sort is only faster than Arrays.sort() for small (up to ~1000
-		// elements) arrays or when the input is nearly sorted. Since both of
-		// these are typically the case...
-		MergeSort.sort(tempArray, 0, len);
-
-		//Setup clipping
-		Rect screenClip = new Rect(rx, sh - ry - rh, rw, rh);
-		final int cx, cy, cw, ch; //Clip rect in screen coords
-		if (bounds == null) {
-			cx = screenClip.x; cy = screenClip.y; cw = screenClip.w; ch = screenClip.h;
-		} else {
-			cw = Math.max(0, Math.min(rw, (int)Math.floor(bounds.w * getScale())));
-			ch = Math.max(0, Math.min(rh, (int)Math.floor(bounds.h * getScale())));			
-			cx = rx + Math.max(0, Math.min(rw, (int)Math.ceil(bounds.x * getScale())));
-			int ucy = ry + Math.max(0, Math.min(rh, (int)Math.ceil(bounds.y * getScale())));
-			cy = sh - ucy - ch;
-		}		
-		Rect layerClip = new Rect(cx, cy, cw, ch);
-		renderBegin(bounds, screenClip, layerClip);
-
-		boolean clipping = true;
-		BlendMode blendMode = BlendMode.DEFAULT;
-		int foreground = 0xFFFFFFFF;
-		
-		//Render buffered commands
-		long renderStatsTimestamp = 0;
-		for (int n = 0; n < len; n++) {
-			BaseRenderCommand cmd = tempArray[n];			
-			
-			//Clipping changed
-			if (cmd.clipEnabled != clipping) {
-				clipping = cmd.clipEnabled;
-				renderSetClip(clipping);
-			}
-			
-			//Blend mode changed
-			if (cmd.blendMode != blendMode) {
-				blendMode = cmd.blendMode;
-				renderSetBlendMode(blendMode);
-			}
-			
-			//Foreground color changed
-			if (cmd.argb != foreground) {
-				foreground = cmd.argb;
-				renderSetColor(foreground);
-			}
-			
-			//Don't render fully transparent objects
-			if (((foreground>>24)&0xFF) == 0) {
-				continue;
-			}
-			
-			//Perform command-specific rendering
-			if (renderStats != null) {
-				renderStatsTimestamp = System.nanoTime();
-			}
-
-			preRenderCommand(cmd);
-			if (cmd.id == QuadRenderCommand.id) {
-				QuadRenderCommand qrc = (QuadRenderCommand)cmd;
-				renderQuad(qrc.tex, qrc.transform,
-						qrc.x, qrc.y, qrc.width, qrc.height, qrc.ps,
-						qrc.u, qrc.v, qrc.uw, qrc.vh);
-			} else if (cmd.id == BlendQuadCommand.id) {
-				BlendQuadCommand bqc = (BlendQuadCommand)cmd;
-				renderBlendQuad(bqc.tex0, bqc.alignX0, bqc.alignY0,
-						bqc.tex1, bqc.alignX1, bqc.alignY1,
-						bqc.frac, bqc.transform, bqc.ps);
-			} else if (cmd.id == FadeQuadCommand.id) {
-				FadeQuadCommand fqc = (FadeQuadCommand)cmd;
-				renderFadeQuad(fqc.tex, fqc.transform, fqc.argb, fqc.argb&0xFFFFFF,
-						fqc.x, fqc.y, fqc.w, fqc.h,
-						fqc.ps, fqc.dir, fqc.fadeIn, fqc.span, fqc.frac);
-			} else if (cmd.id == DistortQuadCommand.id) {
-				DistortQuadCommand dqc = (DistortQuadCommand)cmd;
-				renderDistortQuad(dqc.tex, dqc.transform, dqc.argb,
-						dqc.x, dqc.y, dqc.w, dqc.h, dqc.ps,
-						dqc.grid, dqc.clampBounds);
-			} else if (cmd.id == ScreenshotRenderCommand.id) {
-				ScreenshotRenderCommand src = (ScreenshotRenderCommand)cmd;
-				renderScreenshot(src.ss, (src.clipEnabled ? layerClip : screenClip));
-			} else if (cmd.id == CustomRenderCommand.id) {
-				CustomRenderCommand crc = (CustomRenderCommand)cmd;
-				renderCustom(crc);
-			} else if (!renderUnknownCommand(cmd)) {
-				throw new RuntimeException("Unable to process render command (id=" + cmd.id + ")");
-			}
-			postRenderCommand(cmd);
-			
-			if (renderStats != null) {
-				renderStats.log(cmd, System.nanoTime()-renderStatsTimestamp);
-			}
-		}
-		
-		Arrays.fill(tempArray, 0, len, null); //Null array to allow garbage collection
-				
-		renderEnd();
-		
-		if (renderStats != null) {
-			renderStats.stopRender();
-		}		
-	}
-	
 	/**
 	 * Must: 
 	 * <ul>
@@ -260,10 +56,155 @@ public abstract class BaseRenderer implements IRenderer {
 	 *   <li>Set glColor to opaque white.</li>
 	 * </ul> 
 	 */
-	protected abstract void renderBegin(Rect2D bounds, Rect screenClip, Rect layerClip);
+	@Override
+	public void render(ILayer layer, IDrawBuffer d) {
+		BaseDrawBuffer dd = BaseDrawBuffer.cast(d);
+		
+		rendering = true;
+		try {		
+			if (renderStats != null) {
+				renderStats.startRender();
+			}
+			
+			renderReset();
+			renderBegin();
+			renderLayer(layer, env.screenClip, dd);
+			renderEnd();			
+		} finally {
+			rendering = false;			
+			if (renderStats != null) {
+				renderStats.stopRender();
+			}
+		}
+	}
+	
+	/**
+	 * Must initialize the OpenGL state to the expected defaults (no texture,
+	 * scissor enabled, blendmode default, color 0xFFFFFFFF)
+	 */
+	protected abstract void renderBegin();
 	
 	protected abstract void renderEnd();
+	
+	protected void renderLayer(ILayer layer, Rect parentClip, BaseDrawBuffer buffer) {
+		int cstart = buffer.getLayerStart(layer);
+		int cend = buffer.getLayerEnd(layer);
+		if (cend <= cstart) {
+			return;
+		}
+
+		//Get sorted render commands
+		BaseRenderCommand[] cmds = buffer.sortCommands(cstart, cend);
 		
+		//Setup clipping/translate
+		final Rect2D bounds = layer.getBounds();
+		
+		final int cx, cy, cw, ch; //Clip rect in screen coords
+		if (bounds == null) {			
+			cx = parentClip.x; cy = parentClip.y; cw = parentClip.w; ch = parentClip.h;
+		} else {
+			//Rounded to ints, crop rect should be no bigger than the non-rounded version.
+			int tx0 = (int)Math.ceil(bounds.x * env.scale);
+			int ty0 = (int)Math.ceil(bounds.y * env.scale);
+			//We can't just floor() the w/h because the ceil() of the x/y would skew the result.
+			int tx1 = (int)Math.floor((bounds.x+bounds.w) * env.scale);
+			int ty1 = (int)Math.floor((bounds.y+bounds.h) * env.scale);
+			
+			cx = parentClip.x + Math.max(0, Math.min(parentClip.w, tx0));
+			cy = parentClip.y + Math.max(0, Math.min(parentClip.h, parentClip.h-ty1));
+			cw = Math.max(0, Math.min(parentClip.w-tx0, tx1-tx0));
+			ch = Math.max(0, Math.min(parentClip.h-ty0, ty1-ty0));
+		}		
+		final Rect layerClip = new Rect(cx, cy, cw, ch);
+		
+		setClipRect(layerClip);
+		translate(bounds.x, bounds.y);
+		
+		//Render buffered commands
+		long renderStatsTimestamp = 0;
+		for (int n = cstart; n < cend; n++) {
+			BaseRenderCommand cmd = cmds[n];
+			
+			//Clipping changed
+			if (cmd.clipEnabled != clipping) {
+				clipping = cmd.clipEnabled;
+				setClip(clipping);
+			}
+			
+			//Blend mode changed
+			if (cmd.blendMode != blendMode) {
+				blendMode = cmd.blendMode;
+				setBlendMode(blendMode);
+			}
+			
+			//Foreground color changed
+			if (cmd.argb != foreground) {
+				foreground = cmd.argb;
+				setColor(foreground);
+			}
+			
+			//Perform command-specific rendering
+			if (renderStats != null) {
+				renderStatsTimestamp = System.nanoTime();
+			}
+			
+			preRenderCommand(cmd);
+			
+			switch (cmd.id) {
+			case LayerRenderCommand.id: {
+				LayerRenderCommand lrc = (LayerRenderCommand)cmd;
+				renderLayer(lrc.layer, layerClip, buffer);
+			} break;
+			case QuadRenderCommand.id: {
+				QuadRenderCommand qrc = (QuadRenderCommand)cmd;
+				renderQuad(qrc.tex, qrc.transform,
+						qrc.x, qrc.y, qrc.width, qrc.height, qrc.ps,
+						qrc.u, qrc.v, qrc.uw, qrc.vh);
+			} break;
+			case BlendQuadCommand.id: {
+				BlendQuadCommand bqc = (BlendQuadCommand)cmd;
+				renderBlendQuad(bqc.tex0, bqc.alignX0, bqc.alignY0,
+						bqc.tex1, bqc.alignX1, bqc.alignY1,
+						bqc.frac, bqc.transform, bqc.ps);
+			} break;
+			case FadeQuadCommand.id: {
+				FadeQuadCommand fqc = (FadeQuadCommand)cmd;
+				renderFadeQuad(fqc.tex, fqc.transform, fqc.argb, fqc.argb&0xFFFFFF,
+						fqc.x, fqc.y, fqc.w, fqc.h,
+						fqc.ps, fqc.dir, fqc.fadeIn, fqc.span, fqc.frac);
+			} break;
+			case DistortQuadCommand.id: {
+				DistortQuadCommand dqc = (DistortQuadCommand)cmd;
+				renderDistortQuad(dqc.tex, dqc.transform, dqc.argb,
+						dqc.x, dqc.y, dqc.w, dqc.h, dqc.ps,
+						dqc.grid, dqc.clampBounds);
+			} break;
+			case CustomRenderCommand.id: {
+				CustomRenderCommand crc = (CustomRenderCommand)cmd;
+				renderCustom(crc);
+			} break;
+			case ScreenshotRenderCommand.id: {
+				ScreenshotRenderCommand src = (ScreenshotRenderCommand)cmd;
+				renderScreenshot(src.ss, (src.clipEnabled ? layerClip : env.screenClip));
+			} break;
+			default: {
+				if (!renderUnknownCommand(cmd)) {
+					throw new RuntimeException("Unable to process render command (id=" + cmd.id + ")");
+				}
+			}
+			}
+			
+			postRenderCommand(cmd);
+			
+			if (renderStats != null) {
+				renderStats.log(cmd, System.nanoTime()-renderStatsTimestamp);
+			}
+		}
+		
+		setClipRect(parentClip);
+		translate(-bounds.x, -bounds.y);
+	}
+			
 	protected void preRenderCommand(BaseRenderCommand cmd) {		
 	}
 	
@@ -285,7 +226,7 @@ public abstract class BaseRenderer implements IRenderer {
 	
 	public abstract void renderDistortQuad(ITexture tex, Matrix transform, int argb,
 			double x, double y, double w, double h, IPixelShader ps,
-			DistortGrid grid, Rect2D clampBounds);
+			IDistortGrid grid, Rect2D clampBounds);
 	
 	public abstract void renderTriangleGrid(TriangleGrid grid);
 	
@@ -297,55 +238,22 @@ public abstract class BaseRenderer implements IRenderer {
 	
 	protected abstract boolean renderUnknownCommand(RenderCommand cmd);
 	
-	protected abstract void renderSetClip(boolean c);
-	protected abstract void renderSetColor(int argb);
-	protected abstract void renderSetBlendMode(BlendMode bm);
+	protected abstract void setClip(boolean c);
+	protected abstract void setColor(int argb);
+	protected abstract void setBlendMode(BlendMode bm);
+	
+	protected abstract void setClipRect(Rect glRect);
+	protected abstract void translate(double dx, double dy);
 	
 	//Getters
+	
 	@Override
-	public int getWidth() {
-		return vw;
-	}
-
-	@Override
-	public int getHeight() {
-		return vh;
-	}
-
-	@Override
-	public int getRealX() {
-		return rx;
+	public RenderEnv getEnv() {
+		return env;
 	}
 	
 	@Override
-	public int getRealY() {
-		return ry;
-	}
-	
-	@Override
-	public int getRealWidth() {
-		return rw;
-	}
-
-	@Override
-	public int getRealHeight() {
-		return rh;
-	}
-	
-	@Override
-	public int getScreenWidth() {
-		return sw;		
-	}
-	
-	@Override
-	public int getScreenHeight() {
-		return sh;
-	}
-	
-	@Override
-	public double getScale() {
-		return scale;
-	}
+	public abstract BaseDrawBuffer getDrawBuffer();
 	
 	//Setters
 	

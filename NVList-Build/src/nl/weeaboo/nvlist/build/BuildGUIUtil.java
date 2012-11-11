@@ -16,6 +16,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
 
+import nl.weeaboo.awt.MessageBox;
+
 public final class BuildGUIUtil {
 
 	private BuildGUIUtil() {
@@ -76,6 +78,12 @@ public final class BuildGUIUtil {
 			result.addAll(w.getIconImages());
 		}
 		return result;		
+	}
+	
+	public static MessageBox newMessageBox(String title, Object message) {
+		MessageBox mb = new MessageBox(title, message);
+		mb.setSelectedColors(new Color(0x897294), new Color(0xa794af), new Color(0xa794af));
+		return mb;
 	}
 	
 }

@@ -4,6 +4,45 @@
 -- Defines the standard user interface screens.
 -------------------------------------------------------------------------------
 
+---Adds a visible scroll bar to an existing viewport
+-- @param viewport The viewport to change the scrollbar of.
+-- @param horizontal A boolean <code>true/false</code> whether to change the
+--        horizontal or vertical scrollbar.
+-- @param pad A table containing <code>top, right, bottom, left</code> fields 
+--        to determine the amount of empty space that should be reserved around
+--        the scrollbar.
+-- @param images A table containing image paths or textures to use for the
+--        scrollbar and/or fading edges:
+--        <code>(scrollBG, scrollThumb, fadeUp, fadeDown)</code>.
+function setViewportScrollBar(viewport, horizontal, pad, images)
+	local sz = screenHeight * .015
+	pad = extend({top=0, right=0, bottom=0, left=0}, pad or {})
+	images = images or {}
+
+	local func = viewport.setScrollBarY
+	local sfx = ""
+	if horizontal then
+		func = viewport.setScrollBarX
+		sfx = "-h"
+	end
+	
+	local pfx = "gui/components#"
+	if android then
+		pfx = "android/components#"
+	end
+	
+	local scrollBgTex = tex(images.scrollBG or pfx .. "scroll-bg" .. sfx, true)
+	local scrollThumbTex = tex(images.scrollThumb or pfx .. "scroll-thumb" .. sfx, true)
+		
+	func(viewport, sz, scrollBgTex, scrollThumbTex, pad.top, pad.right, pad.bottom, pad.left)
+		
+	if not horizontal then
+		local fadeUpTex = tex(images.fadeDown or pfx .. "fade-down", true)
+		local fadeDownTex = tex(images.fadeUp or pfx .. "fade-up", true)
+		viewport:setFadingEdges(screenHeight * .02, 0x000000, fadeUpTex, fadeDownTex)		
+	end
+end
+
 -- ----------------------------------------------------------------------------
 --  Save/Load Screen
 -- ----------------------------------------------------------------------------
@@ -39,7 +78,7 @@ function SaveSlot.new(self)
 	--l:setBackgroundColorARGB(0xA0000000)
 	l:setZ(b:getZ() - 10)
 	l:setPadding(8)
-	l:setAnchor(1)
+	l:setAnchor(2)
 	
 	local i = nil	
 	local newI = nil
@@ -68,56 +107,14 @@ function SaveSlot.new(self)
 end
 
 function SaveSlot:destroy()
-	self.button:destroy()
-	if self.image ~= nil then
-		self.image:destroy()
-	end
-	if self.newImage ~= nil then
-		self.newImage:destroy()
-	end
-	self.label:destroy()
+	destroyValues{self.button, self.image, self.newImage, self.label}
 end
 
-function SaveSlot:setPos(x, y)
-	local b = self.button
-	local l = self.label
-	local i = self.image
-
-	b:setPos(x, y)
-	l:setPos(x, y + b:getHeight() - l:getHeight())
-
-	if i ~= nil then	
-		local pad = (b:getWidth() - i:getWidth())/2
-		i:setPos(x + pad, y + pad)
-	end	
-	
-	self:layout()
+function SaveSlot:getBounds()
+	return self.button:getBounds()
 end
 
-function SaveSlot:layout()
-	local i = self.image
-	local b = self.button	
-	local newI = self.newImage
-	if newI ~= nil then
-		if i ~= nil then	
-			--Align with top-right of screenshot
-			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
-		else
-			--Align with top-right of button
-			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
-		end
-	end
-end
-
-function SaveSlot:getWidth()
-	return self.button:getWidth()
-end
-
-function SaveSlot:getHeight()
-	return self.button:getHeight()
-end
-
-function SaveSlot:setSize(w, h)
+function SaveSlot:setBounds(x, y, w, h)
 	local b = self.button
 	local l = self.label
 	local i = self.image
@@ -135,8 +132,25 @@ function SaveSlot:setSize(w, h)
 	else	
 		l:setSize(b:getWidth(), b:getHeight())
 	end	
+	
+	b:setPos(x, y)
+	l:setPos(x, y + b:getHeight() - l:getHeight())
 
-	self:layout()
+	if i ~= nil then	
+		local pad = (b:getWidth() - i:getWidth())/2
+		i:setPos(x + pad, y + pad)
+	end		
+	
+	local newI = self.newImage
+	if newI ~= nil then
+		if i ~= nil then	
+			--Align with top-right of screenshot
+			newI:setPos(i:getX() + i:getWidth() - newI:getWidth(), i:getY())
+		else
+			--Align with top-right of button
+			newI:setPos(b:getX() + b:getWidth() - newI:getWidth(), b:getY())
+		end
+	end	
 end
 
 function SaveSlot:update()
@@ -180,11 +194,7 @@ local SaveLoadScreen = {
 	okButton=nil,
 	cancelButton=nil,
 	topFade=nil,
-	bottomFade=nil,
-	pageButtonLayout=nil,
-	saveLayout=nil,
-	qsaveLayout=nil,
-	buttonBarLayout=nil,
+	bottomFade=nil
 	}
 
 function SaveLoadScreen.new(self)
@@ -198,8 +208,9 @@ function SaveLoadScreen.new(self)
 	
 	self.pageButtons = {}		
 	for p=1,self.pages do
-		local tb = TextButton.new("gui/savescreen#pageButton-", p)
-		tb.button:setToggle(true)
+		local tb = button("gui/savescreen#pageButton-")
+		tb:setText(p)
+		tb:setToggle(true)
 		self.pageButtons[p] = tb
 	end
 	
@@ -207,9 +218,14 @@ function SaveLoadScreen.new(self)
 	if self.isSave then
 		okText = "Save"
 	end
-	self.okButton = TextButton.new("gui/savescreen#button-", okText)
 	
-	self.cancelButton = TextButton.new("gui/savescreen#button-", "Cancel")
+	local cancelText = "Cancel"
+	
+	self.okButton = button("gui/savescreen#button-")
+	self.okButton:setText(okText)
+	
+	self.cancelButton = button("gui/savescreen#button-")
+	self.cancelButton:setText(cancelText)
 	
 	self.topFade = img("gui/savescreen#fade-top")
 	self.topFade:setZ(10)
@@ -219,10 +235,10 @@ function SaveLoadScreen.new(self)
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton.text:setDefaultStyle(buttonStyle)
-	self.cancelButton.text:setDefaultStyle(buttonStyle)
+	self.okButton:setDefaultStyle(buttonStyle)
+	self.cancelButton:setDefaultStyle(buttonStyle)
 	for _,tb in pairs(self.pageButtons) do
-		tb.text:setDefaultStyle(buttonStyle)
+		tb:setDefaultStyle(buttonStyle)
 	end
 		
 	self:setPage(self.page, true)
@@ -247,21 +263,28 @@ function SaveLoadScreen:layout()
 	
 	local ipad = self.pad
 	local vpad = h / 7
-	local mainW = w-ipad*2
+	local mainW = w - ipad*2
 	local mainH = h - vpad*2 - qh - ipad*3
 
-	self.pageButtonLayout = GridLayout.new{x=x, y=y, w=w, h=vpad, pad=ipad, pack=5,
-		children=self.pageButtons}
-	self.pageButtonLayout:layout()
-	self.saveLayout = GridLayout.new{x=x+ipad, y=y+vpad+ipad, w=mainW, h=mainH, cols=self.cols, pad=ipad,
-		children=self.saves, fillW=true, fillH=true, pack=self.pack}
-	self.saveLayout:layout()
-	self.qsaveLayout = GridLayout.new{x=x+ipad, y=y+h-vpad-qh-ipad, w=mainW, h=qh, cols=self.qcols,
-		pad=ipad, children=self.qsaves, fillW=true, fillH=true, pack=self.qpack}
-	self.qsaveLayout:layout()
-	self.buttonBarLayout = GridLayout.new{x=x, y=y+h-vpad, w=w, h=vpad, pad=ipad, pack=5,
-		children={self.okButton, self.cancelButton}}
-	self.buttonBarLayout:layout()
+	doLayout(GridLayout, x, y, w, vpad,
+		{padding=ipad, pack=5},
+		self.pageButtons)
+	
+	for i=1,2 do
+		--Because of the peculiar implementation of SaveSlot, we need to layout twice;
+		--once for the size and then once again for the position.
+		doLayout(GridLayout, x+ipad, y+vpad+ipad, mainW, mainH,
+			{cols=self.cols, padding=ipad, pack=self.pack, stretch=true},
+			self.saves)
+		
+		doLayout(GridLayout, x+ipad, y+h-vpad-qh-ipad, mainW, qh,
+			{cols=self.qcols, padding=ipad, pack=self.qpack, stretch=true},
+			self.qsaves)
+	end
+	
+	doLayout(GridLayout, x, y+h-vpad, w, vpad,
+		{padding=ipad, pack=5},
+		{self.okButton, self.cancelButton})
 		
 	self.topFade:setBounds(x, y, w, vpad)
 	self.bottomFade:setBounds(x, y+math.ceil(h-vpad), w, vpad)
@@ -315,7 +338,7 @@ end
 
 function SaveLoadScreen:setPage(p, force)
 	for i,pb in ipairs(self.pageButtons) do
-		pb.button:setSelected(i == p) 
+		pb:setSelected(i == p) 
 	end
 
 	if self.page ~= p or force then
@@ -330,6 +353,7 @@ function SaveLoadScreen:setPage(p, force)
 		local pageStart = 1 + (p - 1) * slotsPerPage
 		local pageEnd   = 1 + (p    ) * slotsPerPage
 		local saved = Save.getSaves(pageStart, pageEnd)	
+		local lastSaved = getSharedGlobal(KEY_SAVE_LAST)
 		
 		for i=pageStart,pageEnd-1 do
 			local slot = i
@@ -344,7 +368,7 @@ function SaveLoadScreen:setPage(p, force)
 				screenshot = si:getScreenshot()
 				label = si:getLabel()
 				empty = false
-				new = (getSharedGlobal(KEY_SAVE_LAST) == i)
+				new = (lastSaved == i)
 			end
 			
 			local ss = self.newSaveSlot{slot=slot, label=label, empty=empty, screenshot=screenshot,
@@ -376,7 +400,7 @@ function SaveLoadScreen:run()
 
 	while not input:consumeCancel() do
 		for i,pb in ipairs(self.pageButtons) do
-			if pb.button:consumePress() then
+			if pb:consumePress() then
 				self:setPage(i)
 			end
 		end
@@ -395,12 +419,10 @@ function SaveLoadScreen:run()
 			end
 		end
 		
-		self.okButton.button:setEnabled(self.selected ~= 0)
-		if self.okButton.button:consumePress() then
+		self.okButton:setEnabled(self.selected ~= 0)
+		if self.okButton:consumePress() then
 			break
-		end
-		
-		if self.cancelButton.button:consumePress() then
+		elseif self.cancelButton:consumePress() then
 			self.selected = 0
 			break
 		end
@@ -435,20 +457,18 @@ function TextLogScreen:destroy()
 end
 
 function TextLogScreen:run()	
-    local pathPrefix = "gui/textlog#"
-    if android then
-        pathPrefix = "android/textlog#"
-    end
-    
-    local function timg(filename, ...)
-        return img(pathPrefix .. filename, ...)
-    end
-    local function tbutton(filename, ...)
-        return button(pathPrefix .. filename, ...)
-    end
-    
+    local x = 0
+    local y = 0
     local w = screenWidth
     local h = screenHeight
+    local pathPrefix = "gui/textlog#"
+    local clipEnabled = true
+    
+    if android then
+        pathPrefix = "android/textlog#"
+        clipEnabled = false; --Android textlog draws outside its allotted screen bounds
+    end
+            
 	local sz = math.min(w, h)
 	local vpad  = 0.03 * sz
 	local bh    = 0.15 * sz
@@ -458,69 +478,96 @@ function TextLogScreen:run()
 		pages = math.min(pages, 25) --Limit number of pages
 	end
 	local page = pages-1
-	local lw = w-vpad
-	local lh = h-bh-vpad*2
     
     --Create edge images
+    local topEdge = nil
     if not android then
-		local topEdge = timg("edge-top", {bounds={0, 0, w, vpad}, z=10})
+		topEdge = img(pathPrefix .. "edge-top", {z=10, clipEnabled=clipEnabled})
 	end
-	local bottomEdge = timg("edge-bottom", {bounds={0, h-bh-vpad+1, w, bh+vpad}, z=10})
+	local bottomEdge = img(pathPrefix .. "edge-bottom", {z=10, clipEnabled=clipEnabled})
     
 	--Create controls
-	local returnButton = tbutton("return-")
-    local returnButtonScale = math.min(1, (.90 * bh) / returnButton:getHeight())
-    returnButton:setScale(returnButtonScale, returnButtonScale)
+	local returnButton = button(pathPrefix .. "return-")
+    returnButton:setClipEnabled(clipEnabled)
+    local scale = math.min(2, (.90 * bh) / returnButton:getHeight())
+    if not android then
+    	scale = math.min(1, scale)
+    end
+    returnButton:setScale(scale)
 	if System.isTouchScreen() then
-		returnButton:setPadding(bh/2)
+		returnButton:setTouchMargin(bh/4)
 	end
 	returnButton:addActivationKeys(Keys.RIGHT, Keys.DOWN)
     
-	local buttonBarLayout = GridLayout.new{y=h-bh-vpad, w=w, h=bh+vpad, pad=bh/4, pack=5, children={returnButton}}
-	buttonBarLayout:layout()    
-
 	--Create viewport and fill with text pages
-	viewport = Viewport.new{pad=vpad, scrollBarPad=vpad}
-	viewport:setBounds(0, vpad, lw, lh)
-	
-	local pd = {}
-	local x = 0
-	local y = 0
+	local viewport = createViewport(w, h)
+	viewport:setClipEnabled(clipEnabled)
+	viewport:setZ(1000)
+	viewport:setPadding(vpad)
+    viewport:setLayout(createFlowLayout{padding=vpad, cols=1})
+	local si = {top=vpad, right=vpad, bottom=vpad, left=vpad}
+	if android then
+		si.top = si.top + vpad * 3
+	end
+	setViewportScrollBar(viewport, false, si)
+	if android then
+		viewport:setFadingEdges(0)
+	end
+	self.viewport = viewport
+	        
+    local ts = {}
     local defaultStyle = prefs.textLogStyle or createStyle{color=0xFFFFFF80}
-    local iw = viewport:getInnerWidth()
-    
-    viewport:openLayer()
 	for p=pages,1,-1 do
 		local t = textimg()
-		t:setPos(x, y)
-		t:setSize(iw, 999999)
+		t:setClipEnabled(clipEnabled)
 		t:setDefaultStyle(defaultStyle)
 		t:setText(tl:getPage(-p))
-		t:setSize(iw, t:getTextHeight())
-		
-		if System.isLowEnd() then
-			t:setBlendMode(BlendMode.OPAQUE)
-		end
-		
-		pd[p] = t
-		y = y + t:getTextHeight()
-		if p > 1 then
-			--Not the final page, add spacing equal to
-			local endLine = t:getEndLine()
-			if endLine > 0 then
-				y = y + t:getTextHeight(endLine-1, endLine)
+		--t:setSize(iw, t:getTextHeight()) --Shrink text bounds to what's required (causes problems when text size changes)
+		t:setBlendMode(BlendMode.OPAQUE)
+		viewport:add(t)
+		table.insert(ts, t)
+	end
+
+	local oldBounds = {x=0, y=0, w=0, h=0}
+	local function layout()
+		if not clipEnabled then
+		    local renderEnv = imageState:getRenderEnv()
+		    local windowBounds = renderEnv:getGLScreenVirtualBounds()
+		    x = windowBounds.x
+		    y = windowBounds.y
+		    w = windowBounds.w
+		    h = windowBounds.h
+		end		
+	
+		if x ~= oldBounds.x or y ~= oldBounds.y or w ~= oldBounds.w or h ~= oldBounds.h then
+			local top = y		
+			if topEdge ~= nil then
+				topEdge:setBounds(x, y, w, vpad)
+				top = topEdge:getY() + topEdge:getHeight()
 			end
+			bottomEdge:setBounds(x, y+h-bh-vpad+1, w, bh+vpad)
+		
+			returnButton:setPos(x+(w-returnButton:getWidth())/2,
+				bottomEdge:getY() + (bottomEdge:getHeight()-returnButton:getHeight())/2)
+			
+			viewport:setBounds(x, top, w, math.ceil(h-bh-vpad-top))
+    		local iw = viewport:getInnerWidth() - vpad*2 - 2
+			for _,t in ipairs(ts) do
+				t:setSize(iw, h*2) --Initial width required to get text to linewrap properly
+			end
+			viewport:layout()
+			viewport:setScrollFrac(0, 1)
+			
+			oldBounds = {x=x, y=y, w=w, h=h}
 		end
 	end
-	viewport:closeLayer(pd)
-	viewport:scrollTo(0, 1)
-		
+
 	--User interaction loop
-	while not input:consumeCancel() and not input:consumeDown() do
+	while not input:consumeCancel() do
 		if returnButton:consumePress() then
 			break
 		end
-		viewport:update()		
+		layout() --Necessary because the text size could change at any time
 		yield()
 	end	
 end
@@ -534,10 +581,14 @@ local ChoiceScreen = {
 	selected=-1,
 	options=nil,
 	buttons=nil,
+	viewport=nil,
+	components=nil,
 	choiceStyle=nil,
 	selectedChoiceStyle=nil,
-	offsetY=screenHeight*.05,
-	maxHeight=screenHeight*.70
+	pad=screenHeight*.03,
+	ipad=screenHeight*.015,
+	w=screenWidth,
+	h=screenHeight*.75
 }
 
 function ChoiceScreen.new(choiceId, ...)
@@ -548,26 +599,40 @@ function ChoiceScreen.new(choiceId, ...)
 		or prefs.selectedChoiceStyle
 		or extendStyle(self.choiceStyle, {color=0xFF808080})
 	
+	local viewport = createViewport(self.w-self.pad*2, self.h-self.pad*2)
+	viewport:setPos(self.pad, self.pad)
+	viewport:setPadding(self.pad)
+	viewport:setLayout(createFlowLayout{pack=5, anchor=5, padding=self.ipad, cols=1})
+	self.viewport = viewport
+	
+	setImageLayer(viewport:getLayer())
 	self.buttons = {}
+	self.components = {}
 	for i,opt in ipairs(self.options) do
-		local b = TextButton.new("gui/choice-button", opt or "???")		
+		local b = button("gui/choice-button")
+		b:setText(opt or "???")		
 		b:setAlpha(0)
 		b:setZ(-2000)
 		
 		local buttonScale = 1
-		if b.button:getUnscaledWidth() > screenWidth * .8 then
-			buttonScale = (screenWidth * .8) / b.button:getUnscaledWidth()
+		if b:getUnscaledWidth() > screenWidth * .8 then
+			buttonScale = (screenWidth * .8) / b:getUnscaledWidth()
 		end
-		b.button:setScale(buttonScale, buttonScale)
+		b:setScale(buttonScale)
 		
 		if seenLog:isChoiceSelected(choiceId, i) then
-			b.text:setDefaultStyle(self.selectedChoiceStyle)
+			b:setDefaultStyle(self.selectedChoiceStyle)
 		else
-			b.text:setDefaultStyle(self.choiceStyle)
+			b:setDefaultStyle(self.choiceStyle)
 		end
 		table.insert(self.buttons, b)
+		
+		local c = toLayoutComponent(b)
+		viewport:add(c)
+		table.insert(self.components, c)
 	end
-	
+	setImageLayer(nil)
+		
 	return self
 end
 
@@ -576,36 +641,25 @@ function ChoiceScreen:destroy()
 end
 
 function ChoiceScreen:layout()
-	local lineSpacing = screenHeight / 32
-	
-	local td = textState:getTextDrawable()
-	local startY = self.offsetY
-	local height = 0
 	for pass=1,3 do
-		if pass == 2 then
-			lineSpacing = lineSpacing / 2
-		elseif pass == 3 then
-			lineSpacing = lineSpacing / 2
-			startY = lineSpacing * 4
+		self.viewport:validateLayout()
+		for i,b in ipairs(self.buttons) do
+			transferBounds(self.components[i], b)
 		end
 	
-		height = 0	
-		for _,b in ipairs(self.buttons) do
-			height = height + b:getHeight() + lineSpacing
-		end
-		height = height - lineSpacing --Remove redundant spacing after last button
-		
-		if startY + height <= self.maxHeight then
+		if not self.viewport:canScrollY() then
 			break
 		end
+		
+		if pass == 1 then
+			self.viewport:getLayout():setPadding(self.ipad / 4)
+		elseif pass == 2 then
+			if not self.viewport:hasScrollBarY() then
+				setViewportScrollBar(self.viewport)
+				self.viewport:setFadingEdges(0)
+			end
+		end
 	end
-	
-	local y = startY + math.max(0, (self.maxHeight-height) / 2)
-	for _,b in ipairs(self.buttons) do
-		b:setAlpha(1)		
-		b:setPos((screenWidth-b:getWidth())/2, y)
-		y = y + b:getHeight() + lineSpacing
-	end	
 end
 
 function ChoiceScreen:fadeButtons(visible, speed)
@@ -636,15 +690,23 @@ function ChoiceScreen:run()
 		
 		if input:consumeUp() then
 			focusIndex = math.max(1, focusIndex - 1)
+			local c = self.components[focusIndex]
+			if c ~= nil then
+				self.viewport:scrollToVisible(c)
+			end
 		end
 		if input:consumeDown() then
 			focusIndex = math.min(#self.buttons, focusIndex + 1)
+			local c = self.components[focusIndex]
+			if c ~= nil then
+				self.viewport:scrollToVisible(c)
+			end
 		end
 
 		local newb = self.buttons[focusIndex]
 		if oldb ~= newb then
-			if oldb ~= nil then oldb.button:setKeyboardFocus(false) end
-			if newb ~= nil then newb.button:setKeyboardFocus(true) end
+			if oldb ~= nil then oldb:setKeyboardFocus(false) end
+			if newb ~= nil then newb:setKeyboardFocus(true) end
 		end
 
 		if input:consumeCancel() then
@@ -655,9 +717,9 @@ function ChoiceScreen:run()
 
 		for i,b in ipairs(self.buttons) do
 			if focusIndex == 0 or i == focusIndex then
-				b.button:setColor(1, 1, 1)
+				b:setColor(1, 1, 1)
 			else
-				b.button:setColor(.5, .5, .5)
+				b:setColor(.5, .5, .5)
 			end
 			
 			if b:consumePress() then
@@ -665,6 +727,8 @@ function ChoiceScreen:run()
 				selected = i - 1
 				break
 			end
+			
+			transferBounds(self.components[i], b)
 		end
 
 		yield()
@@ -677,6 +741,8 @@ function ChoiceScreen:cancel()
 	self.cancelled = true
 	destroyValues(self.buttons)
 	self.buttons = {}
+	self.components = {}
+	destroyValues{self.viewport}
 end
 
 function ChoiceScreen:getOptions()

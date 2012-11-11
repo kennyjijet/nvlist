@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuajavaLib;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IImageFxLib;
 import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 
 import org.luaj.vm2.Varargs;
@@ -54,7 +54,7 @@ public class BlurGS extends BaseShader implements IGeometryShader {
 	
 	//Functions
 	@Override
-	public void draw(IRenderer r, IImageDrawable image, ITexture tex,
+	public void draw(IDrawBuffer d, IImageDrawable image, ITexture tex,
 			double alignX, double alignY, IPixelShader ps)
 	{
 		setBaseTexture(tex);
@@ -67,7 +67,7 @@ public class BlurGS extends BaseShader implements IGeometryShader {
 				image.setTexture(tex, 5);
 			}
 			
-			blendShader.draw(r, image, tex, image.getImageAlignX(), image.getImageAlignY(), ps);
+			blendShader.draw(d, image, tex, image.getAlignX(), image.getAlignY(), ps);
 		} finally {		
 			image.setTexture(oldtex, 5);
 		}

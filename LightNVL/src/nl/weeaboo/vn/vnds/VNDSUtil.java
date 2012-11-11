@@ -34,7 +34,7 @@ public class VNDSUtil {
 
 	public static void superSkip(LuaNovel novel) {
 		try {
-			novel.exec("vnds.setSkip(true)");
+			novel.eval("vnds.setSkip(true)");
 		} catch (LuaException e) {
 			novel.getNotifier().w("superskip failed: " + e, e);
 		}

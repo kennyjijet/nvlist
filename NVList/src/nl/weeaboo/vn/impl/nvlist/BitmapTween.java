@@ -22,7 +22,7 @@ import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseBitmapTween;
-import nl.weeaboo.vn.impl.base.BaseRenderer;
+import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
 import nl.weeaboo.vn.impl.base.CustomRenderCommand;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
@@ -131,8 +131,8 @@ public class BitmapTween extends BaseBitmapTween {
 	}
 
 	@Override
-	protected void draw(BaseRenderer rr, IImageDrawable img, TriangleGrid grid) {
-		rr.draw(new RenderCommand(img, texs, fadeTex, remapTex, shader, grid));
+	protected void draw(BaseDrawBuffer d, IImageDrawable img, TriangleGrid grid) {
+		d.draw(new RenderCommand(img, texs, fadeTex, remapTex, shader, grid));
 	}
 	
 	//Getters

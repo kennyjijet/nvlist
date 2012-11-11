@@ -1,9 +1,9 @@
 package nl.weeaboo.vn.impl.base;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.IShader;
 
 @LuaSerializable
@@ -47,19 +47,18 @@ public class ShaderImageTween extends BaseImageTween {
 	}
 	
 	@Override
-	public void draw(IRenderer r) {
-		super.draw(r);
+	public void draw(IDrawBuffer d) {
+		super.draw(d);
 		
-		BaseRenderer br = (BaseRenderer)r;
 		if (getStartTexture() != null) {
 			IGeometryShader gs1 = (this.gs1 != null ? this.gs1 : drawable.getGeometryShader());
 			IPixelShader ps1 = (this.ps1 != null ? this.ps1 : drawable.getPixelShader());
-			br.drawWithTexture(drawable, getStartTexture(), getStartAlignX(), getStartAlignY(), gs1, ps1);
+			d.drawWithTexture(drawable, getStartTexture(), getStartAlignX(), getStartAlignY(), gs1, ps1);
 		}
 		if (getEndTexture() != null) {
 			IGeometryShader gs2 = (this.gs2 != null ? this.gs2 : drawable.getGeometryShader());
 			IPixelShader ps2 = (this.ps2 != null ? this.ps2 : drawable.getPixelShader());
-			br.drawWithTexture(drawable, getEndTexture(), getEndAlignX(), getEndAlignY(), gs2, ps2);
+			d.drawWithTexture(drawable, getEndTexture(), getEndAlignX(), getEndAlignY(), gs2, ps2);
 		}
 		
 		//System.out.println(getStartImage() + " " + getEndImage() + " " + getNormalizedTime());

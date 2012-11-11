@@ -3,12 +3,15 @@ package nl.weeaboo.nvlist;
 import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
 import static nl.weeaboo.game.BaseGameConfig.TITLE;
 import static nl.weeaboo.game.BaseGameConfig.WIDTH;
-import static nl.weeaboo.vn.NovelPrefs.*;
+import static nl.weeaboo.vn.NovelPrefs.ENABLE_PROOFREADER_TOOLS;
+import static nl.weeaboo.vn.NovelPrefs.ENGINE_MIN_VERSION;
+import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
 import static nl.weeaboo.vn.vnds.VNDSUtil.VNDS;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -56,9 +59,11 @@ import nl.weeaboo.vn.IPersistentStorage;
 import nl.weeaboo.vn.ISaveHandler;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.IStorage;
+import nl.weeaboo.vn.ISystemLib;
 import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.NovelPrefs;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseLoggingAnalytics;
 import nl.weeaboo.vn.impl.base.BaseNovelConfig;
 import nl.weeaboo.vn.impl.base.NullAnalytics;
@@ -66,6 +71,8 @@ import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.Timer;
 import nl.weeaboo.vn.impl.lua.EnvLuaSerializer;
 import nl.weeaboo.vn.impl.nvlist.Analytics;
+import nl.weeaboo.vn.impl.nvlist.DrawBuffer;
+import nl.weeaboo.vn.impl.nvlist.GUIFactory;
 import nl.weeaboo.vn.impl.nvlist.Globals;
 import nl.weeaboo.vn.impl.nvlist.ImageFactory;
 import nl.weeaboo.vn.impl.nvlist.ImageFxLib;
@@ -78,10 +85,10 @@ import nl.weeaboo.vn.impl.nvlist.Renderer;
 import nl.weeaboo.vn.impl.nvlist.SaveHandler;
 import nl.weeaboo.vn.impl.nvlist.ScriptLib;
 import nl.weeaboo.vn.impl.nvlist.SeenLog;
+import nl.weeaboo.vn.impl.nvlist.SharedGlobals;
 import nl.weeaboo.vn.impl.nvlist.SoundFactory;
 import nl.weeaboo.vn.impl.nvlist.SoundState;
 import nl.weeaboo.vn.impl.nvlist.SystemLib;
-import nl.weeaboo.vn.impl.nvlist.SharedGlobals;
 import nl.weeaboo.vn.impl.nvlist.TextState;
 import nl.weeaboo.vn.impl.nvlist.TweenLib;
 import nl.weeaboo.vn.impl.nvlist.VideoFactory;
@@ -89,10 +96,11 @@ import nl.weeaboo.vn.impl.nvlist.VideoState;
 
 public class Game extends BaseGame {
 
-	public static final int VERSION_MAJOR = 2;
-	public static final int VERSION_MINOR = 10;
+	public static final int VERSION_MAJOR = 3;
+	public static final int VERSION_MINOR = 0;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
-	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR;
+	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
+	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support
 	
 	private final ParagraphRenderer pr;
 	
@@ -148,9 +156,13 @@ public class Game extends BaseGame {
 		IConfig config = getConfig();		
 		if (StringUtil.compareVersion(VERSION_STRING, config.get(ENGINE_MIN_VERSION)) < 0) {
 			//Our version number is too old to run the game
-			AwtUtil.showError(String.format( "NVList version number (%s) " +
+			AwtUtil.showError(String.format("NVList version number (%s) " +
 				"is below the minimum acceptable version for this game (%s)",
 				VERSION_STRING, config.get(ENGINE_MIN_VERSION)));			
+		} else if (StringUtil.compareVersion(config.get(ENGINE_TARGET_VERSION), MIN_COMPAT_VERSION) < 0) {
+			//The game version is too old
+			AwtUtil.showError(String.format("vn.engineTargetVersion is too old (%s), minimum is (%s)",
+				config.get(ENGINE_TARGET_VERSION), MIN_COMPAT_VERSION));			
 		}
 		
 		//We're using the volume settings from NovelPrefs instead...
@@ -227,10 +239,11 @@ public class Game extends BaseGame {
 				
 		SystemLib syslib = new SystemLib(this, notifier);
 		ImageFactory imgfac = new ImageFactory(texCache, shCache, trStore,
-				an, seenLog, notifier, syslib.isTouchScreen(), nvlSize.w, nvlSize.h);
+				an, seenLog, notifier, nvlSize.w, nvlSize.h);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
-		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);		
+		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);
+		GUIFactory guifac = new GUIFactory(imgfac, notifier);
 		ScriptLib scrlib = new ScriptLib(fm, notifier);
 		TweenLib tweenLib = new TweenLib(imgfac, notifier);
 		
@@ -240,14 +253,14 @@ public class Game extends BaseGame {
 			vidfac.setCheckFileExt(true);
 		}
 		
-		ImageState is = new ImageState(nvlSize.w, nvlSize.h);		
+		ImageState is = new ImageState(imgfac, nvlSize.w, nvlSize.h);		
 		SoundState ss = new SoundState(sndfac);
 		VideoState vs = new VideoState();
 		TextState ts = new TextState();
 		IInput in = new InputAdapter(getInput());	
 		IStorage globals = new Globals();
 		
-		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, ts,
+		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
 				notifier, in, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
 				seenLog, an, timer,
 				fm, getKeyConfig(), isVNDS());
@@ -392,15 +405,23 @@ public class Game extends BaseGame {
 			Movie movie = (Movie)vs.getBlocking();
 			movie.draw(glm, getWidth(), getHeight());
 		} else {
+			ILayer root = is.getRootLayer();
+			
 			if (renderer == null) {
-				renderer = new Renderer(glm, pr, getWidth(), getHeight(),
+				ISystemLib syslib = novel.getSystemLib();
+				RenderEnv env = new RenderEnv(getWidth(), getHeight(),
 						getRealX(), getRealY(), getRealW(), getRealH(),
-						getScreenW(), getScreenH(), renderStats);
+						getScreenW(), getScreenH(), syslib.isTouchScreen());
+			
+				is.setRenderEnv(env);
+				
+				renderer = new Renderer(glm, pr, env, renderStats);				
 			}
 			
-			is.draw(renderer);
-	        renderer.render(null);
-			renderer.reset();
+			DrawBuffer buffer = renderer.getDrawBuffer();
+			root.draw(buffer);
+			renderer.render(root, buffer);
+			buffer.reset();
 			
 			if (renderStats != null) {
 				renderStats.onFrameRenderDone();
@@ -454,17 +475,25 @@ public class Game extends BaseGame {
 		
 		int visibleDrawables = 0;
 		IImageState imageState = novel.getImageState();
-		Map<String, ILayer> layers = imageState.getLayers();
+		
 		IDrawable[] drawablesTemp = new IDrawable[16];
-		for (ILayer layer : layers.values()) {
+		
+		Queue<ILayer> workQ = new LinkedList<ILayer>();
+		workQ.add(imageState.getRootLayer());
+		while (!workQ.isEmpty()) {
+			ILayer layer = workQ.remove();
 			if (layer.isDestroyed() || !layer.isVisible()) continue;
-			
-			drawablesTemp = layer.getDrawables(drawablesTemp);
+
+			drawablesTemp = layer.getContents(drawablesTemp);
 			for (IDrawable d : drawablesTemp) {
-				if (d == null || d.isDestroyed()) continue;
+				if (d == null) break;
 				
-				if (d.getAlpha() > 0) {
-					visibleDrawables++;
+				if (!d.isDestroyed() && d.isVisible(.001)) {
+					if (d instanceof ILayer) {
+						workQ.add((ILayer)d);						
+					} else {
+						visibleDrawables++;
+					}
 				}
 			}
 		}		

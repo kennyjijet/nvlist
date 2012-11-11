@@ -46,9 +46,8 @@ function removeAll(tbl, val)
 end
 
 ---Calls the destroy method on all values of table <code>tbl</code>.
-function destroyValues(...)
-	local tbl = getTableOrVarArg(...)
-	for _,v in pairs(tbl) do
+function destroyValues(tbl)
+	for _,v in pairs(tbl) do	
 		if v ~= nil then
 			v:destroy()
 		end

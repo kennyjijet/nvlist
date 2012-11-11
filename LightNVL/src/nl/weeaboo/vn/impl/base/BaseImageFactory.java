@@ -23,8 +23,7 @@ public abstract class BaseImageFactory extends BaseMediaFactory implements IImag
 			((BaseSeenLog)sl).setImageFactory(this);
 		}
 		
-		this.seenLog = sl;
-		
+		this.seenLog = sl;		
 		this.width = w;
 		this.height = h;
 	}

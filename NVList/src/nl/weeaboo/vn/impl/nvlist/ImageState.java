@@ -8,8 +8,8 @@ public class ImageState extends BaseImageState {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 
-	public ImageState(int w, int h) {
-		super(w, h);
+	public ImageState(ImageFactory fac, int w, int h) {
+		super(fac, w, h);
 	}
 
 	//Functions

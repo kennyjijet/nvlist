@@ -3,11 +3,13 @@ package nl.weeaboo.vn.impl.base;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IPixelShader;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.math.Matrix;
 
 public abstract class BaseDrawable implements IDrawable {
@@ -16,18 +18,21 @@ public abstract class BaseDrawable implements IDrawable {
 	
 	private boolean changed;	
 	private boolean destroyed;
+	private boolean visible;
+	private boolean clipEnabled;
+	private double x, y;
 	private short z;
 	private double rgba[] = {1.0, 1.0, 1.0, 1.0};
-	private transient int colorARGBInt;
 	private BlendMode blendMode;
-	private boolean clipEnabled;
 	private IPixelShader pixelShader;
+	private /*transient*/ RenderEnv renderEnv;
 
-	private double x, y;
+	private transient int colorARGBInt;
 	private transient Matrix transform;
 	
 	public BaseDrawable() {
 		blendMode = BlendMode.DEFAULT;
+		visible = true;
 		clipEnabled = true;
 		
 		initTransients();
@@ -74,69 +79,82 @@ public abstract class BaseDrawable implements IDrawable {
 		return result;
 	}
 	
+	protected void onRenderEnvChanged() {		
+	}
+	
 	//Getters
 	@Override
-	public boolean isDestroyed() {
+	public final boolean isDestroyed() {
 		return destroyed;
 	}
 
 	@Override
-	public double getX() {
+	public final boolean isVisible() {
+		return isVisible(0);
+	}
+	
+	@Override
+	public boolean isVisible(double minAlpha) {
+		return visible && getAlpha() >= minAlpha;
+	}
+	
+	@Override
+	public final double getX() {
 		return x;
 	}
 
 	@Override
-	public double getY() {
+	public final double getY() {
 		return y;
 	}
 
 	@Override
-	public short getZ() {
+	public final short getZ() {
 		return z;
 	}
-
+	
 	@Override
-	public int getColorRGB() {
+	public final int getColorRGB() {
 		return getColorARGB() & 0xFFFFFF;
 	}
 	
 	@Override
-	public int getColorARGB() {
+	public final int getColorARGB() {
 		return colorARGBInt;
 	}
 
 	@Override
-	public double getRed() {
+	public final double getRed() {
 		return rgba[0];
 	}
 
 	@Override
-	public double getGreen() {
+	public final double getGreen() {
 		return rgba[1];
 	}
 
 	@Override
-	public double getBlue() {
+	public final double getBlue() {
 		return rgba[2];
 	}
 	
 	@Override
-	public double getAlpha() {
+	public final double getAlpha() {
 		return rgba[3];
 	}
 	
 	@Override
-	public BlendMode getBlendMode() {
+	public final BlendMode getBlendMode() {
 		return blendMode;
 	}
 	
 	@Override
-	public boolean isClipEnabled() {
+	public final boolean isClipEnabled() {
 		return clipEnabled;
 	}
 	
 	@Override
-	public IPixelShader getPixelShader() {
+	public final IPixelShader getPixelShader() {
 		return pixelShader;
 	}
 
@@ -151,28 +169,33 @@ public abstract class BaseDrawable implements IDrawable {
 		return transform;
 	}
 	
+	@Override
+	public Rect2D getBounds() {
+		double w = getWidth();
+		double h = getHeight();
+		return new Rect2D(x, y, Double.isNaN(w) ? 0 : w, Double.isNaN(h) ? 0 : h);
+	}
+	
+	@Override
+	public boolean contains(double px, double py) {
+		return getBounds().contains(px, py);
+	}
+	
+	protected RenderEnv getRenderEnv() {
+		return renderEnv;
+	}
+	
 	//Setters
 	@Override
 	public final void setX(double x) {
-		setPos(x, getY());
+		setPos(x, y);
 	}
 	
 	@Override
 	public final void setY(double y) {
-		setPos(getX(), y);
+		setPos(x, y);
 	}
 	
-	@Override
-	public void setPos(double x, double y) {
-		if (this.x != x || this.y != y) {
-			this.x = x;
-			this.y = y;
-			
-			invalidateTransform();
-			markChanged();
-		}
-	}
-
 	@Override
 	public void setZ(short z) {
 		if (this.z != z) {
@@ -181,9 +204,30 @@ public abstract class BaseDrawable implements IDrawable {
 			markChanged();
 		}
 	}
+	
+	@Override
+	public final void setWidth(double w) {
+		setSize(w, getHeight());
+	}
+	
+	@Override
+	public final void setHeight(double h) {
+		setSize(getWidth(), h);
+	}
 
 	@Override
-	public void setColor(double r, double g, double b) {
+	public void setPos(double x, double y) {
+		if (this.x != x || this.y != y) {
+			this.x = x;
+			this.y = y;
+			
+			markChanged();
+			invalidateTransform();
+		}
+	}
+	
+	@Override
+	public final void setColor(double r, double g, double b) {
 		setColor(r, g, b, rgba[3]);
 	}
 	
@@ -201,7 +245,7 @@ public abstract class BaseDrawable implements IDrawable {
 	}
 
 	@Override
-	public void setColorRGB(int rgb) {
+	public final void setColorRGB(int rgb) {
 		int ri = (rgb>>16)&0xFF;
 		int gi = (rgb>> 8)&0xFF;
 		int bi = (rgb    )&0xFF;
@@ -212,7 +256,7 @@ public abstract class BaseDrawable implements IDrawable {
 	}
 	
 	@Override
-	public void setColorARGB(int argb) {
+	public final void setColorARGB(int argb) {
 		int ai = (argb>>24)&0xFF;
 		int ri = (argb>>16)&0xFF;
 		int gi = (argb>> 8)&0xFF;
@@ -225,8 +269,16 @@ public abstract class BaseDrawable implements IDrawable {
 	}
 	
 	@Override
-	public void setAlpha(double a) {
+	public final void setAlpha(double a) {
 		setColor(rgba[0], rgba[1], rgba[2], a);
+	}
+	
+	@Override
+	public void setVisible(boolean v) {
+		if (visible != v) {
+			visible = v;
+			markChanged();
+		}
 	}
 
 	@Override
@@ -255,6 +307,14 @@ public abstract class BaseDrawable implements IDrawable {
 			pixelShader = ps;
 			
 			markChanged();
+		}
+	}
+	
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		if (renderEnv != env) {
+			renderEnv = env;
+			onRenderEnvChanged();
 		}
 	}
 	

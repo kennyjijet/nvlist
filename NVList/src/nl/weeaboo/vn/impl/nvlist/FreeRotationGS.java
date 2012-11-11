@@ -2,14 +2,14 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.impl.base.BaseRenderer;
+import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
 import nl.weeaboo.vn.impl.base.BaseShader;
-import nl.weeaboo.vn.impl.base.LayoutUtil;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Vec2;
 
@@ -26,10 +26,10 @@ public class FreeRotationGS extends BaseShader implements IGeometryShader {
 
 	//Functions	
 	@Override
-	public void draw(IRenderer r, IImageDrawable image, ITexture tex,
+	public void draw(IDrawBuffer d, IImageDrawable image, ITexture tex,
 			double alignX, double alignY, IPixelShader ps)
 	{
-		BaseRenderer rr = (BaseRenderer)r;
+		BaseDrawBuffer dd = BaseDrawBuffer.cast(d);
 		
 		short z = image.getZ();
 		boolean clip = image.isClipEnabled();
@@ -40,7 +40,7 @@ public class FreeRotationGS extends BaseShader implements IGeometryShader {
 		double h = image.getUnscaledHeight();
 		
 		Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
-		rr.draw(new RotatedQuadCommand(z, clip, blend, argb, tex,
+		dd.draw(new RotatedQuadCommand(z, clip, blend, argb, tex,
 					trans, offset.x, offset.y, w, h, ps, rotX, rotY, rotZ));
 	}
 	

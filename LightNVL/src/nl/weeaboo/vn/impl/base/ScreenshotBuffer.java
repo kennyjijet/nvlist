@@ -5,11 +5,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.IRenderer;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IScreenshot;
+import nl.weeaboo.vn.IScreenshotBuffer;
 
 @LuaSerializable
-public class ScreenshotBuffer implements Serializable {
+public class ScreenshotBuffer implements IScreenshotBuffer {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
@@ -20,10 +21,12 @@ public class ScreenshotBuffer implements Serializable {
 	}
 	
 	//Functions
+	@Override
 	public void add(IScreenshot ss, boolean clip) {
 		screenshots.add(new ScreenshotEntry(ss, clip));
 	}
 	
+	@Override
 	public void clear() {
 		for (ScreenshotEntry entry : screenshots) {
 			entry.screenshot.cancel();
@@ -31,14 +34,16 @@ public class ScreenshotBuffer implements Serializable {
 		screenshots.clear();
 	}
 	
-	public void flush(IRenderer r) {
+	@Override
+	public void flush(IDrawBuffer d) {
 		for (ScreenshotEntry entry : screenshots) {
-			r.screenshot(entry.screenshot, entry.clip);
+			d.screenshot(entry.screenshot, entry.clip);
 		}
 		screenshots.clear();
 	}
 	
 	//Getters
+	@Override
 	public boolean isEmpty() {
 		return screenshots.isEmpty();
 	}

@@ -25,8 +25,10 @@ import nl.weeaboo.vn.ISoundState;
 import nl.weeaboo.vn.IStorage;
 import nl.weeaboo.vn.ITextState;
 import nl.weeaboo.vn.ITimer;
+import nl.weeaboo.vn.ITweenLib;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.SoundType;
+import nl.weeaboo.vn.impl.lua.BaseScriptLib;
 
 public abstract class BaseNovel implements INovel {
 
@@ -35,6 +37,7 @@ public abstract class BaseNovel implements INovel {
 	private transient final BaseImageFxLib imageFxLib;
 	private transient final BaseSoundFactory soundFactory;
 	private transient final BaseVideoFactory videoFactory;
+	private transient final BaseGUIFactory guiFactory;
 	private transient final BaseSystemLib systemLib;
 	private transient final BaseNotifier notifier;
 	private transient final IInput input;
@@ -57,10 +60,10 @@ public abstract class BaseNovel implements INovel {
 	private IStorage globals;
 	
 	protected BaseNovel(INovelConfig gc, BaseImageFactory imgfac, IImageState is, BaseImageFxLib imgfxlib,
-			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs, ITextState ts,
-			BaseNotifier n, IInput in, BaseSystemLib syslib, ISaveHandler sh, BaseScriptLib scrlib,
-			ITweenLib tl, IPersistentStorage sglobs, IStorage glob, ISeenLog sl, IAnalytics an,
-			ITimer tmr)	
+			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs, BaseGUIFactory gf,
+			ITextState ts, BaseNotifier n, IInput in, BaseSystemLib syslib, ISaveHandler sh,
+			BaseScriptLib scrlib, ITweenLib tl, IPersistentStorage sglobs, IStorage glob, ISeenLog sl,
+			IAnalytics an, ITimer tmr)
 	{
 		novelConfig = gc;
 		imageFactory = imgfac;
@@ -70,6 +73,7 @@ public abstract class BaseNovel implements INovel {
 		soundState = ss;
 		videoFactory = vf;
 		videoState = vs;
+		guiFactory = gf;
 		textState = ts;
 		notifier = n;
 		input = in;
@@ -221,12 +225,17 @@ public abstract class BaseNovel implements INovel {
 	public BaseVideoFactory getVideoFactory() {
 		return videoFactory;
 	}
-	
+		
 	@Override
 	public IVideoState getVideoState() {
 		return videoState;
 	}
 
+	@Override
+	public BaseGUIFactory getGUIFactory() {
+		return guiFactory;
+	}
+	
 	@Override
 	public ITextState getTextState() {
 		return textState;

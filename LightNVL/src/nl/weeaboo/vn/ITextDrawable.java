@@ -8,7 +8,7 @@ public interface ITextDrawable extends IDrawable {
 	// === Functions ===========================================================
 	
 	// === Getters =============================================================
-	
+		
 	public StyledText getText();
 	
 	/**
@@ -75,7 +75,10 @@ public interface ITextDrawable extends IDrawable {
 	 *         and <code>end</code> (exclusive).
 	 */
 	public double getTextHeight(int start, int end);
-		
+
+	/**
+	 * @see #setPadding(double)
+	 */
 	public double getPadding();
 	
 	/**
@@ -95,20 +98,19 @@ public interface ITextDrawable extends IDrawable {
 	public double getBackgroundBlue();
 	public double getBackgroundAlpha();
 	
+	/**
+	 * @see #setDefaultStyle(TextStyle) 
+	 */
 	public TextStyle getDefaultStyle();
 	
 	/**
-	 * @return The text anchor
-	 * @see #setAnchor(int)
+	 * @return The drawable used as this text drawable's continue indicator.
 	 */
-	public int getAnchor();
-	
 	public IDrawable getCursor();
 	
 	// === Setters =============================================================
 	
-	public void setText(String text);
-	
+	public void setText(String text); //Calls setText(StyledText)	
 	public void setText(StyledText text);
 	
 	/**
@@ -149,6 +151,9 @@ public interface ITextDrawable extends IDrawable {
 	public void setBackgroundColorARGB(int argb);
 	public void setBackgroundAlpha(double a);
 	
+	/**
+	 * Sets the default text style to use as a base style for displaying text.
+	 */
 	public void setDefaultStyle(TextStyle ts);
 	
 	/**
@@ -157,6 +162,12 @@ public interface ITextDrawable extends IDrawable {
 	 */
 	public void setAnchor(int a);
 	
+	/**
+	 * Sets a drawable as this text drawable's continue indicator.
+	 * @param d The drawable to use as the continue indicator. Its alpha will be manipulated by the text drawable.
+	 * @param autoConfig Automatically configure size and possibly some other properties.
+	 * @param autoPos Automatically position the cursor at the end of the visible text.
+	 */
 	public void setCursor(IDrawable d, boolean autoConfig, boolean autoPos);
 	
 }

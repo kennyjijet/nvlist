@@ -124,6 +124,9 @@ end
 function rmbg(...)
 	local bg = getBackground()
 	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
 	return rm(bg, ...)
 end
 
@@ -131,6 +134,9 @@ end
 function rmbgf(...)
 	local bg = getBackground()
 	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
 	return rmf(bg, ...)
 end
 
@@ -282,16 +288,27 @@ function createCamera(layer)
 end
 
 ---Creates a new layer
--- @param id A string uniquely identifying the layer
+-- @param layer The parent layer for the newly created layer. 
 -- @return The newly created layer, or <code>null</code> if a layer with the
 -- given id already exists.
-function createLayer(id)
-	return imageState:createLayer(id)
+function createLayer(layer)
+	layer = layer or getImageLayer()
+	return Image.createLayer(layer)
+end
+
+---Returns the root layer
+function getRootLayer()
+	return imageState:getRootLayer()
 end
 
 ---Returns the current image layer
 function getImageLayer()
-	return getImageStateAttribute("layer") or imageState:getLayer()
+	local layer = getImageStateAttribute("layer")
+	if layer == nil or layer:isDestroyed() then
+		layer = imageState:getDefaultLayer()
+		setImageStateAttribute("layer", layer)
+	end
+	return layer
 end
 
 ---Changes the current image layer
@@ -301,7 +318,7 @@ end
 
 ---Returns the <code>overlay</code> layer which is usually the topmost layer.
 function getOverlayLayer()
-	return imageState:getLayer("overlay")
+	return imageState:getOverlayLayer()
 end
 
 ---Saves the current images onto a stack to be restored later with
@@ -458,7 +475,10 @@ end
 -- @param dy The amount to move in the y-direction
 -- @param frames The number of frames the transition should last (gets
 --        multiplied with effectSpeed internally)
-function translateRelative(i, dx, dy, frames)
+-- @param interpolator A function or interpolator object mapping an input
+--        in the range <code>(0, 1)</code> to an output in the range
+--        <code>(0, 1)</code>.
+function translateRelative(i, dx, dy, frames, interpolator)
 	if i == nil then
 		i = {}
 	elseif type(i) ~= "table" then
@@ -466,11 +486,10 @@ function translateRelative(i, dx, dy, frames)
 	end
 	dx = dx or 0
 	dy = dy or 0
-	frames = frames or 60
 
 	local threads = {}
 	for _,d in pairs(i) do
-		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, frames))
+		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, frames, interpolator))
 	end		
 	join(threads)
 end

@@ -1,10 +1,11 @@
 package nl.weeaboo.vn.impl.base;
 
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IImageTween;
-import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.Vec2;
 
 public class BaseImageTween implements IImageTween {
@@ -70,7 +71,7 @@ public class BaseImageTween implements IImageTween {
 	
 	protected void doFinish() {
 		drawable.setTexture(endTexture);
-		drawable.setImageAlign(endAlignX, endAlignY);
+		drawable.setAlign(endAlignX, endAlignY);
 	}
 	
 	@Override
@@ -96,9 +97,8 @@ public class BaseImageTween implements IImageTween {
 	}
 	
 	@Override
-	public void draw(IRenderer r) {
+	public void draw(IDrawBuffer d) {
 		if (drawable == null) throw new IllegalStateException("Image tween not initialized yet, must call setStartImage() and setEndImage() before use.");
-
 	}
 	
 	protected Rect2D calculateBounds() {
@@ -189,8 +189,8 @@ public class BaseImageTween implements IImageTween {
 	public void setStartImage(IImageDrawable id) {
 		drawable = id;
 		startTexture = id.getTexture();
-		startAlignX = id.getImageAlignX();
-		startAlignY = id.getImageAlignY();
+		startAlignX = id.getAlignX();
+		startAlignY = id.getAlignY();
 		
 		if (endAnchor > 0 && endTexture != null) { //Determine alignment from anchor			
 			Rect2D base = LayoutUtil.getBounds(startTexture, startAlignX, startAlignY);

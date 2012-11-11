@@ -2,17 +2,18 @@ package nl.weeaboo.vn;
 
 import java.util.Collection;
 
+
 public interface IImageFactory {
 
 	// === Functions ===========================================================
-
+	
 	/**
-	 * Creates a new image drawable
+	 * Creates a new image drawable.
 	 */
 	public IImageDrawable createImageDrawable();
 	
 	/**
-	 * Creates a text drawable
+	 * Creates a text drawable.
 	 */
 	public ITextDrawable createTextDrawable();
 	

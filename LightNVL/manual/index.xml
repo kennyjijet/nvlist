@@ -5,37 +5,38 @@
   
   <chapter-index>
     <chapter-group title="Introduction">
-      <chapter url="ch01-getting-started.xml">Getting Started</chapter>
-      <chapter url="ch02-features.xml">Features</chapter>
+      <chapter url="ch01-getting-started.xml">Getting started</chapter>
+      <chapter url="ch02-features.xml">NVList features</chapter>
     </chapter-group>
-    <chapter-group title="Media">
-      <chapter url="ch10-image.xml">Images</chapter>
-      <chapter url="ch11-audio.xml">Audio</chapter>
-      <chapter url="ch12-video.xml">Video</chapter>
-    </chapter-group>
-    <chapter-group title="Configuration">
-      <chapter url="ch20-build-jar.xml">Build.jar</chapter>
-      <chapter url="ch21-preferences.xml">Preferences</chapter>
-      <chapter url="ch22-folder-layout.xml">Folder Layout</chapter>
+    <chapter-group title="Basics">
+      <chapter url="ch10-build.xml">Build system and settings</chapter>
+      <chapter url="ch11-resources.xml">Adding images and other resources</chapter>
+      <chapter url="ch12-folder-layout.xml">Project folder layout</chapter>      
     </chapter-group>
     <chapter-group title="Scripting">
-      <chapter url="ch30-script-basics.xml">Scripting Basics</chapter>
-      <chapter url="ch31-script-text.xml">Adding Text</chapter>
-      <chapter url="ch32-script-image.xml">Showing Images</chapter>
-      <chapter url="ch33-script-other-common-tasks.xml">Other Common Tasks</chapter>
-      <chapter url="ch34-script-env.xml">Lua Environment</chapter>
-      <chapter url="../script-reference/index.html">Script Function Reference</chapter>
-      <chapter url="../engine-internals/index.html">Engine Internals</chapter>
+      <chapter url="ch20-script-basics.xml">Scripting basics</chapter>
+      <chapter url="ch21-script-text.xml">Adding text</chapter>
+      <chapter url="ch22-script-image.xml">Showing images</chapter>
+      <chapter url="ch23-script-other.xml">Other common tasks</chapter>
+    </chapter-group>
+    <chapter-group title="Advanced Scripting">
+      <chapter url="ch30-drawables.xml">Drawables and layers</chapter>
+      <chapter url="ch31-gui.xml">User interface</chapter>
+      <chapter url="ch32-animation.xml">Animation</chapter>
+    </chapter-group>
+    <chapter-group title="References">
+      <chapter url="ch40-script-env.xml">Lua environment</chapter>
+      <chapter url="../script-reference/index.html">Script functions</chapter>
+      <chapter url="../engine-internals/index.html">Engine internals</chapter>
     </chapter-group>
     <chapter-group title="Distribution">
-      <chapter url="ch40-resource-optimizer.xml">Resource Optimizer</chapter>
-      <chapter url="ch41-pre-distro.xml">Pre-Distribution Checklist</chapter>
-      <chapter url="ch42-create-distro.xml">Creating a Distribution</chapter>
-      <chapter url="ch43-post-release.xml">Post Release</chapter>
-      <chapter url="ch44-android.xml">Releasing on Android</chapter>
-    </chapter-group>
-    <chapter-group title="Other">
-      <chapter url="ch50-tips.xml">Tips</chapter>
+      <chapter url="ch50-create-distro.xml">Creating a distribution</chapter>
+      <chapter url="ch51-resource-optimizer.xml">Resource optimizer</chapter>
+      <chapter url="ch52-android.xml">Releasing for Android</chapter>
+    </chapter-group>    
+    <chapter-group title="Developer tools">
+      <chapter url="ch60-hotkeys.xml">Hotkeys</chapter>
+      <chapter url="ch61-debug-window.xml">Debug window</chapter>
     </chapter-group>
   </chapter-index>
   

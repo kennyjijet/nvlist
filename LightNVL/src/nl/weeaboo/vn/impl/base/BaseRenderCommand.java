@@ -5,6 +5,7 @@ import nl.weeaboo.vn.RenderCommand;
 
 public class BaseRenderCommand extends RenderCommand {
 
+	static final byte ID_LAYER_RENDER_COMMAND  = 9;
 	static final byte ID_QUAD_RENDER_COMMAND   = 10;
 	static final byte ID_BLEND_QUAD_COMMAND    = 11;
 	static final byte ID_FADE_QUAD_COMMAND     = 12;

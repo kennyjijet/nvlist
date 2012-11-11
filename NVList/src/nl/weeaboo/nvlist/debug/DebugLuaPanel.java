@@ -59,6 +59,7 @@ public class DebugLuaPanel extends JPanel {
 		buttonPanel.add(printStackTraceButton);
 		
 		logPane = new LogPane();
+		logPane.append(LogPane.STYLE_VERBOSE, "Type some Lua code and press enter to run it.");
 		JScrollPane logScrollPane = new JScrollPane(logPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
@@ -88,12 +89,11 @@ public class DebugLuaPanel extends JPanel {
 				if (code.trim().length() == 0) {
 					return;
 				}
-				code = String.format("return (%s)", code);
 				commandField.setText("");
 				
 				synchronized (lock) {
 					try {
-						Varargs result = novel.exec(code);
+						Varargs result = novel.eval(code);
 						if (result != null && result.narg() > 0) {
 							logPane.append(result.tojstring());
 						}

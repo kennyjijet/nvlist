@@ -4,6 +4,7 @@ import static nl.weeaboo.nvlist.build.android.AndroidConfig.FOLDER;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.ICON;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.LVL_KEY_BASE64;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.PACKAGE;
+import static nl.weeaboo.nvlist.build.android.AndroidConfig.SPLASH_IMAGE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.TITLE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.VERSION_CODE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.VERSION_NAME;
@@ -71,8 +72,9 @@ public class AndroidProjectCompiler {
 		handlers.put("java",
 			Handlers.javaHandler(config.get(PACKAGE)));
 		
-		handlers.put("res/drawable",
-			Handlers.drawableHandler(new File(gameFolder, config.get(ICON))));
+		File iconF = new File(gameFolder, config.get(ICON));
+		File splashF = new File(gameFolder, config.get(SPLASH_IMAGE));
+		handlers.put("res/drawable", Handlers.drawableHandler(iconF, splashF));
 	}
 	
 	//Functions

@@ -98,7 +98,9 @@ end
 
 ---Gets called right before saving
 function onSave(slot)
-	setSharedGlobal("vn.save.lastSaved", slot)
+	if slot < math.min(Save.getQuickSaveSlot(1), Save.getAutoSaveSlot(1)) then
+		setSharedGlobal("vn.save.lastSaved", slot)
+	end
 end
 
 ---Gets called when a regular load failed and the script must restore its
@@ -128,9 +130,9 @@ local function saveLoadScreen(isSave)
 	return setMode("saveLoadScreen", function()
 		local guiScreen = nil
 		if isSave then
-			guiScreen = System.createSaveScreen()
+			guiScreen = GUI.createSaveScreen()
 		else
-			guiScreen = System.createLoadScreen()
+			guiScreen = GUI.createLoadScreen()
 		end
 
 		if guiScreen ~= nil then
@@ -163,7 +165,7 @@ local function saveLoadScreen(isSave)
 			if isSave then
 				local ss = nil
 				if selected < math.min(Save.getQuickSaveSlot(1), Save.getAutoSaveSlot(1)) then
-					ss = screenshot(getImageLayer())
+					ss = screenshot(imageState:getDefaultLayer(), -32768)
 					ss:makeTransient()
 				end
 				Save.save(selected, ss, metaData)

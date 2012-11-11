@@ -5,12 +5,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import nl.weeaboo.styledtext.StyledText;
+import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IButtonDrawable;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderer;
+import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.RenderEnv;
+import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.IPolygon;
+import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.math.Polygon;
 
@@ -18,7 +25,6 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
-	private final boolean isTouchScreen;
 	private boolean rollover;
 	private boolean keyArmed, mouseArmed;
 	private boolean enabled;	
@@ -26,7 +32,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	private boolean toggle;
 	private boolean keyboardFocus;
 	private int pressEvents;
-	private double padding;
+	private double touchMargin;
 	private Set<Integer> activationKeys;
 	private ITexture normalTexture;
 	private ITexture rolloverTexture;
@@ -35,16 +41,33 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	private ITexture disabledTexture;
 	private ITexture disabledPressedTexture;
 	private double alphaEnableThreshold;
+
+	private ITextRenderer textRenderer;
+	private StyledText stext;
+	private TextStyle defaultStyle;
+	private int textAnchor;
 	
-	protected BaseButtonDrawable(boolean isTouchScreen) {
-		this.isTouchScreen = isTouchScreen;
-		
+	protected BaseButtonDrawable(ITextRenderer tr) {
 		enabled = true;
 		activationKeys = new HashSet<Integer>();
 		alphaEnableThreshold = 0.9;
+		
+		textRenderer = tr;
+		stext = StyledText.EMPTY_STRING;
+		defaultStyle = TextStyle.defaultInstance();
+		textAnchor = 5;
 	}
 	
 	//Functions
+	@Override
+	public void destroy() {
+		if (!isDestroyed()) {
+			textRenderer.destroy();
+			
+			super.destroy();
+		}
+	}
+	
 	@Override
 	public void addActivationKeys(int... keys) {
 		for (int key : keys) {
@@ -62,9 +85,10 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	protected void updateTexture() {
+		RenderEnv env = getRenderEnv();
 		boolean isDisabled = !isEnabled();
 		boolean isPressed = (isPressed() || isSelected());
-		boolean isRollover = isRollover() && !isTouchScreen;
+		boolean isRollover = isRollover() && (env == null || !env.isTouchScreen);
 		
 		//System.out.println("pressed " + isPressed + " | rollover " + rollover);
 		
@@ -89,13 +113,13 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			markChanged();
 		}
 
-		boolean visibleEnough = (getAlpha() >= alphaEnableThreshold);
+		boolean visibleEnough = isVisible(alphaEnableThreshold);
 		
 		double x = input.getMouseX();
 		double y = input.getMouseY();
 				
 		boolean inputHeld = isInputHeld(input);
-		boolean contains = layer.contains(x, y) && contains(x, y) && visibleEnough;
+		boolean contains = (!isClipEnabled() || layer.containsRel(x, y)) && contains(x, y) && visibleEnough;
 		boolean r = contains && (mouseArmed || keyArmed || !inputHeld);
 		if (rollover != r) {
 			rollover = r;
@@ -125,7 +149,18 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			}
 		}
 		
+		r = contains && (mouseArmed || keyArmed || !inputHeld);
+		if (rollover != r) {
+			rollover = r;
+			markChanged();
+		}
+		
 		updateTexture();
+		
+		if (textRenderer.update()) {
+			markChanged();
+		}
+		
 		return consumeChanged();
 	}
 	
@@ -137,10 +172,33 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	@Override
-	public void draw(IRenderer r) {
+	public void draw(IDrawBuffer d) {
 		updateTexture();
 		
-		super.draw(r);
+		super.draw(d);
+		
+		if (stext.length() > 0) {
+			short z = getZ();
+			boolean clip = isClipEnabled();
+			BlendMode blend = getBlendMode();
+			int argb = getColorARGB();
+			
+			double pad = getTouchMargin();
+			double x = getX() + pad + LayoutUtil.alignAnchorX(getWidth(), getTextWidth(), textAnchor);
+			double y = getY() + pad + LayoutUtil.alignAnchorY(getHeight(), getTextHeight(), textAnchor);
+			textRenderer.draw(d, (short)(z-1), clip, blend, argb, x, y);
+		}
+	}
+	
+	@Override
+	protected void invalidateTransform() {
+		super.invalidateTransform();
+		textRenderer.setMaxSize(getWidth(), getHeight());
+	}
+		
+	@Override
+	public void cancelMouseArmed() {
+		mouseArmed = false;
 	}
 	
 	@Override
@@ -160,7 +218,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	protected void consumeInput(IInput input, boolean mouseContains) {
-		if (mouseContains && input.consumeMouse()) {			
+		if (mouseContains && input.consumeMouse()) {
 			mouseArmed = true;
 			keyArmed = false;
 			markChanged();
@@ -199,6 +257,16 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	
 	//Getters
 	@Override
+	public StyledText getText() {
+		return stext;
+	}
+		
+	@Override
+	public TextStyle getDefaultStyle() {
+		return defaultStyle;
+	}
+	
+	@Override
 	public boolean isRollover() {
 		return rollover;
 	}
@@ -214,17 +282,23 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	@Override
-	public double getPadding() {
-		return padding;
+	public double getTouchMargin() {
+		return touchMargin;
 	}
 	
 	@Override
 	protected IPolygon createCollisionShape() {
-		double padding = getPadding();
-		
-		MutableMatrix mm = getTransform().mutableCopy();
-		mm.translate(getImageOffsetX(), getImageOffsetY());
-		return new Polygon(mm.immutableCopy(), -padding, -padding,
+		double padding = getTouchMargin();
+
+		Matrix transform = getTransform();
+		double dx = getAlignOffsetX();
+		double dy = getAlignOffsetY();
+		if (dx != 0 || dy != 0) {
+			MutableMatrix mm = transform.mutableCopy();
+			mm.translate(dx, dy);
+			transform = mm.immutableCopy();
+		}
+		return new Polygon(transform, -padding, -padding,
 				getUnscaledWidth()+padding*2, getUnscaledHeight()+padding*2);
 	}
 	
@@ -278,7 +352,50 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		return keyboardFocus;
 	}
 	
-	//Setters	
+	@Override
+	public double getTextWidth() {
+		return textRenderer.getTextWidth();
+	}
+	
+	@Override
+	public double getTextHeight() {
+		return textRenderer.getTextHeight();
+	}
+	
+	//Setters
+	@Override
+	public void setText(String s) {
+		setText(new StyledText(s));
+	}
+	
+	@Override
+	public void setText(StyledText st) {
+		if (!stext.equals(st)) {
+			stext = st;
+			textRenderer.setText(stext);
+			markChanged();
+		}
+	}
+	
+	@Override
+	public void setTextAnchor(int a) {
+		if (textAnchor != a) {
+			textAnchor = a;
+			markChanged();
+		}
+	}
+	
+	@Override
+	public void setDefaultStyle(TextStyle ts) {
+		if (ts == null) throw new IllegalArgumentException("setDefaultStyle() must not be called with a null argument.");
+		
+		if (defaultStyle != ts && (defaultStyle == null || !defaultStyle.equals(ts))) {
+			defaultStyle = ts;
+			textRenderer.setDefaultStyle(ts);
+			markChanged();
+		}
+	}
+	
 	@Override
 	public void setEnabled(boolean e) {
 		if (enabled != e) {
@@ -289,9 +406,9 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	@Override
-	public void setPadding(double p) {
-		if (padding != p) {
-			padding = p;
+	public void setTouchMargin(double p) {
+		if (touchMargin != p) {
+			touchMargin = p;
 			
 			markChanged();
 			invalidateCollisionShape();			
@@ -374,6 +491,12 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			}
 			markChanged();
 		}
+	}
+	
+	@Override
+	public void setRenderEnv(RenderEnv env) {
+		super.setRenderEnv(env);
+		textRenderer.setRenderEnv(env);
 	}
 	
 }

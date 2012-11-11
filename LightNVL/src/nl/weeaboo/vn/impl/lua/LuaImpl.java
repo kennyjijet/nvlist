@@ -5,6 +5,6 @@ final class LuaImpl {
 	private LuaImpl() {		
 	}
 	
-	static final long serialVersionUID = 10L;
+	static final long serialVersionUID = 50L;
 	
 }

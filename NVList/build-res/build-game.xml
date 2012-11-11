@@ -84,6 +84,11 @@
     <os family="unix"/>
   </condition>
 
+  <!-- Check existance of compressed JRE's -->
+  <available file="${jre-win32}" property="jre.win32.exists"/>
+  <available file="${jre-mac}"   property="jre.mac.exists"  />
+  <available file="${jre-linux}" property="jre.linux.exists"/>
+  
 <!-- Imports -->
   
 <!-- Tasks -->
@@ -103,11 +108,11 @@
 
     <sequential>
       <launch4j bindir="tools/launch4j/bin/${os.family}">
-        <config headerType="gui" outfile="@{dir}/@{exename}.exe" dontWrapJar="@{dontWrapJar}" 
-                jarPath="@{jarname}.jar" icon="@{icon}" cmdLine="@{args}">
-          <jre minVersion="1.6.0">
-            <!-- Need to use a macro variable, opt element doesn't support variable expansion -->
-            <opt>@{jvm-args}</opt>
+        <config headerType="gui"
+            outfile="@{dir}/@{exename}.exe" jarPath="@{jarname}.jar"
+            dontWrapJar="@{dontWrapJar}" icon="@{icon}" cmdLine="@{args}">
+          <jre minVersion="1.6.0" path="jre-win32">
+            <opt>@{jvm-args}</opt> <!-- Need to use a macro variable, opt element doesn't support variable expansion -->
           </jre>
         </config>
       </launch4j>
@@ -140,6 +145,19 @@
       <!-- <create-exe dir="@{dir}" icon="${res.dir}/icon.ico" jvm-args="${jvm-args} ${jvm-args-win}"
             exename="${project-name}-64" args="-id &quot;${project-name}&quot; @{extra-args} ${program-args}" /> -->
     </sequential>    
+  </macrodef>
+  
+  <macrodef name="extract-installer-chunk">
+    <attribute name="src" />
+    <attribute name="dst" />
+
+    <sequential>
+      <java classname="nl.weeaboo.installer.CompressionUtil" classpath="${tools.dir}/MakeInstaller.jar" fork="true">        
+        <arg value="-d" />
+        <arg value="@{src}" />
+        <arg value="@{dst}" />
+      </java>    
+    </sequential>
   </macrodef>
 
   <taskdef name="p200"
@@ -235,7 +253,7 @@
   <!-- Prepare the dist folder for source code distribution -->
   <target name="dist-src" depends="dist-common">
     <copy todir="${dist.dir}/build-res">
-      <fileset dir="build-res" excludes="jre*" /> <!-- Don't include JRE installer -->
+      <fileset dir="build-res" />
     </copy>
     <copy todir="${dist.dir}/tools">
       <fileset dir="${tools.dir}" />
@@ -268,6 +286,28 @@
       <path refid="javabin" />
       <fileset file="license.txt" />
     </jar>
+  </target>
+  
+  <!-- Decompresses and adds JRE to the dist folder -->
+  <target name="dist-jre-win32" if="${jre.win32.exists}">
+    <extract-installer-chunk src="${jre-win32}" dst="${dist.dir}" />
+  </target>
+  <target name="dist-jre-mac" if="${jre.mac.exists}">
+    <extract-installer-chunk src="${jre-mac}" dst="${dist.dir}" />
+  </target>
+  <target name="dist-jre-linux" if="${jre.linux.exists}">
+    <extract-installer-chunk src="${jre-linux}" dst="${dist.dir}" />
+  </target>
+  <target name="dist-jre" if="${include-private-jre}">
+    <antcall target="dist-jre-win32" />
+    <antcall target="dist-jre-mac" />
+    <antcall target="dist-jre-linux" />
+  </target>
+  
+  <target name="clean-dist-jre">
+    <delete includeemptydirs="true">
+      <fileset dir="${dist.dir}" includes="jre-*/**" />
+    </delete>
   </target>
   
   <!-- Prepare the dist folder for end-user distribution -->

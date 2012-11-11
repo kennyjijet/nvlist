@@ -25,6 +25,7 @@ import nl.weeaboo.vn.IButtonDrawable;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ISeenLog;
+import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
@@ -32,19 +33,19 @@ import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
 @LuaSerializable
 public class ImageFactory extends BaseImageFactory implements Serializable {
 
+	private static final boolean RENDER_TEXT_TO_TEXTURE = false;
+	
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
 	private final TextureCache texCache;
 	private final ShaderCache shCache;
 	private final GLTextRendererStore trStore;
-	private final boolean isTouchScreen;
 	
 	private int imgWidth, imgHeight;
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	
 	public ImageFactory(TextureCache tc, ShaderCache sc, GLTextRendererStore trStore,
-			IAnalytics an, ISeenLog sl, INotifier ntf, boolean isTouchScreen,
-			int w, int h)
+			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h)
 	{
 		super(sl, ntf, w, h);
 		
@@ -52,7 +53,6 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		this.texCache = tc;
 		this.shCache = sc;
 		this.trStore = trStore;		
-		this.isTouchScreen = isTouchScreen;
 		this.imgWidth = w;
 		this.imgHeight = h;
 		this.subTexLim = 128;
@@ -71,7 +71,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	protected void preloadNormalized(String filename) {
 		texCache.preload(filename, false);
 	}
-	
+		
 	@Override
 	public ImageDrawable createImageDrawable() {
 		return new ImageDrawable();
@@ -79,12 +79,19 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 
 	@Override
 	public TextDrawable createTextDrawable() {
-		return new TextDrawable(trStore);
+		return new TextDrawable(createTextRenderer());
 	}
 
 	@Override
 	public IButtonDrawable createButtonDrawable() {
-		return new ButtonDrawable(isTouchScreen);
+		return new ButtonDrawable(createTextRenderer());
+	}
+	
+	protected ITextRenderer createTextRenderer() {
+		if (RENDER_TEXT_TO_TEXTURE) {
+			return new TextureTR(this, trStore);
+		}
+		return new GlyphTR(this, trStore);
 	}
 	
 	@Override

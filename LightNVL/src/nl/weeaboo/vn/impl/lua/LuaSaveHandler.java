@@ -96,7 +96,7 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 		checkNovelSet();
 		
 		try {
-			novel.exec("onSave("+slot+")");
+			novel.eval("onSave("+slot+")");
 		} catch (LuaException e) {
 			IOException ioe = new IOException("Error calling Lua save hook :: " + e);
 			ioe.setStackTrace(e.getStackTrace());

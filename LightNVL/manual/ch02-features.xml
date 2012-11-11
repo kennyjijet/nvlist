@@ -4,7 +4,7 @@
 <section title="Features" level="1">
 
     <section title="Cross Platform" level="3">
-      <p>Visual novels created using NVList run on Windows, Mac OS X and Linux.</p>
+      <p>Visual novels created using NVList run on Windows, Mac OS X and Linux. You can also build an Android port with the press of a button.</p>
     </section>
     <section title="Simple Distribution" level="3">
       <p>A packaged distribution can be created with the click of a button through the build system. This creates a single package capable of running on each of the supported platform. The build system can also create a simple Java-based installer, a Mac OS X application bundle and/or a .iso disc image.</p>

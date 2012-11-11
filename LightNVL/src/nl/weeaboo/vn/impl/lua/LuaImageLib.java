@@ -2,7 +2,6 @@ package nl.weeaboo.vn.impl.lua;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Map.Entry;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
@@ -36,9 +35,9 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 		"getTexture",
 		"preload",
 		"getImageFiles",
-		"getLayers",
+		"createLayer",
 		"createCamera",
-		"createColorTexture"
+		"createColorTexture",
 	};
 
 	private static final int INIT            = 0;
@@ -49,7 +48,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 	private static final int GET_TEXTURE     = 5;
 	private static final int PRELOAD         = 6;
 	private static final int GET_IMAGE_FILES = 7;
-	private static final int GET_LAYERS      = 8;
+	private static final int CREATE_LAYER    = 8;
 	private static final int CREATE_CAMERA   = 9;
 	private static final int CREATE_COLOR_TEXTURE = 10;
 	
@@ -79,7 +78,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 		case GET_TEXTURE:     return getTexture(args);
 		case PRELOAD:         return preload(args);
 		case GET_IMAGE_FILES: return getImageFiles(args);
-		case GET_LAYERS:      return getLayers(args);
+		case CREATE_LAYER:    return createLayer(args);
 		case CREATE_CAMERA:   return createCamera(args);
 		case CREATE_COLOR_TEXTURE: return createColorTexture(args);
 		default: return super.invoke(args);
@@ -174,7 +173,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 			z = args.optint(2, -999);
 			clip = args.optboolean(3, true);
 		} else {
-			layer = imageState.getTopLayer();
+			layer = imageState.getRootLayer();
 			z = Short.MIN_VALUE;
 			clip = false;
 		}
@@ -219,24 +218,15 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 	protected ILayer getLayerArg(Varargs args, int index) {		
 		if (args.isuserdata(index) && args.touserdata(index) instanceof ILayer) {
 			return (ILayer)args.touserdata(index);
-		}
-		
-		String id = args.optjstring(index, null);
-		ILayer layer = imageState.getLayer(id);
-		if (layer == null) {
-			throw new LuaError("Invalid layer id: " + id);
-		}
-		return layer;
+		}		
+		throw new LuaError("Invalid layer arg: " + args.tojstring(1));
 	}
-	
-	protected Varargs getLayers(Varargs args) {
-		LuaTable table = new LuaTable();
-		for (Entry<String, ILayer> entry : imageState.getLayers().entrySet()) {
-			String id = entry.getKey();
-			ILayer val = entry.getValue();
-			table.rawset(id, LuajavaLib.toUserdata(val, val.getClass()));
-		}
-		return table;
+
+	protected Varargs createLayer(Varargs args) {
+		ILayer parentLayer = getLayerArg(args, 1);
+		
+		ILayer layer = imageState.createLayer(parentLayer);		
+		return LuajavaLib.toUserdata(layer, layer.getClass());
 	}
 	
 	protected Varargs createCamera(Varargs args) {

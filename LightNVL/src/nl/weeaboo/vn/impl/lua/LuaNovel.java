@@ -2,7 +2,6 @@ package nl.weeaboo.vn.impl.lua;
 
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ;
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ_WAIT;
-import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
 import static nl.weeaboo.vn.NovelPrefs.FPS;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_LOOK_AHEAD;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_MAX_PER_LINE;
@@ -61,11 +60,11 @@ import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.NovelPrefs;
 import nl.weeaboo.vn.SoundType;
+import nl.weeaboo.vn.impl.base.BaseGUIFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFxLib;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseNovel;
-import nl.weeaboo.vn.impl.base.BaseScriptLib;
 import nl.weeaboo.vn.impl.base.BaseSoundFactory;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 import nl.weeaboo.vn.impl.base.BaseVideoFactory;
@@ -78,6 +77,9 @@ import nl.weeaboo.vn.impl.base.Looper;
 import nl.weeaboo.vn.impl.base.ShaderImageTween;
 import nl.weeaboo.vn.impl.base.ShutterGS;
 import nl.weeaboo.vn.impl.base.WipeGS;
+import nl.weeaboo.vn.layout.FlowLayout;
+import nl.weeaboo.vn.layout.GridLayout;
+import nl.weeaboo.vn.layout.NullLayout;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.parser.LVNFile;
 import nl.weeaboo.vn.parser.LVNParser;
@@ -121,12 +123,12 @@ public abstract class LuaNovel extends BaseNovel {
 	private transient int wait;
 	
 	protected LuaNovel(INovelConfig gc, BaseImageFactory imgfac, IImageState is, BaseImageFxLib imgfxlib,
-			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs,
+			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs, BaseGUIFactory gf,
 			ITextState ts, BaseNotifier n, IInput in, BaseSystemLib guifac, LuaSaveHandler sh,
 			final BaseScriptLib scrlib, LuaTweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
 			ISeenLog seenLog, IAnalytics analytics, ITimer tmr)
 	{
-		super(gc, imgfac, is, imgfxlib, sndfac, ss, vf, vs, ts, n, in, guifac, sh, scrlib,
+		super(gc, imgfac, is, imgfxlib, sndfac, ss, vf, vs, gf, ts, n, in, guifac, sh, scrlib,
 				tl, sharedGlobals, globals, seenLog, analytics, tmr);
 		
 		bootstrapScripts = new String[] {"main.lua"};
@@ -363,7 +365,6 @@ public abstract class LuaNovel extends BaseNovel {
 		LuaValue globals = lrs.getGlobalEnvironment();
 		PackageLib.getCurrent().setLuaPath("?.lvn;?.lua");
 
-		IConfig prefs = getPrefs();
 		BaseNotifier ntf = getNotifier();
 		BaseImageFactory imgfac = getImageFactory();
 		BaseImageFxLib fxlib = getImageFxLib();
@@ -372,9 +373,10 @@ public abstract class LuaNovel extends BaseNovel {
 		ISoundState ss = getSoundState();
 		BaseVideoFactory vidfac = getVideoFactory();
 		IVideoState vs = getVideoState();
+		BaseGUIFactory guifac = getGUIFactory();
 		ITextState ts = getTextState();
 		IInput input = getInput();
-		BaseSystemLib guifac = getSystemLib();
+		BaseSystemLib syslib = getSystemLib();
 		LuaSaveHandler sh = (LuaSaveHandler)getSaveHandler();
 		ITimer timer = getTimer();
 		IStorage gs = getGlobals();
@@ -393,29 +395,32 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.rawset("input",        LuajavaLib.toUserdata(input, IInput.class));
 			globals.rawset("notifier",     LuajavaLib.toUserdata(ntf, INotifier.class));
 			globals.rawset("globals",      LuajavaLib.toUserdata(gs, IStorage.class));
-			LuaValue sharedGlobalsLua = LuajavaLib.toUserdata(sg, IPersistentStorage.class);
-			if (StringUtil.compareVersion("2.7", prefs.get(ENGINE_TARGET_VERSION)) < 0) {
-				globals.rawset("systemVars", sharedGlobalsLua);		
-			}
-			globals.rawset("sharedGlobals", sharedGlobalsLua);						
+			globals.rawset("sharedGlobals",LuajavaLib.toUserdata(sg, IPersistentStorage.class));						
 			globals.rawset("seenLog",      LuajavaLib.toUserdata(sl, ISeenLog.class));		
 			globals.rawset("analytics",    LuajavaLib.toUserdata(an, IAnalytics.class));
 			globals.rawset("timer",        LuajavaLib.toUserdata(timer, ITimer.class));
 			linkedProperties.flush(globals);
 			
 			//--- Register types ---
+			LuaUtil.registerClass(globals, MutableMatrix.class, "Matrix");
+			LuaUtil.registerClass(globals, Looper.class);
+			// Enums
 			LuaUtil.registerClass(globals, ErrorLevel.class);
 			LuaUtil.registerClass(globals, BlendMode.class);			
 			LuaUtil.registerClass(globals, SoundType.class);
-			LuaUtil.registerClass(globals, LoopMode.class);			
-			LuaUtil.registerClass(globals, Looper.class);
-			LuaUtil.registerClass(globals, ShaderImageTween.class);
+			LuaUtil.registerClass(globals, LoopMode.class);
+			// Layouts
+			LuaUtil.registerClass(globals, NullLayout.class);
+			LuaUtil.registerClass(globals, FlowLayout.class);
+			LuaUtil.registerClass(globals, GridLayout.class);
+			// Shaders
 			LuaUtil.registerClass(globals, ShutterGS.class);
 			LuaUtil.registerClass(globals, WipeGS.class);
 			LuaUtil.registerClass(globals, BlendGS.class);
 			LuaUtil.registerClass(globals, DistortGS.class);
 			LuaUtil.registerClass(globals, BlurGS.class);
-			LuaUtil.registerClass(globals, MutableMatrix.class, "Matrix");
+			// Tweens
+			LuaUtil.registerClass(globals, ShaderImageTween.class);
 
 			//--- Register special libraries ---
 			
@@ -441,8 +446,9 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.load(new LuaImageFxLib(fxlib));
 			globals.load(new LuaSoundLib(ntf, sndfac, ss));
 			globals.load(new LuaVideoLib(ntf, vidfac, vs));
+			globals.load(new LuaGUILib(ntf, guifac, is));
 			globals.load(new LuaTextLib(ts));
-			globals.load(new LuaSystemLib(ntf, guifac));
+			globals.load(new LuaSystemLib(ntf, syslib));
 			globals.load(new LuaSaveLib(sh));
 			globals.load(tweenLib);
 		} catch (LuaException le) {
@@ -543,7 +549,7 @@ public abstract class LuaNovel extends BaseNovel {
 	public void openSaveScreen() throws LuaException { setMode("saveScreen"); }	
 	public void openLoadScreen() throws LuaException { setMode("loadScreen"); }
 	
-	public Varargs exec(String code) throws LuaException {
+	public Varargs eval(String code) throws LuaException {
 		if (luaRunState == null) throw new LuaException("LuaRunState is null");
 		
 		luaRunState.registerOnThread();

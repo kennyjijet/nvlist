@@ -200,7 +200,7 @@ public abstract class BaseTextState implements ITextState {
 		st = convertAnsiCodes(st);
 		
 		if (newPage) {
-			textLog.setText(new StyledText());
+			textLog.setText(StyledText.EMPTY_STRING);
 		}
 		textLog.appendText(st);
 	}

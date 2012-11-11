@@ -1,16 +1,10 @@
 package nl.weeaboo.vn;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public interface IImageState extends Serializable {
 
 	// === Functions ===========================================================
-		
-	/**
-	 * Creates and adds a new layer to this imagestate.
-	 */
-	public ILayer createLayer(String id);
 	
 	/**
 	 * Resets the entire state, including the drawables stack.
@@ -29,6 +23,11 @@ public interface IImageState extends Serializable {
 	public void pop();
 	
 	/**
+	 * Creates a new layer object and adds it to <code>parentLayer</code>.
+	 */
+	public ILayer createLayer(ILayer parentLayer);
+	
+	/**
 	 * Updates the image state and all layers it contains
 	 * 
 	 * @param input The current user input
@@ -38,29 +37,22 @@ public interface IImageState extends Serializable {
 	 */
 	public boolean update(IInput input, double effectSpeed);
 	
-	/**
-	 * Draws the image state and all layers it contains
-	 * 
-	 * @param renderer The renderer to use for drawing
-	 */
-	public void draw(IRenderer renderer);
-	
 	// === Getters =============================================================
 	
 	/**
-	 * Returns all layers.
+	 * Returns the root layer.
 	 */
-	public Map<String, ILayer> getLayers();
+	public ILayer getRootLayer();
 	
 	/**
-	 * Returns the top layer.
+	 * Returns the default layer.
 	 */
-	public ILayer getTopLayer();
+	public ILayer getDefaultLayer();
 	
 	/**
-	 * Returns a previously created layer.
+	 * Returns the overlay layer.
 	 */
-	public ILayer getLayer(String id);
+	public ILayer getOverlayLayer();
 	
 	/**
 	 * @return The virtual screen width
@@ -71,7 +63,11 @@ public interface IImageState extends Serializable {
 	 * @return The virtual screen height
 	 */
 	public int getHeight();
-			
+					
+	public RenderEnv getRenderEnv();
+	
 	// === Setters =============================================================
+
+	public void setRenderEnv(RenderEnv env);
 	
 }

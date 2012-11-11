@@ -6,6 +6,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.IDistortGrid;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
@@ -39,7 +40,7 @@ public abstract class DistortQuadHelper {
 	//Functions
 	public void renderDistortQuad(ITexture tex, Matrix transform, int argb,
 			double x, double y, double w, double h, IPixelShader ps,
-			DistortGrid grid, Rect2D clampBounds)
+			IDistortGrid grid, Rect2D clampBounds)
 	{
 		if (RENDER_TEST) {
 			tex = null;
@@ -62,7 +63,7 @@ public abstract class DistortQuadHelper {
 	protected abstract void renderStrip(FloatBuffer vertices, FloatBuffer texcoords, IntBuffer colors, int count);
 	protected abstract void postRender();
 
-    protected int setupTriangleStrip(DistortGrid grid, int row, int argb,
+    protected int setupTriangleStrip(IDistortGrid grid, int row, int argb,
     		float x, float y, float w, float h, Rect2D uv, Rect2D clampBounds)
     {
 		float clx0, clx1, cly0, cly1;

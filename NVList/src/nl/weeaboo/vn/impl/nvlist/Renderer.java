@@ -19,14 +19,15 @@ import nl.weeaboo.gl.texture.GLTexture;
 import nl.weeaboo.io.BufferUtil;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDistortGrid;
 import nl.weeaboo.vn.IPixelShader;
+import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderCommand;
-import nl.weeaboo.vn.impl.base.BaseRenderCommand;
+import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseRenderer;
 import nl.weeaboo.vn.impl.base.CustomRenderCommand;
-import nl.weeaboo.vn.impl.base.DistortGrid;
 import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
@@ -37,23 +38,21 @@ public class Renderer extends BaseRenderer {
 
 	private final GLManager glm;
 	private final ParagraphRenderer pr;
-	private final FadeQuadRenderer fadeQuadRenderer;	
-	private final BlendQuadRenderer blendQuadRenderer;	
+	private final FadeQuadRenderer fadeQuadRenderer;
+	private final BlendQuadRenderer blendQuadRenderer;
 	private final DistortQuadRenderer distortQuadRenderer;
 	
-	//--- Properties only valid between renderBegin() and renderEnd() beneath this line ---
-	private boolean rendering;
+	private final DrawBuffer drawBuffer;
 	
+	//--- Properties only valid between renderBegin() and renderEnd() beneath this line ---
 	private int buffered;
 	private TextureAdapter quadTexture;
 	private SpriteBatch quadBatch;
 	private float[] tempFloat = new float[8]; //Temporary var
 	//-------------------------------------------------------------------------------------
 	
-	public Renderer(GLManager glm, ParagraphRenderer pr, int w, int h,
-			int rx, int ry, int rw, int rh, int sw, int sh, RenderStats stats)
-	{
-		super(w, h, rx, ry, rw, rh, sw, sh, stats);
+	public Renderer(GLManager glm, ParagraphRenderer pr, RenderEnv env, RenderStats stats) {
+		super(env, stats);
 		
 		this.glm = glm;
 		this.pr = pr;
@@ -61,71 +60,52 @@ public class Renderer extends BaseRenderer {
 		this.blendQuadRenderer = new BlendQuadRenderer(this);
 		this.distortQuadRenderer = new DistortQuadRenderer(this);
 		
+		this.drawBuffer = new DrawBuffer(env);
+		
 		quadBatch = new SpriteBatch(1024);
 	}
 	
 	//Functions
-	public void drawText(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			TextLayout textLayout, int lineStart, int lineEnd, double visibleChars,
-			double x, double y, IPixelShader ps)
-	{		
-		draw(new RenderTextCommand(z, clipEnabled, blendMode, argb, textLayout,
-				lineStart, lineEnd, visibleChars, x, y, ps));
+	public static Renderer cast(IRenderer r) {
+		if (r == null) return null;
+		if (r instanceof Renderer) return (Renderer)r;
+		throw new ClassCastException("Supplied renderer is of an invalid class: " + r.getClass() + ", expected: " + Renderer.class);
 	}
-			
+	
 	@Override
-	protected void renderBegin(Rect2D bounds, Rect screenClip, Rect layerClip) {
-		rendering = true;
-		
+	protected void renderBegin() {
 		GL2ES1 gl = glm.getGL();
 		
 		gl.glPushMatrix();
-		if (bounds != null) {
-			glm.translate(bounds.x, bounds.y);
-		}
+		glm.pushBlendMode();
+		glm.pushColor();
 		
 		gl.glEnable(GL2ES1.GL_SCISSOR_TEST);
-		gl.glScissor(layerClip.x, layerClip.y, layerClip.w, layerClip.h);
-		
-		glm.pushBlendMode();
+		glm.setTexture(null);
 		glm.setBlendMode(GLBlendMode.DEFAULT);
-		
-		glm.pushColor();
-		glm.setColor(0xFFFFFFFF);	
+		glm.setColor(0xFFFFFFFF);
 		
 		quadBatch.init(glm);
 		
 		buffered = 0;
-		quadTexture = null;
+		quadTexture = null;		
 	}
 	
 	@Override
 	protected void renderEnd() {
 		flushQuadBatch();
+		quadTexture = null;
 		
 		GL2ES1 gl = glm.getGL();
-		glm.setTexture(null, true);
-		glm.popColor();
-		glm.popBlendMode();
-		gl.glPopMatrix();
 		gl.glDisable(GL2ES1.GL_SCISSOR_TEST);
-		
-		rendering = false;
-		quadTexture = null;
+		glm.setTexture(null, true);
+		glm.popBlendMode();
+		glm.popColor();
+		gl.glPopMatrix();		
 	}
-	
-	@Override
-	protected void preRenderCommand(BaseRenderCommand cmd) {
-		super.preRenderCommand(cmd);
-	}	
-	
-	@Override
-	protected void postRenderCommand(BaseRenderCommand cmd) {		
-		super.postRenderCommand(cmd);
-	}	
 		
 	@Override
-	protected void renderSetClip(boolean c) {
+	protected void setClip(boolean c) {
 		flushQuadBatch();
 
 		GL2ES1 gl = glm.getGL();
@@ -137,12 +117,12 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	@Override
-	protected void renderSetColor(int argb) {
+	protected void setColor(int argb) {
 		glm.setColor(argb);
 	}
 
 	@Override
-	protected void renderSetBlendMode(BlendMode bm) {
+	protected void setBlendMode(BlendMode bm) {
 		flushQuadBatch();
 		
 		switch (bm) {
@@ -245,7 +225,7 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	void renderText(GLManager glm, TextLayout layout, double x, double y,
-			int lineStart, int lineEnd, double visibleChars, IPixelShader ps)
+			int startLine, int endLine, double visibleChars, IPixelShader ps)
 	{
 		flushQuadBatch();
 
@@ -255,8 +235,8 @@ public class Renderer extends BaseRenderer {
 		//gl.glPushMatrix();
 		glm.translate(x, y);
 		
-		pr.setLineOffset(lineStart);
-		pr.setVisibleLines(lineEnd - lineStart);
+		pr.setLineOffset(startLine);
+		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars(visibleChars);
 		pr.drawLayout(glm, layout);
 
@@ -276,7 +256,7 @@ public class Renderer extends BaseRenderer {
 		gss.set(glm, glScreenRect);
 		
 		int[] argb = BufferUtil.toArray(gss.getARGB());
-		ss.set(argb, gss.getWidth(), gss.getHeight(), getRealWidth(), getRealHeight());
+		ss.set(argb, gss.getWidth(), gss.getHeight(), env.rw, env.rh);
 	}
 	
 	@Override
@@ -301,7 +281,7 @@ public class Renderer extends BaseRenderer {
 	@Override
 	public void renderDistortQuad(ITexture tex, Matrix transform, int argb,
 			double x, double y, double w, double h, IPixelShader ps,
-			DistortGrid grid, Rect2D clampBounds)
+			IDistortGrid grid, Rect2D clampBounds)
 	{
 		flushQuadBatch();
 
@@ -346,7 +326,7 @@ public class Renderer extends BaseRenderer {
 
 		if (cmd.id == RenderTextCommand.id) {
 			RenderTextCommand rtc = (RenderTextCommand)cmd;
-			renderText(glm, rtc.textLayout, rtc.x, rtc.y - rtc.textLayout.getLineTop(rtc.lineStart),
+			renderText(glm, rtc.textLayout, rtc.x, rtc.y,
 					rtc.lineStart, rtc.lineEnd, rtc.visibleChars, rtc.ps);
 			return true;
 		}
@@ -373,10 +353,30 @@ public class Renderer extends BaseRenderer {
 		quadTexture = null;
 	}
 	
+	@Override
+	protected void setClipRect(Rect glRect) {
+		flushQuadBatch();
+
+		GL2ES1 gl = glm.getGL();
+		gl.glScissor(glRect.x, glRect.y, glRect.w, glRect.h);
+	}
+	
+	@Override
+	protected void translate(double dx, double dy) {
+		flushQuadBatch();
+
+		glm.translate(dx, dy);
+	}
+	
 	//Getters	
 	public GLManager getGLManager() {
 		if (!rendering) return null;
 		return glm;
+	}
+	
+	@Override
+	public DrawBuffer getDrawBuffer() {
+		return drawBuffer;
 	}
 
 	//Setters

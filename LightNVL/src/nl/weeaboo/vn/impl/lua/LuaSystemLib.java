@@ -7,13 +7,9 @@ import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.lua2.LuaUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
-import nl.weeaboo.lua2.lib.LuajavaLib;
-import nl.weeaboo.vn.IChoice;
 import nl.weeaboo.vn.INotifier;
-import nl.weeaboo.vn.ISaveLoadScreen;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 
-import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -23,9 +19,6 @@ public class LuaSystemLib extends LuaLibrary {
 	private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
 	private static final String[] NAMES = {
-		"createChoice",
-		"createSaveScreen",
-		"createLoadScreen",
 		"exit",
 		"canExit",
 		"isLowEnd",
@@ -38,18 +31,15 @@ public class LuaSystemLib extends LuaLibrary {
 	};
 
 	private static final int INIT                = 0;
-	private static final int CREATE_CHOICE       = 1;
-	private static final int CREATE_SAVE_SCREEN  = 2;
-	private static final int CREATE_LOAD_SCREEN  = 3;
-	private static final int EXIT                = 4;
-	private static final int CAN_EXIT            = 5;
-	private static final int IS_LOW_END          = 6;
-	private static final int IS_TOUCH_SCREEN     = 7;
-	private static final int SET_TEXT_FULLSCREEN = 8;
-	private static final int OPEN_WEBSITE        = 9;
-	private static final int RESTART             = 10;
-	private static final int REGISTER_JAVA_CLASS = 11;
-	private static final int COMPARE_VERSION     = 12;
+	private static final int EXIT                = 1;
+	private static final int CAN_EXIT            = 2;
+	private static final int IS_LOW_END          = 3;
+	private static final int IS_TOUCH_SCREEN     = 4;
+	private static final int SET_TEXT_FULLSCREEN = 5;
+	private static final int OPEN_WEBSITE        = 6;
+	private static final int RESTART             = 7;
+	private static final int REGISTER_JAVA_CLASS = 8;
+	private static final int COMPARE_VERSION     = 9;
 	
 	private final INotifier notifier;
 	private final BaseSystemLib syslib;
@@ -68,9 +58,6 @@ public class LuaSystemLib extends LuaLibrary {
 	public Varargs invoke(Varargs args) {
 		switch (opcode) {
 		case INIT: return initLibrary("System", NAMES, 1);
-		case CREATE_CHOICE: return createChoice(args);
-		case CREATE_SAVE_SCREEN: return createSaveScreen(args);
-		case CREATE_LOAD_SCREEN: return createLoadScreen(args);
 		case EXIT: return exit(args);
 		case CAN_EXIT: return canExit(args);
 		case IS_LOW_END: return isLowEnd(args);
@@ -82,46 +69,6 @@ public class LuaSystemLib extends LuaLibrary {
 		case COMPARE_VERSION: return compareVersion(args);
 		default: return super.invoke(args);
 		}
-	}
-	
-	protected Varargs createChoice(Varargs args) {
-		String[] opts = {};
-		if (args.narg() >= 1) {
-			if (args.istable(1)) {
-				LuaTable table = (LuaTable)args.checktable(1);
-				opts = new String[table.getn().toint()];
-				for (int n = table.length(); n > 0; n--) {
-					opts[n-1] = table.get(n).tojstring();
-				}
-			} else {
-				opts = new String[args.narg()];
-				for (int n = 0; n < opts.length; n++) {
-					opts[n] = args.tojstring(n+1);
-				}
-			}
-		}
-		IChoice choice = syslib.createChoice(opts);
-		if (choice == null) {
-			return NIL;
-		}
-		return LuajavaLib.toUserdata(choice, IChoice.class);
-	}
-
-	protected Varargs createSaveScreen(Varargs args) {
-		ISaveLoadScreen screen = syslib.createSaveScreen();
-		if (screen == null) {
-			return NIL;
-		}
-		return LuajavaLib.toUserdata(screen, ISaveLoadScreen.class);
-	}
-
-
-	protected Varargs createLoadScreen(Varargs args) {
-		ISaveLoadScreen screen = syslib.createLoadScreen();
-		if (screen == null) {
-			return NIL;
-		}
-		return LuajavaLib.toUserdata(screen, ISaveLoadScreen.class);
 	}
 	
 	protected Varargs exit(Varargs args) {

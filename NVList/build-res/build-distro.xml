@@ -57,6 +57,40 @@
     </sequential>
   </macrodef>
 
+  <macrodef name="create-installer-exe">
+    <attribute name="src" />
+    <attribute name="dst" />
+
+    <sequential>
+      <!-- Create a .bmp version of the splash screen -->
+      <script language="javascript">
+        <![CDATA[
+          importPackage(java.awt.image);
+          importPackage(java.io);
+          importPackage(javax.imageio);
+    
+          var splashFolder = project.getProperty("build-res.dir");
+          var img = ImageIO.read(new File(splashFolder+"/splash.png"));
+          var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+          opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
+          ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
+        ]]>
+      </script>
+  
+      <!-- Wrap JAR in .exe (if windows-installer-only property is set) -->
+      <launch4j bindir="tools/launch4j/bin/${os.family}">
+        <config headerType="gui" dontWrapJar="false" icon="${res.dir}/icon.ico"
+            manifest="${build-res.dir}/installer.manifest" jarPath="@{src}" outfile="@{dst}">
+          <jre minVersion="1.6.0" />
+          <splash file="${build-res.dir}/splash.bmp" />
+        </config>
+      </launch4j>
+      
+      <!-- Delete splash screen .bmp -->
+      <delete file="${build-res.dir}/splash.bmp" />    
+    </sequential>
+  </macrodef>
+    
 <!-- Targets -->
 
   <target name="clean-installer">
@@ -84,7 +118,7 @@
   
   <!-- Creates a no-installer ZIP archive from the releases folder -->
   <!-- Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
-  <target name="make-installer-zip" depends="make-installer-common">  
+  <target name="make-installer-zip" depends="make-installer-common, dist-jre">  
     <echo>Creating no-installer ZIP archive (may take a long time)...</echo>
     
     <zip destfile="${releases.dir}/${project-name}-${DSTAMP}.zip"
@@ -111,37 +145,11 @@
   <!-- Create an installer from the dist folder
     Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
   <target name="make-installer" depends="make-installer-jar" if="${installer-exe}">
-    <!-- Create a .bmp version of the splash screen -->
-    <script language="javascript">
-      <![CDATA[
-        importPackage(java.awt.image);
-        importPackage(java.io);
-        importPackage(javax.imageio);
-    
-        var splashFolder = project.getProperty("build-res.dir");
-        var img = ImageIO.read(new File(splashFolder+"/splash.png"));
-        var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-        opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
-        ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
-      ]]>
-    </script>
-  
-    <!-- Wrap JAR in .exe (if windows-installer-only property is set) -->
-    <launch4j bindir="tools/launch4j/bin/${os.family}">
-      <config headerType="gui" dontWrapJar="false" icon="${res.dir}/icon.ico"
-          manifest="${build-res.dir}/installer.manifest"
-          outfile="${releases.dir}/${project-name}-install-${DSTAMP}.exe"
-          jarPath="${releases.dir}/${project-name}-install-${DSTAMP}.jar">
-        <jre minVersion="1.6.0" />
-        <splash file="${build-res.dir}/splash.bmp" />
-      </config>
-    </launch4j>
-      
-    <!-- Delete splash screen .bmp -->
-    <delete file="${build-res.dir}/splash.bmp" />
+    <create-installer-exe src="${releases.dir}/${project-name}-install-${DSTAMP}.jar"
+        dst="${releases.dir}/${project-name}-install-${DSTAMP}.exe" />
   </target>
 
-  <target name="make-installer-cd" depends="make-installer-common">
+  <target name="make-installer-cd" depends="make-installer-common, dist-jre">
     <echo>Creating installer (may take a long time)...</echo>
     	
     <java jar="${tools.dir}/MakeInstaller.jar" fork="true">
@@ -151,6 +159,8 @@
       <arg value="${build-res.dir}/installer.ini" />
     </java>
     
+    <create-installer-exe src="${dist.dir}/CDROOT/installer.jar" dst="${dist.dir}/CDROOT/installer.exe" />
+
     <!-- Create application bundle in CDROOT folder -->
     <create-application-bundle dir="${dist.dir}/CDROOT" />
     

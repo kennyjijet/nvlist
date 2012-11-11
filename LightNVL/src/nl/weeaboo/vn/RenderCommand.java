@@ -14,7 +14,7 @@ public class RenderCommand implements Comparable<RenderCommand> {
 	//Functions
 	
 	@Override
-	public int compareTo(RenderCommand c) {
+	public final int compareTo(RenderCommand c) {
 		return (sortKey > c.sortKey ? 1 : (sortKey < c.sortKey ? -1 : 0));
 	}
 	
