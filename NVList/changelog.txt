@@ -1,4 +1,58 @@
 
+2012/11/13 -- 3.0 (r69)
+
+enhancements:
+- Added better support for adding an embedded Java runtime (JRE). A 32-bit
+  Windows JRE is included with NVList, enable the include-embedded-jre
+  preference to add it to distributions.
+- Rewrote how layers function. Layers now implement IDrawable and can be
+  nested. All default layers are now created within a single root layer and
+  Image.getLayers() was removed.
+- Drawables can now be moved to another Layer than the one they're created in.
+- Added a default 'overlay' layer which displays above any other default layer.
+- Added setGlobal/getGlobal/incrGlobal/clearGlobals functions to ease working
+  with the globals Java object from Lua.
+- Implemented early culling in the rendering code using bounding box
+  approximations for drawables (improves performance when there are many
+  off-screen drawables).
+- CD distributions now also include a .exe version of the installer.
+- Installers included with CD distributions now extract directly from the
+  no-installer .zip instead of requiring data be duplicated inside the installer
+- Moved a number of layout/GUI related code from Lua to Java for increased
+  performance. Moved System.(createSaveScreen/createLoadScreen/createChoice)
+  to GUI.XXX  
+- Removed TextButton Lua implementation, integrated functionality into IButton.
+- Default choice screen now creates scroll bars when there are too many options
+- Implemented a panel component for grouping and positioning images with a
+  layout. The panel can also be given images to use for its background and
+  edges/borders.
+- Added a scrollable viewport component.
+- Added a FlowLayout which positions items in rows aligned to a particular
+  direction.
+- Android version now uses an optional splash screen image during startup.
+- Added Anim.fromFunction() which turns a Lua function into an Animator.
+- Added getNextFreeSaveSlot() function which returns the index of an unused
+  save slot.
+
+bugfixes:
+- Button rollover is now limited to their parent layer's clipping rect unless
+  clipEnabled is false.
+- ParallelAnimator looping now waits for each sub-animation to finish instead
+  of looping each sub-animation separately and as fast as possible.
+- NVL mode on Android now tries to fill at least half the screen before auto
+  clearing the screen instead of always after each paragraph.
+- Fixed a bug in blend quad rendering for the desktop version of NVList, didn't
+  properly restore the previously active texture.
+- Fixed a rare array bounds exception in LuaThreadGroup.
+- Lua stacktraces got destroyed when tail-calling a Java function which calls
+  a yielding Lua function.
+- Lua evaluator in the debug tab now also accepts non-expression statements.
+- CodeMirror syntax highlighter exited 'code' mode when encountering a ']'
+- Lua tailcall optimization was broken for java functions resulting in a yield
+  ('dofile' being the obvious one fitting that description).
+
+
+
 2012/10/19 -- 2.9 (r35)
 
 enhancements:

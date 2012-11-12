@@ -63,7 +63,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 			vh = getLayoutHeight() / texture.getHeight();
 		}
 		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
-				Math.round(dx), Math.round(dy), w, h, 0, 0, uw, vh, null);
+				dx, dy, w, h, 0, 0, uw, vh, null);
 	}
 	
 	protected void validateCursorSize() {

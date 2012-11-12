@@ -314,8 +314,8 @@ function SaveLoadScreen:initQSaves()
         end)
         
 		for i=1,endSlot-startSlot do
-			local slot = i
-			local label = "Empty\n" .. defaultLabel .. " " .. slot
+			local slot = startSlot + i
+			local label = "Empty\n" .. defaultLabel .. " " .. i
 			local empty = true
 			
 			local si = sorted[i]

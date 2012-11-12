@@ -513,12 +513,14 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	protected static class ScrollInfo implements Serializable {
 		
 		private static final long serialVersionUID = 1L;
+		private static final double MIN_SPEED = .1;
+		private static final double SNAP_LOCK = .1;
 		
 		public double min, max, pos, spd;
 		
 		public void update(double inertia, double snap) {
 			//Update speed/pos
-			if (Math.abs(spd) < 1) {
+			if (Math.abs(spd) < MIN_SPEED) {
 				spd = 0;
 			} else {
 				spd *= inertia;
@@ -529,14 +531,14 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 			if (Math.abs(snap) > .001) {
 				if (pos < min) {
 					double dist = min - pos;
-					if (Math.abs(dist) < 1) {
+					if (Math.abs(dist) < SNAP_LOCK) {
 						pos = min;
 					} else {
 						pos = Math.min(min, pos + dist * snap);
 					}
 				} else if (pos > max) {
 					double dist = max - pos;
-					if (Math.abs(dist) < 1) {
+					if (Math.abs(dist) < SNAP_LOCK) {
 						pos = max;
 					} else {
 						pos = Math.max(max, pos + dist * snap);
