@@ -70,6 +70,7 @@ function SaveSlot.new(self)
 	if self.compact then
 		buttonImagePath = "gui/savescreen#quicksave-"
 	end
+	
 	local b = button(buttonImagePath)
 	b:setToggle(true)
 	b:setEnabled(self.isSave or not self.empty)
@@ -125,10 +126,16 @@ function SaveSlot:setBounds(x, y, w, h)
 	l:setDefaultStyle(createStyle{fontName="sans serif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
 	if i ~= nil then
-		local imgScale = scale * math.min(224 / i:getUnscaledWidth(), 126 / i:getUnscaledHeight())
-		i:setScale(imgScale, imgScale)
-		
-		l:setSize(b:getWidth(), b:getHeight()-i:getHeight())
+		local maxW = 224
+		local maxH = 126
+		if maxW <= b:getWidth() and maxH <= .8*b:getHeight() then
+			i:setScale(scale * math.min(maxW / i:getUnscaledWidth(), maxH / i:getUnscaledHeight()))
+			i:setVisible(true)
+			l:setSize(b:getWidth(), b:getHeight()-i:getHeight())
+		else
+			i:setVisible(false)
+			l:setSize(b:getWidth(), b:getHeight())
+		end		
 	else	
 		l:setSize(b:getWidth(), b:getHeight())
 	end	
@@ -227,11 +234,15 @@ function SaveLoadScreen.new(self)
 	self.cancelButton = button("gui/savescreen#button-")
 	self.cancelButton:setText(cancelText)
 	
-	self.topFade = img("gui/savescreen#fade-top")
-	self.topFade:setZ(10)
+	local topFadeTex = tex("gui/savescreen#fade-top", true)
+	if topFadeTex ~= nil then
+		self.topFade = img(topFadeTex, {z=10})
+	end
 
-	self.bottomFade = img("gui/savescreen#fade-bottom")
-	self.bottomFade:setZ(10)
+	local bottomFadeTex = tex("gui/savescreen#fade-bottom", true)
+	if bottomFadeTex ~= nil then
+		self.bottomFade = img("gui/savescreen#fade-bottom", {z=10})
+	end
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
@@ -252,6 +263,7 @@ function SaveLoadScreen:destroy()
 	destroyValues(self.saves)
 	destroyValues(self.qsaves)
 	destroyValues{self.okButton, self.cancelButton}
+	destroyValues{self.topFade, self.bottomFade}
 end
 
 function SaveLoadScreen:layout()
@@ -267,7 +279,7 @@ function SaveLoadScreen:layout()
 	local mainH = h - vpad*2 - qh - ipad*3
 
 	doLayout(GridLayout, x, y, w, vpad,
-		{padding=ipad, pack=5},
+		{padding=ipad, pack=5, shrink={true, false}},
 		self.pageButtons)
 	
 	for i=1,2 do
@@ -286,8 +298,12 @@ function SaveLoadScreen:layout()
 		{padding=ipad, pack=5},
 		{self.okButton, self.cancelButton})
 		
-	self.topFade:setBounds(x, y, w, vpad)
-	self.bottomFade:setBounds(x, y+math.ceil(h-vpad), w, vpad)
+	if self.topFade ~= nil then
+		self.topFade:setBounds(x, y, w, vpad)
+	end
+	if self.bottomFade ~= nil then
+		self.bottomFade:setBounds(x, y+math.ceil(h-vpad), w, vpad)
+	end
 end
 
 function SaveLoadScreen:initQSaves()
@@ -482,9 +498,16 @@ function TextLogScreen:run()
     --Create edge images
     local topEdge = nil
     if not android then
-		topEdge = img(pathPrefix .. "edge-top", {z=10, clipEnabled=clipEnabled})
+    	local topTex = tex(pathPrefix .. "edge-top", true)
+    	if topTex ~= nil then
+			topEdge = img(topTex, {z=10, clipEnabled=clipEnabled})
+		end
+	end	
+	local bottomEdge = nil
+	local bottomTex = tex(pathPrefix .. "edge-bottom", true)
+	if bottomTex ~= nil then
+		bottomEdge = img(bottomTex, {z=10, clipEnabled=clipEnabled})
 	end
-	local bottomEdge = img(pathPrefix .. "edge-bottom", {z=10, clipEnabled=clipEnabled})
     
 	--Create controls
 	local returnButton = button(pathPrefix .. "return-")
@@ -545,10 +568,14 @@ function TextLogScreen:run()
 				topEdge:setBounds(x, y, w, vpad)
 				top = topEdge:getY() + topEdge:getHeight()
 			end
-			bottomEdge:setBounds(x, y+h-bh-vpad+1, w, bh+vpad)
+			
+			local bottomY = y+h-bh-vpad+1
+			local bottomH = bh+vpad
+			if bottomEdge ~= nil then
+				bottomEdge:setBounds(x, bottomY, w, bottomH)
+			end
 		
-			returnButton:setPos(x+(w-returnButton:getWidth())/2,
-				bottomEdge:getY() + (bottomEdge:getHeight()-returnButton:getHeight())/2)
+			returnButton:setPos(x+(w-returnButton:getWidth())/2, bottomY + (bottomH-returnButton:getHeight())/2)
 			
 			viewport:setBounds(x, top, w, math.ceil(h-bh-vpad-top))
     		local iw = viewport:getInnerWidth() - vpad*2 - 2
@@ -596,11 +623,11 @@ function ChoiceScreen.new(choiceId, ...)
 	
 	self.choiceStyle = self.choiceStyle or prefs.choiceStyle or createStyle()
 	self.selectedChoiceStyle = self.selectedChoiceStyle
-		or prefs.selectedChoiceStyle
-		or extendStyle(self.choiceStyle, {color=0xFF808080})
+		or extendStyle(self.choiceStyle, prefs.selectedChoiceStyle or {color=0xFF808080})
 	
 	local viewport = createViewport(self.w-self.pad*2, self.h-self.pad*2)
 	viewport:setPos(self.pad, self.pad)
+	viewport:setZ(-2000)
 	viewport:setPadding(self.pad)
 	viewport:setLayout(createFlowLayout{pack=5, anchor=5, padding=self.ipad, cols=1})
 	self.viewport = viewport
@@ -612,7 +639,6 @@ function ChoiceScreen.new(choiceId, ...)
 		local b = button("gui/choice-button")
 		b:setText(opt or "???")		
 		b:setAlpha(0)
-		b:setZ(-2000)
 		
 		local buttonScale = 1
 		if b:getUnscaledWidth() > screenWidth * .8 then

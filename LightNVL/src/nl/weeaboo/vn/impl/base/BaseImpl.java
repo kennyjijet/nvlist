@@ -27,4 +27,16 @@ final class BaseImpl {
 		return (ai<<24)|(ri<<16)|(gi<<8)|(bi);
 	}
 	
+	public static void checkRange(double val, String name) {
+		checkRange(val, name, Double.MIN_VALUE, Double.MAX_VALUE);
+	}
+	public static void checkRange(double val, String name, double min) {
+		checkRange(val, name, min, Double.MAX_VALUE);
+	}
+	public static void checkRange(double val, String name, double min, double max) {
+		if (Double.isNaN(val) || Double.isInfinite(val) || val < min || val > max) {
+			throw new IllegalArgumentException("Invalid value for " + name + ": " + val);
+		}
+	}
+	
 }

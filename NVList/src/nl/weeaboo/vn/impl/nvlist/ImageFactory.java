@@ -33,19 +33,18 @@ import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
 @LuaSerializable
 public class ImageFactory extends BaseImageFactory implements Serializable {
 
-	private static final boolean RENDER_TEXT_TO_TEXTURE = false;
-	
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
 	private final TextureCache texCache;
 	private final ShaderCache shCache;
 	private final GLTextRendererStore trStore;
+	private final boolean renderTextToTexture;
 	
 	private int imgWidth, imgHeight;
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	
 	public ImageFactory(TextureCache tc, ShaderCache sc, GLTextRendererStore trStore,
-			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h)
+			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
 	{
 		super(sl, ntf, w, h);
 		
@@ -56,6 +55,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		this.imgWidth = w;
 		this.imgHeight = h;
 		this.subTexLim = 128;
+		this.renderTextToTexture = renderTextToTexture;
 		
 		this.es = new EnvironmentSerializable(this);
 
@@ -88,7 +88,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	}
 	
 	protected ITextRenderer createTextRenderer() {
-		if (RENDER_TEXT_TO_TEXTURE) {
+		if (renderTextToTexture) {
 			return new TextureTR(this, trStore);
 		}
 		return new GlyphTR(this, trStore);

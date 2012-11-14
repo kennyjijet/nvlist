@@ -208,6 +208,9 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	
 	@Override
 	public void setScale(double sx, double sy) {
+		BaseImpl.checkRange(sx, "sx");
+		BaseImpl.checkRange(sy, "sy");
+		
 		if (scaleX != sx || scaleY != sy) {
 			scaleX = sx;
 			scaleY = sy;

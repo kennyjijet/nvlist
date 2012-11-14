@@ -89,7 +89,7 @@ import com.jogamp.common.nio.Buffers;
 		//System.out.println(getLayoutMaxWidth() + " " + getLayoutWidth() + " " + tex.getTexWidth());
 		
 		AWTParagraphRenderer pr = trStore.createAWTParagraphRenderer();
-		pr.setBounds(0, 0, getLayoutMaxWidth(), getLayoutMaxHeight());
+		pr.setBounds(PAD, PAD, getLayoutMaxWidth(), getLayoutMaxHeight());
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars(visibleChars);

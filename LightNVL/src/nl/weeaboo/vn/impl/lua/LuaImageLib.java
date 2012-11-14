@@ -160,6 +160,17 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 			}
 		}
 		
+		if (b.getNormalTexture() == null) {
+			ITexture normalI   = createColorTexture(0xFF333333, 300, 60);
+			ITexture rolloverI = createColorTexture(0xFF999999, 300, 60);
+			ITexture pressedI  = createColorTexture(0xFF111111, 300, 60);
+			ITexture disabledI = createColorTexture(0x80222222, 300, 60);
+			b.setNormalTexture(normalI);
+			b.setRolloverTexture(rolloverI);
+			b.setPressedTexture(pressedI);
+			b.setDisabledTexture(disabledI);
+		}
+		
 		layer.add(b);
 		return LuajavaLib.toUserdata(b, b.getClass());
 	}
@@ -254,15 +265,19 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 		
 		ITexture tex = null;
 		if (w > 0 && h > 0) {
-			int[] pixels = new int[w * h];
-			Arrays.fill(pixels, argb);
-			tex = imageFactory.createTexture(pixels, w, h, 1, 1);
+			tex = createColorTexture(argb, w, h);
 		}
 		
 		if (tex == null) {
 			return NIL;
 		}
 		return LuajavaLib.toUserdata(tex, tex.getClass());
+	}
+	
+	protected ITexture createColorTexture(int argb, int w, int h) {
+		int[] pixels = new int[w * h];
+		Arrays.fill(pixels, argb);
+		return imageFactory.createTexture(pixels, w, h, 1, 1);		
 	}
 	
 }

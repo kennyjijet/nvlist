@@ -238,8 +238,9 @@ public class Game extends BaseGame {
 		}
 				
 		SystemLib syslib = new SystemLib(this, notifier);
+		boolean renderTextToTexture = false; //isVNDS();
 		ImageFactory imgfac = new ImageFactory(texCache, shCache, trStore,
-				an, seenLog, notifier, nvlSize.w, nvlSize.h);
+				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
 		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);

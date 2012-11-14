@@ -361,7 +361,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	
 	@Override
 	public Rect2D getLayoutBounds() {
-		Insets2D padding = getPadding();
+		Insets2D padding = getPadding();		
 		return new Rect2D(padding.left-scrollX.pos, padding.top-scrollY.pos,
 				Math.max(0, getInnerWidth()-padding.left-padding.right),
 				Math.max(0, getInnerHeight()-padding.top-padding.bottom));
@@ -487,12 +487,16 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	
 	@Override
 	public void setDragSnap(double ds) {
+		BaseImpl.checkRange(ds, "ds");
+		
 		dragSnap = ds;
 	}
 	
 	public void setScrollBarX(double height, ITexture bar, ITexture thumb,
 			double marginTop, double marginRight, double marginBottom, double marginLeft)
 	{
+		BaseImpl.checkRange(height, "height", 0);
+		
 		Insets2D margin = new Insets2D(marginTop, marginRight, marginBottom, marginLeft);
 		scrollBarX = new ScrollBar(height, bar, thumb, margin, true);
 		markChanged();
@@ -502,6 +506,8 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	public void setScrollBarY(double width, ITexture bar, ITexture thumb,
 			double marginTop, double marginRight, double marginBottom, double marginLeft)
 	{
+		BaseImpl.checkRange(width, "width", 0);
+
 		Insets2D margin = new Insets2D(marginTop, marginRight, marginBottom, marginLeft);
 		scrollBarY = new ScrollBar(width, bar, thumb, margin, false);
 		markChanged();

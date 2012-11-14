@@ -1,8 +1,9 @@
 package nl.weeaboo.nvlist;
 
 import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
-import static nl.weeaboo.game.BaseGameConfig.SCALE;
 import static nl.weeaboo.game.BaseGameConfig.WIDTH;
+import static nl.weeaboo.vn.NovelPrefs.CHOICE_STYLE;
+import static nl.weeaboo.vn.NovelPrefs.SELECTED_CHOICE_STYLE;
 
 import java.awt.Container;
 import java.net.URI;
@@ -24,6 +25,8 @@ import nl.weeaboo.gl.text.GLTextRendererStore;
 import nl.weeaboo.gl.texture.TextureCache;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.sound.SoundManager;
+import nl.weeaboo.styledtext.FontStyle;
+import nl.weeaboo.styledtext.TextStyle;
 import nl.weeaboo.vn.impl.base.Obfuscator;
 import nl.weeaboo.vn.vnds.VNDSUtil;
 
@@ -45,11 +48,13 @@ public class Launcher extends BaseLauncher {
 	@Override
 	protected IGame startGame(Container container) throws InitException {
 		if (isVNDS()) {
-			setPreference(WIDTH.getKey(), "256");
+			/*setPreference(WIDTH.getKey(), "256");
 			setPreference(HEIGHT.getKey(), "192");
-			setPreference(SCALE.getKey(), "3");
-//			setPreference(WIDTH.getKey(), "1024");
-//			setPreference(HEIGHT.getKey(), "768");
+			setPreference(SCALE.getKey(), "3");*/
+			setPreference(WIDTH.getKey(), "800");
+			setPreference(HEIGHT.getKey(), "600");
+			setPreference(CHOICE_STYLE.getKey(), new TextStyle(null, FontStyle.PLAIN, 16).toString());
+			setPreference(SELECTED_CHOICE_STYLE.getKey(), new TextStyle(null, FontStyle.PLAIN, 16).toString());
 		}
 		
 		return super.startGame(container);

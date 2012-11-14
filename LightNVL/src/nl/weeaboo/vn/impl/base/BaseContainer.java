@@ -272,6 +272,9 @@ public abstract class BaseContainer extends BaseDrawable implements IContainer {
 	
 	@Override
 	public void setSize(double w, double h) {
+		BaseImpl.checkRange(w, "w", 0);
+		BaseImpl.checkRange(h, "h", 0);
+		
 		if (width != w || height != h) {
 			width = w;
 			height = h;

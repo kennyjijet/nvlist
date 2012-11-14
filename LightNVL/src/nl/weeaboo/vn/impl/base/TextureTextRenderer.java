@@ -13,6 +13,8 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
+	protected static final int PAD = 1;
+	
 	private transient ITexture texture;
 	private transient int textureW, textureH;
 	private transient boolean texContentDirty;
@@ -58,9 +60,9 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 		double vh = 1;
 		if (texture != null) {
 			w = getTextWidth();
-			uw = getLayoutWidth() / texture.getWidth();
+			uw = (2*PAD + getLayoutWidth()) / texture.getWidth();
 			h = getTextHeight();
-			vh = getLayoutHeight() / texture.getHeight();
+			vh = (2*PAD + getLayoutHeight()) / texture.getHeight();
 		}
 		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
 				dx, dy, w, h, 0, 0, uw, vh, null);
@@ -131,8 +133,8 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	protected abstract void renderLayoutToTexture(L layout, ITexture texture);
 	
 	protected void validateTexture() {
-		int lw = Math.max(1, (int)Math.ceil(getLayoutWidth()));
-		int lh = Math.max(1, (int)Math.ceil(getLayoutHeight()));
+		int lw = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutWidth()));
+		int lh = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutHeight()));
 		boolean textureOK = texture != null && textureW >= lw && textureH >= lh;
 				
 		if (!textureOK) {

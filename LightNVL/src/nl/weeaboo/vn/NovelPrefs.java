@@ -3,6 +3,7 @@ package nl.weeaboo.vn;
 import static nl.weeaboo.settings.Preference.newPreference;
 import static nl.weeaboo.styledtext.TextStylePreference.newPreference;
 import nl.weeaboo.settings.Preference;
+import nl.weeaboo.styledtext.FontStyle;
 import nl.weeaboo.styledtext.MutableTextStyle;
 import nl.weeaboo.styledtext.TextStyle;
 
@@ -10,7 +11,7 @@ public final class NovelPrefs {
 
 	public static final Preference<Boolean> SCRIPT_DEBUG = newPreference("vn.scriptDebug", false, "Script Debug", "Certain functions detect and warn about additional errors when script debug is turned on.");
 	public static final Preference<Integer> FPS = newPreference("vn.fps", 60, "Framerate", "The target game update and redraw rate in frames per second.");
-	public static final Preference<TextStyle> TEXT_STYLE = newPreference("vn.textStyle", TextStyle.defaultInstance(), "Default Text Style", "The default style to be used for rendered text.");
+	public static final Preference<TextStyle> TEXT_STYLE = newPreference("vn.textStyle", new TextStyle(null, FontStyle.PLAIN, 30), "Default Text Style", "The default style to be used for rendered text.");
 	public static final Preference<TextStyle> TEXT_READ_STYLE = newPreference("vn.textReadStyle", TextStyle.defaultInstance(), "Read Text Style", "The text style to use for previously read text");
 	public static final Preference<TextStyle> TEXT_LOG_STYLE = newPreference("vn.textLogStyle", coloredTextStyle(0xFFFFFF80), "Text Log Style", "The text style to use for the text log.");
 	public static final Preference<TextStyle> CHOICE_STYLE = newPreference("vn.choiceStyle", TextStyle.defaultInstance(), "Choice Style", "Text style used for options of choices");

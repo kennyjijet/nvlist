@@ -16,6 +16,7 @@ public class GridLayout extends AbstractLayout {
 	private int cols;
 	private boolean leftToRight;
 	private boolean stretchW, stretchH;
+	private boolean shrinkW, shrinkH;
 	
 	public GridLayout() {
 		pack = 0;
@@ -68,10 +69,26 @@ public class GridLayout extends AbstractLayout {
 		double x = startX;
 		double y = startY;
 		for (ILayoutComponent lc : components) {
-			if (stretchW || stretchH) {
-				double cw = (stretchW ? colW : lc.getWidth());
-				double ch = (stretchH ? rowH : lc.getHeight());
-				lc.setSize(cw, ch);
+			if (shrinkW || shrinkH || stretchW || stretchH) {
+				double lcw = lc.getWidth();
+				double lch = lc.getHeight();
+				
+				double cellW = lcw;
+				double cellH = lch;
+				
+				if (stretchW) {
+					cellW = colW;
+				} else if (shrinkW) {
+					cellW = Math.min(lcw, colW);
+				}
+				
+				if (stretchH) {
+					cellH = rowH;
+				} else if (shrinkH) {
+					cellH = Math.min(lch, rowH);
+				}
+				
+				lc.setSize(cellW, cellH);
 			}
 			
 			double cx = x + LayoutUtil.alignAnchorX(colW, lc.getWidth(), anchor);
@@ -173,6 +190,24 @@ public class GridLayout extends AbstractLayout {
 	public void setStretch(boolean horizontal, boolean vertical) {
 		stretchW = horizontal;
 		stretchH = vertical;
+	}
+	
+	/**
+	 * @see #setShrink(boolean, boolean)
+	 */
+	public void setShrink(boolean stretch) {
+		setShrink(stretch, stretch);
+	}
+	
+	/**
+	 * Changes in which directions the contents of a cell may be shrunk.
+	 * 
+	 * @param horizontal Shrink in horizontal direction.
+	 * @param vertical Shrink in vertical direction.
+	 */
+	public void setShrink(boolean horizontal, boolean vertical) {
+		shrinkW = horizontal;
+		shrinkH = vertical;
 	}
 	
 }
