@@ -37,6 +37,7 @@
     <chapter-group title="Developer tools">
       <chapter url="ch60-hotkeys.xml">Hotkeys</chapter>
       <chapter url="ch61-debug-window.xml">Debug window</chapter>
+      <chapter url="ch62-bug-reports.xml">Bug reports</chapter>
     </chapter-group>
   </chapter-index>
   
