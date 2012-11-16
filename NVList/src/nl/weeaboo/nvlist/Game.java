@@ -411,6 +411,7 @@ public class Game extends BaseGame {
 			ILayer root = is.getRootLayer();
 			
 			if (renderer == null) {
+				ImageFactory imgfac = (ImageFactory)novel.getImageFactory();
 				ISystemLib syslib = novel.getSystemLib();
 				RenderEnv env = new RenderEnv(getWidth(), getHeight(),
 						getRealX(), getRealY(), getRealW(), getRealH(),
@@ -418,7 +419,7 @@ public class Game extends BaseGame {
 			
 				is.setRenderEnv(env);
 				
-				renderer = new Renderer(glm, pr, env, renderStats);				
+				renderer = new Renderer(glm, pr, imgfac, env, renderStats);				
 			}
 			
 			DrawBuffer buffer = renderer.getDrawBuffer();

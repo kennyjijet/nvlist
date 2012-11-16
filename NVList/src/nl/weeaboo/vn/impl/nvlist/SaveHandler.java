@@ -62,10 +62,13 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 			return new byte[0];
 		}
 		
-		int w = ss.getWidth();
-		int h = ss.getHeight();
-		int argb[] = ss.getARGB();
-				
+		int argb[] = ss.getPixels();
+		int w = ss.getPixelsWidth();
+		int h = ss.getPixelsHeight();
+		if (argb == null || w <= 0 || h <= 0) {
+			return new byte[0];
+		}
+		
 		BufferedImage image = ImageUtil.createBufferedImage(w, h, argb, false);		
 		if (screenshotSaveSize != null) {
 			image = ImageUtil.getScaledImageProp(image,

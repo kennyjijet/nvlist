@@ -31,6 +31,7 @@ import static javax.media.opengl.GL2ES1.GL_TEXTURE_ENV_MODE;
 
 import javax.media.opengl.GL2ES1;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
@@ -75,8 +76,8 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		float f = tex0Factor;
 		int texId0 = getTexId(tex0);
 		int texId1 = getTexId(tex1);
-		Rect2D uv0 = tex0.getUV();
-		Rect2D uv1 = tex1.getUV();
+		Area2D uv0 = tex0.getUV();
+		Area2D uv1 = tex1.getUV();
 		
 		//Set texture 0		
 		gl.glActiveTexture(GL_TEXTURE0);
@@ -126,8 +127,8 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		gl.glPushMatrix();
 		gl.glMultMatrixf(transform.toGLMatrix(), 0);		
 		TriangleGrid grid = TriangleGrid.layout2(
-				bounds0, uv0, TextureWrap.CLAMP,
-				bounds1, uv1, TextureWrap.CLAMP);			
+				bounds0.toArea2D(), uv0, TextureWrap.CLAMP,
+				bounds1.toArea2D(), uv1, TextureWrap.CLAMP);			
 		renderer.renderTriangleGrid(grid);
 	    gl.glPopMatrix();
 		

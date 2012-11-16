@@ -11,19 +11,29 @@ public interface IScreenshot extends Serializable {
 	 */
 	public void markTransient();
 	
-	/**
-	 * Marks this screenshot object as volatile; its backing pixels may disappear at any time.
-	 */
-	public void markVolatile();
+	@Deprecated
+	public void makeTransient();
 	
 	public boolean isAvailable();
+	public boolean isVolatile();
+	public boolean isTransient();
 	public boolean isCancelled();
 	
 	public int getScreenWidth();
 	public int getScreenHeight();
 	
-	public int getWidth();
-	public int getHeight();
+	/**
+	 * Warning: May return <code>null</code>. 
+	 */
+	public int[] getPixels();
+	public int getPixelsWidth();
+	public int getPixelsHeight();
+	
+	/**
+	 * Warning: May return <code>null<code>. 
+	 */
+	public ITexture getVolatilePixels();
+	
 	public short getZ();
 	
 }

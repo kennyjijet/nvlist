@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
@@ -61,10 +61,10 @@ public abstract class FadeQuadHelper {
 			color1 = temp;
 		}
 		
-		Rect2D uv;
+		Area2D uv;
 		if (RENDER_TEST) {
 			tex = null;
-			uv = new Rect2D(0, 0, 1, 1);
+			uv = new Area2D(0, 0, 1, 1);
 		} else {
 			uv = tex.getUV();
 		}
@@ -82,7 +82,7 @@ public abstract class FadeQuadHelper {
 	protected abstract void renderTriangleStrip(ITexture tex, Matrix transform, FloatBuffer vertices,
 			FloatBuffer texcoords, IntBuffer colors, int count);
 	
-    protected void setupTriangleStrip(Rect2D uv, boolean horizontal, float start, float end,
+    protected void setupTriangleStrip(Area2D uv, boolean horizontal, float start, float end,
     		float x, float y, float w, float h, int premultColor0, int premultColor1,
     		IInterpolator interpolator)
     {

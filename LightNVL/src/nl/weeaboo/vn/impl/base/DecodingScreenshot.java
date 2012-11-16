@@ -12,15 +12,16 @@ public abstract class DecodingScreenshot extends BaseScreenshot {
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
 	private transient ByteBuffer data;
-	private boolean loaded;
 	
 	public DecodingScreenshot(ByteBuffer b) {
-		super((short)0);
+		super((short)0, false);
 		
 		data = b;
 		
 		if (data == null) {
 			cancel();
+		} else {
+			isAvailable = true;
 		}
 	}
 	
@@ -57,35 +58,30 @@ public abstract class DecodingScreenshot extends BaseScreenshot {
 	}
 	
 	@Override
-	public boolean isAvailable() {
-		return !isCancelled() && data != null;
-	}
-	
-	@Override
-	public int[] getARGB() {
-		if (!loaded) {
+	public int[] getPixels() {
+		if (!isAvailable) {
 			tryLoad(data);
-			loaded = true;
+			isAvailable = true;
 		}		
-		return super.getARGB();
+		return super.getPixels();
 	}
 
 	@Override
-	public int getWidth() {
-		if (!loaded) {
+	public int getPixelsWidth() {
+		if (!isAvailable) {
 			tryLoad(data);
-			loaded = true;
+			isAvailable = true;
 		}		
-		return super.getWidth();
+		return super.getPixelsWidth();
 	}
 
 	@Override
-	public int getHeight() {
-		if (!loaded) {
+	public int getPixelsHeight() {
+		if (!isAvailable) {
 			tryLoad(data);
-			loaded = true;
+			isAvailable = true;
 		}		
-		return super.getHeight();
+		return super.getPixelsHeight();
 	}
 	
 }

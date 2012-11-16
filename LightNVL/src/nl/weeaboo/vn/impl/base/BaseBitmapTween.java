@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl.base;
 
 import java.util.Arrays;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IDrawBuffer;
@@ -89,19 +90,19 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		//Create geometry
 		ITexture tex0 = getStartTexture();
 		Rect2D bounds0 = LayoutUtil.getBounds(tex0, getStartAlignX(), getStartAlignY());
-		Rect2D texBounds0 = (tex0 != null ? tex0.getUV() : new Rect2D(0, 0, 1, 1));
+		Area2D texBounds0 = (tex0 != null ? tex0.getUV() : new Area2D(0, 0, 1, 1));
 		TextureWrap wrap0 = TextureWrap.CLAMP;
 		ITexture tex1 = getEndTexture();
 		Rect2D bounds1 = LayoutUtil.getBounds(tex1, getEndAlignX(), getEndAlignY());
-		Rect2D texBounds1 = (tex1 != null ? tex1.getUV() : new Rect2D(0, 0, 1, 1));
+		Area2D texBounds1 = (tex1 != null ? tex1.getUV() : new Area2D(0, 0, 1, 1));
 		TextureWrap wrap1 = TextureWrap.CLAMP;
 		Rect2D bounds2 = (fadeTexTile ? LayoutUtil.getBounds(fadeTex, 0, 0) : Rect2D.combine(bounds0, bounds1));
-		Rect2D texBounds2 = new Rect2D(0, 0, 1, 1);
+		Area2D texBounds2 = new Area2D(0, 0, 1, 1);
 		if (fadeTex != null) {
 			Rect2D b = LayoutUtil.getBounds(fadeTex, 0, 0);
-			Rect2D uv = fadeTex.getUV();
+			Area2D uv = fadeTex.getUV();
 			if (fadeTexTile) {
-				texBounds2 = new Rect2D(uv.x, uv.y, uv.w*bounds.w/b.w, uv.h*bounds.h/b.h);
+				texBounds2 = new Area2D(uv.x, uv.y, uv.w*bounds.w/b.w, uv.h*bounds.h/b.h);
 			} else {
 				double sx = bounds.w/b.w, sy = bounds.h/b.h;
 				double w, h;
@@ -110,13 +111,15 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 				} else {
 					h = uv.h; w = sx/sy*uv.w;
 				}
-				texBounds2 = new Rect2D(uv.x+(1-w)/2, uv.y+(1-h)/2, w, h);
+				texBounds2 = new Area2D(uv.x+(1-w)/2, uv.y+(1-h)/2, w, h);
 			}
 		}
 		TextureWrap wrap2 = (fadeTexTile ? TextureWrap.REPEAT_BOTH : TextureWrap.CLAMP);
 		
-		grid = TriangleGrid.layout3(bounds0, texBounds0, wrap0,
-				bounds1, texBounds1, wrap1, bounds2, texBounds2, wrap2);
+		grid = TriangleGrid.layout3(
+				bounds0.toArea2D(), texBounds0, wrap0,
+				bounds1.toArea2D(), texBounds1, wrap1,
+				bounds2.toArea2D(), texBounds2, wrap2);
 	}
 	
 	@Override

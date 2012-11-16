@@ -90,8 +90,8 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	}
 	
 	@Override
-	public IScreenshot screenshot(short z) {
-		return new Screenshot(z);
+	public IScreenshot screenshot(short z, boolean isVolatile) {
+		return new Screenshot(z, isVolatile);
 	}
 	
 	@Override
@@ -102,14 +102,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 			return createTexture(createGLTexture(argb, w, h, 0, 0, 0), sx, sy);
 		}
 	}
-	
-	@Override
-	public ITexture createTexture(IScreenshot ss) {
-		return createTexture(ss.getARGB(), ss.getWidth(), ss.getHeight(),
-				width / (double)ss.getScreenWidth(),
-				height / (double)ss.getScreenHeight());
-	}
-	
+		
 	public ITexture createTexture(GLTexture tex, double sx, double sy) {
 		if (tex == null) {
 			return null;

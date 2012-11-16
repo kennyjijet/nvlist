@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadFactory;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 
-import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.game.GameLog;
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
@@ -205,7 +205,7 @@ public final class Movie extends BaseVideo {
 		GLTexture readTex = textures[readIndex];
 		if (readTex != null && !readTex.isDisposed()) {
 			glm.setTexture(readTex);
-			Rect2D uv = readTex.getUV();
+			Area2D uv = readTex.getUV();
 			glm.fillRect(0, 0, drawW, drawH, uv.x, uv.y, uv.w, uv.h);
 			glm.setTexture(null);
 		}		

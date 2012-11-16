@@ -317,6 +317,20 @@ while not input:consumeConfirm() and not tb:consumePress() do
 end
 ]]
 
+--[[ Volatile screenshots ]]
+bgf("bg/bg1")
+wait(60)
+local ss = screen2image(nil, -32768, false, true)
+ss:setColor(1, 0, 0)
+ss:setAlpha(0)
+fadeTo(ss, 1)
+while not input:consumeConfirm() do
+    yield()
+end
+rmf(ss)
+wait(60)
+rmbgf()
+
 yield()
 
 return titlescreen()

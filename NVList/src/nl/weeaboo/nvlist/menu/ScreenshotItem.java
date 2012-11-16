@@ -77,14 +77,21 @@ public class ScreenshotItem extends GameMenuAction {
 
 	@Override
 	public void actionPerformed(JMenuItem item, ActionEvent e, final Game game, Novel nvl) {
-		final IScreenshot ss = nvl.getImageFactory().screenshot(Short.MIN_VALUE);
+		final IScreenshot ss = nvl.getImageFactory().screenshot(Short.MIN_VALUE, false);
 		nvl.getImageState().getRootLayer().getScreenshotBuffer().add(ss, false);
 		waitForScreenshot(game.getExecutor(), ss);
 	}
 
 	private static byte[] serializeImage(IScreenshot ss, Format format) throws IOException {
-		BufferedImage image = new BufferedImage(ss.getWidth(), ss.getHeight(), BufferedImage.TYPE_INT_BGR);
-		image.setRGB(0, 0, ss.getWidth(), ss.getHeight(), ss.getARGB(), 0, ss.getWidth());
+		int[] argb = ss.getPixels();
+		int w = ss.getPixelsWidth();
+		int h = ss.getPixelsHeight();
+		if (argb == null || w <= 0 || h <= 0) {
+			throw new IOException("Screenshot doesn't contain any pixels: argb=" + argb + ", w=" + w + ", h=" + h);
+		}
+		
+		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);
+		image.setRGB(0, 0, w, h, argb, 0, w);
 		
 		ByteChunkOutputStream bout = new ByteChunkOutputStream();
 		if (format.fext.equals("jpg")) {

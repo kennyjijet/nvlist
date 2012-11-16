@@ -5,6 +5,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IDistortGrid;
 import nl.weeaboo.vn.IPixelShader;
@@ -48,7 +49,7 @@ public abstract class DistortQuadHelper {
 
 		preRender(tex, transform);
 		try {
-			Rect2D uv = (tex != null ? tex.getUV() : new Rect2D(0, 0, 1, 1));
+			Area2D uv = (tex != null ? tex.getUV() : new Area2D(0, 0, 1, 1));
 			for (int row = 0; row < grid.getHeight(); row++) {
 				int count = setupTriangleStrip(grid, row, premultiplyAlpha(argb),
 						(float)x, (float)y, (float)w, (float)h, uv, clampBounds);
@@ -64,7 +65,7 @@ public abstract class DistortQuadHelper {
 	protected abstract void postRender();
 
     protected int setupTriangleStrip(IDistortGrid grid, int row, int argb,
-    		float x, float y, float w, float h, Rect2D uv, Rect2D clampBounds)
+    		float x, float y, float w, float h, Area2D uv, Rect2D clampBounds)
     {
 		float clx0, clx1, cly0, cly1;
 		if (clampBounds != null) {

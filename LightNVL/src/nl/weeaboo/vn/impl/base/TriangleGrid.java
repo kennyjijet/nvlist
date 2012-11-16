@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.TreeSet;
 
-import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.io.BufferUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
@@ -39,27 +39,27 @@ public final class TriangleGrid implements Serializable {
 	}
 
 	//Functions
-	public static TriangleGrid layout1(Rect2D bounds0, Rect2D texBounds0, TextureWrap wrap0) {
-		return layout(new Rect2D[] {bounds0},
-				new Rect2D[] {texBounds0},
+	public static TriangleGrid layout1(Area2D bounds0, Area2D texBounds0, TextureWrap wrap0) {
+		return layout(new Area2D[] {bounds0},
+				new Area2D[] {texBounds0},
 				new TextureWrap[] {wrap0});
 	}
-	public static TriangleGrid layout2(Rect2D bounds0, Rect2D texBounds0, TextureWrap wrap0,
-			Rect2D bounds1, Rect2D texBounds1, TextureWrap wrap1)
+	public static TriangleGrid layout2(Area2D bounds0, Area2D texBounds0, TextureWrap wrap0,
+			Area2D bounds1, Area2D texBounds1, TextureWrap wrap1)
 	{
-		return layout(new Rect2D[] {bounds0, bounds1},
-				new Rect2D[] {texBounds0, texBounds1},
+		return layout(new Area2D[] {bounds0, bounds1},
+				new Area2D[] {texBounds0, texBounds1},
 				new TextureWrap[] {wrap0, wrap1});
 	}
-	public static TriangleGrid layout3(Rect2D bounds0, Rect2D texBounds0, TextureWrap wrap0,
-			Rect2D bounds1, Rect2D texBounds1, TextureWrap wrap1,
-			Rect2D bounds2, Rect2D texBounds2, TextureWrap wrap2)
+	public static TriangleGrid layout3(Area2D bounds0, Area2D texBounds0, TextureWrap wrap0,
+			Area2D bounds1, Area2D texBounds1, TextureWrap wrap1,
+			Area2D bounds2, Area2D texBounds2, TextureWrap wrap2)
 	{
-		return layout(new Rect2D[] {bounds0, bounds1, bounds2},
-				new Rect2D[] {texBounds0, texBounds1, texBounds2},
+		return layout(new Area2D[] {bounds0, bounds1, bounds2},
+				new Area2D[] {texBounds0, texBounds1, texBounds2},
 				new TextureWrap[] {wrap0, wrap1, wrap2});
 	}
-	private static TriangleGrid layout(Rect2D[] bounds, Rect2D[] texBounds, TextureWrap[] wrap) {
+	private static TriangleGrid layout(Area2D[] bounds, Area2D[] texBounds, TextureWrap[] wrap) {
 		if (bounds.length != texBounds.length) {
 			throw new IllegalArgumentException("bounds.length != texBounds.length");
 		} else if (texBounds.length != wrap.length) {
@@ -67,7 +67,7 @@ public final class TriangleGrid implements Serializable {
 		}
 		
 		TreeSet<Double> sorter = new TreeSet<Double>();
-		for (Rect2D r : bounds) {
+		for (Area2D r : bounds) {
 			sorter.add(r.x);
 			sorter.add(r.x + r.w);
 		}
@@ -78,7 +78,7 @@ public final class TriangleGrid implements Serializable {
 		}
 		
 		sorter.clear();
-		for (Rect2D r : bounds) {
+		for (Area2D r : bounds) {
 			sorter.add(r.y);
 			sorter.add(r.y + r.h);
 		}
@@ -127,7 +127,7 @@ public final class TriangleGrid implements Serializable {
 		coords.put((float)x); coords.put((float)y);
 	}
 	private static void glDrawArrayTexcoord(FloatBuffer coords, double x, double y,
-			Rect2D bounds, Rect2D texBounds, TextureWrap wrap)
+			Area2D bounds, Area2D texBounds, TextureWrap wrap)
 	{
 		double normalizedX = (x-bounds.x) / bounds.w;
 		double normalizedY = (y-bounds.y) / bounds.h;

@@ -2,7 +2,7 @@ package nl.weeaboo.vn;
 
 import java.io.Serializable;
 
-import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.common.Area2D;
 
 public interface ITexture extends Serializable {
 
@@ -34,7 +34,7 @@ public interface ITexture extends Serializable {
 	 * @return The texture mapping coordinates used by the underlying graphics
 	 *         system.
 	 */
-	public Rect2D getUV();
+	public Area2D getUV();
 	
 	// === Setters =============================================================
 	

@@ -17,16 +17,16 @@ public class Screenshot extends BaseScreenshot {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 	
-	public Screenshot(short z) {
-		super(z);
+	public Screenshot(short z, boolean isVolatile) {
+		super(z, isVolatile);
 	}
 	
 	//Functions				
 	@Override
-	protected void serializePixels(ObjectOutputStream out, int[] argb) throws IOException {
-		if (argb != null && getWidth() > 0 && getHeight() > 0) {
+	protected void serializePixels(ObjectOutputStream out, int[] argb, int w, int h) throws IOException {
+		if (argb != null && w > 0 && h > 0) {
 			ByteChunkOutputStream bout = new ByteChunkOutputStream();
-			TGAUtil.writeTGA(bout, argb, getWidth(), getHeight(), true, true);
+			TGAUtil.writeTGA(bout, argb, w, h, true, true);
 			out.writeInt(bout.size());
 			bout.writeContentsTo((OutputStream)out);
 		} else {
@@ -35,7 +35,7 @@ public class Screenshot extends BaseScreenshot {
 	}
 	
 	@Override
-	protected int[] deserializePixels(ObjectInputStream in) throws IOException, ClassNotFoundException {
+	protected int[] deserializePixels(ObjectInputStream in, int w, int h) throws IOException, ClassNotFoundException {
 		int len = in.readInt();
 		if (len > 0) {
 			byte data[] = new byte[len];

@@ -6,8 +6,10 @@ import static javax.media.opengl.GL.GL_TRIANGLE_STRIP;
 import static javax.media.opengl.fixedfunc.GLPointerFunc.GL_TEXTURE_COORD_ARRAY;
 import static javax.media.opengl.fixedfunc.GLPointerFunc.GL_VERTEX_ARRAY;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.gl.GLBlendMode;
@@ -15,6 +17,8 @@ import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.SpriteBatch;
 import nl.weeaboo.gl.capture.GLScreenshot;
 import nl.weeaboo.gl.text.ParagraphRenderer;
+import nl.weeaboo.gl.texture.GLGeneratedTexture;
+import nl.weeaboo.gl.texture.GLTexRect;
 import nl.weeaboo.gl.texture.GLTexture;
 import nl.weeaboo.io.BufferUtil;
 import nl.weeaboo.textlayout.TextLayout;
@@ -38,6 +42,7 @@ public class Renderer extends BaseRenderer {
 
 	private final GLManager glm;
 	private final ParagraphRenderer pr;
+	private final ImageFactory imgfac;
 	private final FadeQuadRenderer fadeQuadRenderer;
 	private final BlendQuadRenderer blendQuadRenderer;
 	private final DistortQuadRenderer distortQuadRenderer;
@@ -51,11 +56,12 @@ public class Renderer extends BaseRenderer {
 	private float[] tempFloat = new float[8]; //Temporary var
 	//-------------------------------------------------------------------------------------
 	
-	public Renderer(GLManager glm, ParagraphRenderer pr, RenderEnv env, RenderStats stats) {
+	public Renderer(GLManager glm, ParagraphRenderer pr, ImageFactory imgfac, RenderEnv env, RenderStats stats) {
 		super(env, stats);
 		
 		this.glm = glm;
 		this.pr = pr;
+		this.imgfac = imgfac;
 		this.fadeQuadRenderer = new FadeQuadRenderer(this);
 		this.blendQuadRenderer = new BlendQuadRenderer(this);
 		this.distortQuadRenderer = new DistortQuadRenderer(this);
@@ -156,7 +162,7 @@ public class Renderer extends BaseRenderer {
 		if (itex != null) {
 			TextureAdapter ta = (TextureAdapter)itex;
 			if (ta.getTexId() != 0) {
-				Rect2D uv = ta.getUV();
+				Area2D uv = ta.getUV();
 				u  = uv.x + u * uv.w;
 				v  = uv.y + v * uv.h;
 				uw = uv.w * uw;
@@ -250,11 +256,24 @@ public class Renderer extends BaseRenderer {
 		
 		Screenshot ss = (Screenshot)out;
 		
-		GLScreenshot gss = new GLScreenshot();
-		gss.set(glm, glScreenRect);
-		
-		int[] argb = BufferUtil.toArray(gss.getARGB());
-		ss.set(argb, gss.getWidth(), gss.getHeight(), env.rw, env.rh);
+		if (ss.isVolatile()) {
+			GL gl = glm.getGL();
+			GLGeneratedTexture glTex = imgfac.createGLTexture(null, glScreenRect.w, glScreenRect.h, 0, 0, 0);
+			glTex.forceLoad(glm);
+			GLTexRect glTexRect = glTex.getTexRect(GLTexture.TEXRECT_FLIPPED) ;
+
+			gl.glCopyTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, glScreenRect.x, glScreenRect.y,
+					glTex.getCropWidth(), glTex.getCropHeight());
+			
+			ITexture tex = imgfac.createTexture(glTexRect, env.vw / (double)env.rw, env.vh / (double)env.rh);
+			
+			ss.setVolatilePixels(tex, env.rw, env.rh);
+		} else {
+			GLScreenshot gss = new GLScreenshot();
+			gss.set(glm, glScreenRect);		
+			int[] argb = BufferUtil.toArray(gss.getARGB());
+			ss.setPixels(argb, gss.getWidth(), gss.getHeight(), env.rw, env.rh);
+		}
 	}
 	
 	@Override

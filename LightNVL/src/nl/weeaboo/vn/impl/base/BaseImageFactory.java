@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.INotifier;
+import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.ITexture;
 
@@ -29,6 +30,16 @@ public abstract class BaseImageFactory extends BaseMediaFactory implements IImag
 	}
 	
 	//Functions
+	@Override
+	public ITexture toTexture(IScreenshot ss) {
+		if (ss.isVolatile()) {
+			return ss.getVolatilePixels();
+		} else {
+			return createTexture(ss.getPixels(), ss.getPixelsWidth(), ss.getPixelsHeight(),
+					width / (double)ss.getScreenWidth(),
+					height / (double)ss.getScreenHeight());
+		}
+	}
 
 	//Getters
 	@Override

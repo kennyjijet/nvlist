@@ -246,12 +246,15 @@ end
 --        underneath it will be visible in the screenshot. Passing
 --        <code>nil</code> for the layer param takes a screenshot of everything.
 -- @param z The z-index in the selected layer to take the screenshot at.
+-- @param clip Whether or not to honor the layer's clipping bounds.
+-- @param volatile Allow optimizations which may cause the screenshot's pixels
+--        to disappear at any time.
 -- @return A screenshot object to be used as an argument to the <code>img</code>
 --         function later.
-function screenshot(layer, z)
+function screenshot(layer, z, clip, volatile)
 	local ss = nil
 	while ss == nil do
-		ss = Image.screenshot(layer, z)
+		ss = Image.screenshot(layer, z, clip, volatile)
 		while not ss:isAvailable() and not ss:isCancelled() do
 			--print("looping", ss:isCancelled())
 			yield()
@@ -269,12 +272,15 @@ end
 -- as a single image.
 -- @param layer The layer in which to take the screenshot
 -- @param z The z-index to take the screenshot at.
+-- @param clip Whether or not to honor the layer's clipping bounds.
+-- @param volatile Allow optimizations which may cause the screenshot's pixels
+--        to disappear at any time.
 -- @return The newly created image
-function screen2image(layer, z)
+function screen2image(layer, z, clip, volatile)
 	layer = layer or getImageLayer()
 	z = z or -999
 	
-	i = Image.createImage(layer, screenshot(layer, z))
+	i = Image.createImage(layer, screenshot(layer, z, clip, volatile))
 	i:setZ(z + 1)
 	return i
 end

@@ -76,7 +76,7 @@ class ImageDecodingScreenshot extends DecodingScreenshot {
 			int h = image.getHeight();
 			int argb[] = new int[w * h];
 			ImageUtil.getPixels(image, IntBuffer.wrap(argb), 0, w);			
-			set(argb, w, h, w, h);
+			setPixels(argb, w, h, w, h);
 		}
 	}
 	

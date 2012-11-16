@@ -28,9 +28,12 @@ public interface IImageFactory {
 	 * screenshot will not be taken until you do.
 	 * 
 	 * @param z The Z-coordinate to take the screenshot at.
+	 * @param volatile Settings <code>volatile<code> to <code>true</code> allows
+	 *        the screenshot to enable optimizations which could cause it to
+	 *        lose its pixels at any time.
 	 * @return A new screenshot object.
 	 */
-	public IScreenshot screenshot(short z);
+	public IScreenshot screenshot(short z, boolean isVolatile);
 
 	/**
 	 * Tells the runtime that the image specified by the given filename will be
@@ -63,7 +66,7 @@ public interface IImageFactory {
 	/**
 	 * Creates a texture from a screenshot. 
 	 */
-	public ITexture createTexture(IScreenshot ss);
+	public ITexture toTexture(IScreenshot ss);
 	
 	/**
 	 * Returns the paths for all image files in the specified folder

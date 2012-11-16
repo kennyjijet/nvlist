@@ -98,7 +98,8 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 				if (!ss.isAvailable()) {
 					throw new LuaError("Screenshot data isn't available yet");
 				}
-				d.setTexture(imageFactory.createTexture(ss));
+				
+				d.setTexture(imageFactory.toTexture(ss));
 			} else if (obj instanceof ITexture) {
 				d.setTexture((ITexture)obj);
 			} else {
@@ -178,7 +179,7 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 	protected Varargs screenshot(Varargs args) {
 		ILayer layer = null;
 		int z;
-		boolean clip;
+		boolean clip;		
 		if (!args.isnil(1)) {
 			layer = getLayerArg(args, 1);
 			z = args.optint(2, -999);
@@ -188,12 +189,13 @@ public class LuaImageLib extends LuaLibrary implements Serializable {
 			z = Short.MIN_VALUE;
 			clip = false;
 		}
+		boolean isVolatile = args.optboolean(4, false);
 		
 		if (layer == null) {
 			return NIL;
 		}
 		
-		IScreenshot ss = imageFactory.screenshot((short)z);		
+		IScreenshot ss = imageFactory.screenshot((short)z, isVolatile);		
 		layer.getScreenshotBuffer().add(ss, clip);
 		return LuajavaLib.toUserdata(ss, ss.getClass());
 	}
