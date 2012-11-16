@@ -41,13 +41,13 @@ public class Novel extends LuaNovel {
 	// !!WARNING!! Do not add properties without adding code for saving/loading
 	
 	public Novel(INovelConfig nc, ImageFactory imgfac, IImageState is, ImageFxLib fxlib,
-			SoundFactory sndfac, ISoundState ss, VideoFactory vf, IVideoState vs, GUIFactory gf,
-			ITextState ts, NovelNotifier n, IInput in, SystemLib syslib, SaveHandler sh,
+			SoundFactory sndfac, ISoundState ss, VideoFactory vidfac, IVideoState vs, GUIFactory guifac,
+			ITextState ts, NovelNotifier n, IInput in, ShaderFactory shfac, SystemLib syslib, SaveHandler sh,
 			ScriptLib scrlib, TweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
 			ISeenLog seenLog, IAnalytics analytics, ITimer tmr,
 			FileManager fm, IKeyConfig kc, boolean isVNDS)
 	{
-		super(nc, imgfac, is, fxlib, sndfac, ss, vf, vs, gf, ts, n, in, syslib, sh, scrlib, tl,
+		super(nc, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib, tl,
 				sharedGlobals, globals, seenLog, analytics, tmr);
 		
 		this.fm = fm;
@@ -103,7 +103,6 @@ public class Novel extends LuaNovel {
 			LuaUtil.registerClass(globals, FreeRotationGS.class);
 
 			//Register libraries
-			GLSLPS.install(globals, (ImageFactory)getImageFactory(), getNotifier());
 			if (isVNDS) {
 				registerVNDSLib();
 			}

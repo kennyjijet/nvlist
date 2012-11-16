@@ -9,7 +9,6 @@ import javax.media.opengl.GL2;
 
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.ScaleUtil;
-import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.shader.GLShader;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
@@ -32,9 +31,10 @@ public class BitmapTween extends BaseBitmapTween {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 	
-	private static final String requiredGlslVersion = "1.1";
+	private static final String requiredGLSLVersion = "1.1";
 	
-	private final ImageFactory fac;
+	private final ImageFactory imgfac;
+	private final ShaderFactory shfac;
 	
 	//--- Initialized in prepare() ---
 	private GLShader shader;
@@ -42,17 +42,18 @@ public class BitmapTween extends BaseBitmapTween {
 	private GLTexRect fadeTex;
 	private GLGeneratedTexture remapTex;
 	
-	public BitmapTween(ImageFactory ifac, INotifier ntf, String fadeFilename, double duration,
+	public BitmapTween(INotifier ntf, ImageFactory imgfac, ShaderFactory shfac, String fadeFilename, double duration,
 			double range, IInterpolator i, boolean fadeTexTile)
 	{	
 		super(ntf, fadeFilename, duration, range, i, fadeTexTile);
 		
-		this.fac = ifac;
+		this.imgfac = imgfac;
+		this.shfac = shfac;
 	}
 	
 	//Functions
-	public static boolean isAvailable(String glslVersion) {
-		return StringUtil.compareVersion(requiredGlslVersion, glslVersion) <= 0;
+	public static boolean isAvailable(ShaderFactory shfac) {
+		return shfac.isGLSLVersionSupported(requiredGLSLVersion);
 	}
 	
 	private void resetPrepared() {
@@ -81,7 +82,7 @@ public class BitmapTween extends BaseBitmapTween {
 	
 	@Override
 	protected void prepareShader() {
-		shader = fac.getGLShader("bitmap-tween");
+		shader = shfac.getGLShader("bitmap-tween");
 	}
 
 	@Override
@@ -97,7 +98,7 @@ public class BitmapTween extends BaseBitmapTween {
 
 	@Override
 	protected ITexture prepareFadeTexture(String filename) {
-		TextureAdapter ta = (TextureAdapter)fac.getTexture(filename, null, false);
+		TextureAdapter ta = (TextureAdapter)imgfac.getTexture(filename, null, false);
 		fadeTex = ta.getTexRect();
 		return ta;
 	}
@@ -115,14 +116,14 @@ public class BitmapTween extends BaseBitmapTween {
 		int[] argb = new int[w * h];
 		Arrays.fill(argb, colorARGB);
 		
-		GLTexture tex = fac.createGLTexture(argb, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
+		GLTexture tex = imgfac.createGLTexture(argb, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
 		fadeTex = tex.getTexRect(null);
-		return fac.createTexture(fadeTex, 1, 1);
+		return imgfac.createTexture(fadeTex, 1, 1);
 	}
 
 	@Override
 	protected void prepareRemapTexture(int w, int h) {
-		remapTex = fac.createGLTexture(null, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
+		remapTex = imgfac.createGLTexture(null, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
 	}
 
 	@Override

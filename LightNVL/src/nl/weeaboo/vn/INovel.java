@@ -35,6 +35,7 @@ public interface INovel {
 	public ITextState getTextState();
 	public INotifier getNotifier();
 	public IInput getInput();
+	public IShaderFactory getShaderFactory();
 	public ISystemLib getSystemLib();
 	public ISaveHandler getSaveHandler();
 	public IScriptLib getScriptLib();

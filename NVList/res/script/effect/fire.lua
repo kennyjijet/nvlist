@@ -24,7 +24,7 @@ function FireImage.new(image, self)
         self.overlay:setPos(image:getX(), image:getY())
         self.overlay:setTexture(self:generateOverlayTexture(image:getTexture()), 5)
     else
-        local ps = GLSL.new("fire-shadow")
+        local ps = Shader.createGLSLShader("fire-shadow")
         ps:setLooper(Looper.new(0.01))
         self.sprite:setPixelShader(ps)
     end
@@ -125,8 +125,8 @@ end
 function firebg(...)
     local i = bg(...)
     
-    if GLSL ~= nil and GLSL.isVersionSupported("1.1") then
-        local ps = GLSL.new("fire-background")
+    if Shader.isGLSLVersionSupported("1.1") then
+        local ps = Shader.createGLSLShader("fire-background")
         ps:setLooper(Looper.new(0.01))
         i:setPixelShader(ps)
     else

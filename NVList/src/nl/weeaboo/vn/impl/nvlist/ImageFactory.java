@@ -9,8 +9,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import nl.weeaboo.gl.GLInfo;
-import nl.weeaboo.gl.shader.GLShader;
-import nl.weeaboo.gl.shader.ShaderCache;
 import nl.weeaboo.gl.text.GLTextRendererStore;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
 import nl.weeaboo.gl.texture.GLTexRect;
@@ -36,27 +34,24 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
 	private final TextureCache texCache;
-	private final ShaderCache shCache;
 	private final GLTextRendererStore trStore;
 	private final boolean renderTextToTexture;
 	
 	private int imgWidth, imgHeight;
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	
-	public ImageFactory(TextureCache tc, ShaderCache sc, GLTextRendererStore trStore,
+	public ImageFactory(TextureCache tc, GLTextRendererStore trStore,
 			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
 	{
 		super(sl, ntf, w, h);
 		
 		this.analytics = an;
 		this.texCache = tc;
-		this.shCache = sc;
 		this.trStore = trStore;		
 		this.imgWidth = w;
 		this.imgHeight = h;
 		this.subTexLim = 128;
-		this.renderTextToTexture = renderTextToTexture;
-		
+		this.renderTextToTexture = renderTextToTexture;		
 		this.es = new EnvironmentSerializable(this);
 
 		setDefaultExts("ktx", "png", "jpg", "jng");
@@ -213,15 +208,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 			throw new IOException("Unsupported image format: " + filename, e);
 		}
 	}
-	
-	public GLShader getGLShader(String filename) {
-		return shCache.get(filename);
-	}
 		
-	public String getGlslVersion() {
-		return shCache.getGlslVersion();
-	}
-	
 	public boolean isGLExtensionAvailable(String ext) {
 		GLInfo info = texCache.getGLInfo();
 		return info != null && info.isExtensionAvailable(ext);

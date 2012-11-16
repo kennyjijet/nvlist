@@ -1,7 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EmptyStackException;
@@ -234,34 +233,39 @@ public final class Layer extends BaseDrawable implements ILayer {
 			final double lw = r.w;
 			final double lh = r.h;
 			
-			int t = 0;
-			for (int pass = 0; pass < 2; pass++) {
-				for (t = 0; t < tempArray.length; t++) {
-					IDrawable d = tempArray[t];
-					if (d == null) break; //The array can only contain nulls at the end
-					
-					if (!d.isDestroyed() && d.isVisible(.001)) {
-						if (pass == 0) {
-							if (d instanceof ILayer) {
-								ILayer l = (ILayer)d;
-								baseBuf.draw(new LayerRenderCommand(l));
-							} else {
-								if (!d.isClipEnabled() || d.getBounds().intersects(0, 0, lw, lh)) {
-									d.draw(baseBuf);
-								}
-							}
-						} else {
-							if (d instanceof ILayer) {
-								d.draw(baseBuf);
-							}
-						}						
+			//Render drawables (insert layer render commands for the layers)
+			for (int t = 0; t < tempArray.length; t++) {
+				IDrawable d = tempArray[t];
+				if (d == null) break; //The array can only contain nulls at the end
+				
+				if (!d.isDestroyed() && d.isVisible(.001)) {
+					if (d instanceof ILayer) {
+						ILayer l = (ILayer)d;
+						baseBuf.draw(new LayerRenderCommand(l));
+					} else {
+						if (!d.isClipEnabled() || d.getBounds().intersects(0, 0, lw, lh)) {
+							d.draw(baseBuf);
+						}
+					}							
+				}
+			}
+			
+			//Add screenshot render commands to the end of the list
+			screenshotBuffer.flush(buf);		
+			
+			//Recursively draw other layers (implicitly ends the current layer)
+			for (int t = 0; t < tempArray.length; t++) {
+				IDrawable d = tempArray[t];
+				if (d == null) break; //The array can only contain nulls at the end
+				tempArray[t] = null;
+				
+				if (!d.isDestroyed() && d.isVisible(.001)) {
+					if (d instanceof ILayer) {
+						d.draw(baseBuf);
 					}
 				}
 			}
-			Arrays.fill(tempArray, 0, t, null);
-		}
-		
-		screenshotBuffer.flush(buf);		
+		}		
 	}
 	
 	@Override

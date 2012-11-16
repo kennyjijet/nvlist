@@ -9,6 +9,7 @@ import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageTween;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.INotifier;
+import nl.weeaboo.vn.IShaderFactory;
 import nl.weeaboo.vn.ITweenLib;
 
 import org.luaj.vm2.LuaBoolean;
@@ -21,12 +22,10 @@ public abstract class LuaTweenLib extends OneArgFunction implements ITweenLib {
 
 	private static final long serialVersionUID = LuaImpl.serialVersionUID;
 	
-	private final IImageFactory fac;
-	private final INotifier ntf;
+	protected final INotifier notifier;
 	
-	public LuaTweenLib(IImageFactory fac, INotifier ntf) {
-		this.fac = fac;
-		this.ntf = ntf;
+	public LuaTweenLib(INotifier ntf, IImageFactory imgfac, IShaderFactory shfac) {
+		this.notifier = ntf;
 	}
 	
 	//Functions
@@ -48,7 +47,7 @@ public abstract class LuaTweenLib extends OneArgFunction implements ITweenLib {
 		if (isCrossFadeTweenAvailable()) {
 			tween = newCrossFadeTween(duration, i);
 		} else {
-			tween = newBitmapTween(fac, ntf, null, duration, 0.5, i, false);
+			tween = newBitmapTween(null, duration, 0.5, i, false);
 		}
 		return LuajavaLib.toUserdata(tween, tween.getClass());
 	}
@@ -64,12 +63,12 @@ public abstract class LuaTweenLib extends OneArgFunction implements ITweenLib {
 		double duration = args.todouble(2);
 		double range = args.todouble(3);
 		IInterpolator i = getInterpolator(args.arg(4), SMOOTH);
-		IImageTween tween = newBitmapTween(fac, ntf, fadeFilename, duration, range, i, false);
+		IImageTween tween = newBitmapTween(fadeFilename, duration, range, i, false);
 		return LuajavaLib.toUserdata(tween, tween.getClass());
 	}
 
-	protected abstract IImageTween newBitmapTween(IImageFactory fac, INotifier ntf, String fadeFilename,
-			double duration, double range, IInterpolator i, boolean fadeTexTile);
+	protected abstract IImageTween newBitmapTween(String fadeFilename, double duration, double range,
+			IInterpolator i, boolean fadeTexTile);
 	
 	//Getters
 

@@ -369,13 +369,24 @@ end
 
 ---Runs the view CG mode
 function viewCG()
-	if getTextMode() == 0 then
+	local textLayer = getTextLayer()
+	local textDrawable = textState:getTextDrawable()
+	if getTextMode() == 0
+		or textLayer == nil or textLayer:isDestroyed() or not textLayer:isVisible(.001)
+		or textDrawable == nil or textDrawable:isDestroyed() or not textDrawable:isVisible(.001)
+	then
+		notifier:message("Text box is already invisible")
 		return
-	end
+	end	
 
+	local ss0 = screenshot(getRootLayer(), -32768)
+	local ss1 = screenshot(getRootLayer(), -1999)
+	
 	local textLayer = getTextLayer()
 	return setMode("viewCG", function()
-		textLayer:setVisible(false)
+		pushImageState()
+		local i0 = img(ss0)
+		local i1 = imgf(ss1, {z=-1})
 	
 		while not input:consumeCancel() and not input:consumeConfirm()
 			and not input:consumeTextContinue() and not input:consumeViewCG() do
@@ -383,9 +394,11 @@ function viewCG()
 			yield() 
 		end
 		
+		rmf(i1)
+		rm(i0)
 		setMode(nil)
 	end, function()
-		textLayer:setVisible(true)
+		popImageState()
 	end)
 end
 

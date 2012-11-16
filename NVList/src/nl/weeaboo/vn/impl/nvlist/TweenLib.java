@@ -4,7 +4,6 @@ import java.io.ObjectStreamException;
 
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageTween;
 import nl.weeaboo.vn.IInterpolator;
 import nl.weeaboo.vn.INotifier;
@@ -14,13 +13,15 @@ import nl.weeaboo.vn.impl.lua.LuaTweenLib;
 @LuaSerializable
 public class TweenLib extends LuaTweenLib {
 
-	private final ImageFactory fac;
+	private final ImageFactory imgfac;
+	private final ShaderFactory shfac;
 	private final EnvironmentSerializable es;
 	
-	public TweenLib(ImageFactory fac, INotifier ntf) {
-		super(fac, ntf);
+	public TweenLib(INotifier ntf, ImageFactory imgfac, ShaderFactory shfac) {
+		super(ntf, imgfac, shfac);
 		
-		this.fac = fac;
+		this.imgfac = imgfac;
+		this.shfac = shfac;
 		this.es = new EnvironmentSerializable(this);
 	}
 
@@ -35,17 +36,17 @@ public class TweenLib extends LuaTweenLib {
 	}
 
 	@Override
-	protected IImageTween newBitmapTween(IImageFactory fac, INotifier ntf, String fadeFilename,
-			double duration, double range, IInterpolator i, boolean fadeTexTile)
+	protected IImageTween newBitmapTween(String fadeFilename, double duration, double range, IInterpolator i,
+			boolean fadeTexTile)
 	{
-		return new BitmapTween((ImageFactory)fac, ntf, fadeFilename, duration, range, i, fadeTexTile);
+		return new BitmapTween(notifier, imgfac, shfac, fadeFilename, duration, range, i, fadeTexTile);
 	}
 
 	//Getters
 	@Override
 	public boolean isCrossFadeTweenAvailable() {
 		for (String ext : BlendQuadRenderer.REQUIRED_EXTENSIONS) {
-			if (!fac.isGLExtensionAvailable(ext)) {
+			if (!imgfac.isGLExtensionAvailable(ext)) {
 				return false;
 			}
 		}
@@ -54,7 +55,7 @@ public class TweenLib extends LuaTweenLib {
 
 	@Override
 	public boolean isBitmapTweenAvailable() {
-		return BitmapTween.isAvailable(fac.getGlslVersion());
+		return BitmapTween.isAvailable(shfac);
 	}
 	
 	//Setters

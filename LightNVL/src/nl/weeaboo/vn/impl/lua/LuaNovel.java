@@ -65,6 +65,7 @@ import nl.weeaboo.vn.impl.base.BaseImageFactory;
 import nl.weeaboo.vn.impl.base.BaseImageFxLib;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseNovel;
+import nl.weeaboo.vn.impl.base.BaseShaderFactory;
 import nl.weeaboo.vn.impl.base.BaseSoundFactory;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 import nl.weeaboo.vn.impl.base.BaseVideoFactory;
@@ -123,12 +124,12 @@ public abstract class LuaNovel extends BaseNovel {
 	private transient int wait;
 	
 	protected LuaNovel(INovelConfig gc, BaseImageFactory imgfac, IImageState is, BaseImageFxLib imgfxlib,
-			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vf, IVideoState vs, BaseGUIFactory gf,
-			ITextState ts, BaseNotifier n, IInput in, BaseSystemLib guifac, LuaSaveHandler sh,
+			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vidfac, IVideoState vs, BaseGUIFactory guifac,
+			ITextState ts, BaseNotifier n, IInput in, BaseShaderFactory shfac, BaseSystemLib syslib, LuaSaveHandler sh,
 			final BaseScriptLib scrlib, LuaTweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
 			ISeenLog seenLog, IAnalytics analytics, ITimer tmr)
 	{
-		super(gc, imgfac, is, imgfxlib, sndfac, ss, vf, vs, gf, ts, n, in, guifac, sh, scrlib,
+		super(gc, imgfac, is, imgfxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib,
 				tl, sharedGlobals, globals, seenLog, analytics, tmr);
 		
 		bootstrapScripts = new String[] {"main.lua"};
@@ -364,7 +365,7 @@ public abstract class LuaNovel extends BaseNovel {
 		lrs.registerOnThread();
 		LuaValue globals = lrs.getGlobalEnvironment();
 		PackageLib.getCurrent().setLuaPath("?.lvn;?.lua");
-
+		
 		BaseNotifier ntf = getNotifier();
 		BaseImageFactory imgfac = getImageFactory();
 		BaseImageFxLib fxlib = getImageFxLib();
@@ -376,6 +377,7 @@ public abstract class LuaNovel extends BaseNovel {
 		BaseGUIFactory guifac = getGUIFactory();
 		ITextState ts = getTextState();
 		IInput input = getInput();
+		BaseShaderFactory shfac = getShaderFactory();
 		BaseSystemLib syslib = getSystemLib();
 		LuaSaveHandler sh = (LuaSaveHandler)getSaveHandler();
 		ITimer timer = getTimer();
@@ -422,8 +424,7 @@ public abstract class LuaNovel extends BaseNovel {
 			// Tweens
 			LuaUtil.registerClass(globals, ShaderImageTween.class);
 
-			//--- Register special libraries ---
-			
+			//--- Register special libraries ---			
 			LuaTable blurGSTable = (LuaTable)globals.get(BlurGS.class.getSimpleName());
 			//Replace BlurGS constructor with custom version not requiring image fx lib arg			
 			blurGSTable.set("new", new BlurGS.LuaConstructorFunction(fxlib));
@@ -448,9 +449,22 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.load(new LuaVideoLib(ntf, vidfac, vs));
 			globals.load(new LuaGUILib(ntf, guifac, is));
 			globals.load(new LuaTextLib(ts));
+			globals.load(new LuaShaderLib(ntf, shfac));
 			globals.load(new LuaSystemLib(ntf, syslib));
 			globals.load(new LuaSaveLib(sh));
 			globals.load(tweenLib);
+			
+			//Register backwards-compatibilty hacks
+			IConfig prefs = getPrefs();
+			String targetVersion = prefs.get(nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION);
+			if (StringUtil.compareVersion(targetVersion, "3.1") < 0) {
+				LuaValue shaderTable = globals.rawget("Shader");
+				LuaTable glsl = new LuaTable();				
+				glsl.rawset("new", shaderTable.rawget("createGLSLShader"));
+				glsl.rawset("getVersion", shaderTable.rawget("getGLSLVersion"));
+				glsl.rawset("isVersionSupported", shaderTable.rawget("isGLSLVersionSupported"));
+				globals.rawset("GLSL", glsl);
+			}
 		} catch (LuaException le) {
 			onScriptError(le);
 		}

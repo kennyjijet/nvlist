@@ -85,6 +85,7 @@ import nl.weeaboo.vn.impl.nvlist.Renderer;
 import nl.weeaboo.vn.impl.nvlist.SaveHandler;
 import nl.weeaboo.vn.impl.nvlist.ScriptLib;
 import nl.weeaboo.vn.impl.nvlist.SeenLog;
+import nl.weeaboo.vn.impl.nvlist.ShaderFactory;
 import nl.weeaboo.vn.impl.nvlist.SharedGlobals;
 import nl.weeaboo.vn.impl.nvlist.SoundFactory;
 import nl.weeaboo.vn.impl.nvlist.SoundState;
@@ -97,7 +98,7 @@ import nl.weeaboo.vn.impl.nvlist.VideoState;
 public class Game extends BaseGame {
 
 	public static final int VERSION_MAJOR = 3;
-	public static final int VERSION_MINOR = 0;
+	public static final int VERSION_MINOR = 1;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
 	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
 	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support
@@ -239,14 +240,15 @@ public class Game extends BaseGame {
 				
 		SystemLib syslib = new SystemLib(this, notifier);
 		boolean renderTextToTexture = false; //isVNDS();
-		ImageFactory imgfac = new ImageFactory(texCache, shCache, trStore,
+		ShaderFactory shfac = new ShaderFactory(notifier, shCache);
+		ImageFactory imgfac = new ImageFactory(texCache, trStore,
 				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
 		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);
 		GUIFactory guifac = new GUIFactory(imgfac, notifier);
 		ScriptLib scrlib = new ScriptLib(fm, notifier);
-		TweenLib tweenLib = new TweenLib(imgfac, notifier);
+		TweenLib tweenLib = new TweenLib(notifier, imgfac, shfac);
 		
 		if (isDebug() && !isVNDS()) {
 			imgfac.setCheckFileExt(true);
@@ -262,7 +264,7 @@ public class Game extends BaseGame {
 		IStorage globals = new Globals();
 		
 		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
-				notifier, in, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
+				notifier, in, shfac, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
 				seenLog, an, timer,
 				fm, getKeyConfig(), isVNDS());
 		if (isVNDS()) {
