@@ -233,14 +233,12 @@ public class Renderer extends BaseRenderer {
 		
 		//GL2ES1 gl = glm.getGL();		
 		//gl.glPushMatrix();
-		glm.translate(x, y);
 		
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars(visibleChars);
-		pr.drawLayout(glm, layout);
+		pr.drawLayout(glm, layout, x, y);
 
-		glm.translate(-x, -y);
 		//gl.glPopMatrix();
 		
 		if (ps != null) ps.postDraw(this);		

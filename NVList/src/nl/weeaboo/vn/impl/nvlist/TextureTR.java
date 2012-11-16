@@ -96,7 +96,7 @@ import com.jogamp.common.nio.Buffers;
 		
 		//System.out.printf("start=%d, end=%d, visibleChars=%.1f\n", startLine, endLine, visibleChars);
 		
-		pr.drawLayout(g, layout);
+		pr.drawLayout(g, layout, 0, 0);
 		g.dispose();
 		
 		IntBuffer pixels = getTempPixels(tw * th);
