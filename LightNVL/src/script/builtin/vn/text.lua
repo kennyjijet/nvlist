@@ -645,7 +645,7 @@ local function createTextLayerText(mode)
 	text:setBackgroundColorARGB(0xA0000000)
 	if mode == TextMode.ADV then
 		text:setBackgroundColorARGB(0xE0000000)
-	end		
+	end
 	text:setZ(-1000)
 	return text
 end

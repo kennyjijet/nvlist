@@ -46,6 +46,7 @@ import nl.weeaboo.nvlist.debug.BugReporter;
 import nl.weeaboo.nvlist.debug.DebugImagePanel;
 import nl.weeaboo.nvlist.debug.DebugLuaPanel;
 import nl.weeaboo.nvlist.debug.DebugOutputPanel;
+import nl.weeaboo.nvlist.debug.DebugScriptPanel;
 import nl.weeaboo.nvlist.menu.GameMenuFactory;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.sound.SoundManager;
@@ -455,6 +456,7 @@ public class Game extends BaseGame {
 		DebugPanel debugPanel = super.createDebugPanel();
 		debugPanel.addTab("Lua", new DebugLuaPanel(this, getNovel()));
 		debugPanel.addTab("Image", new DebugImagePanel(this, getNovel()));
+		debugPanel.addTab("Script", new DebugScriptPanel(this, getNovel()));
 		debugPanel.addTab("Log", new DebugOutputPanel(this, getNovel()));
 		return debugPanel;
 	}	

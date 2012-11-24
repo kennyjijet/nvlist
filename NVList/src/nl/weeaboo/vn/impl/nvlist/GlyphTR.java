@@ -56,7 +56,7 @@ import nl.weeaboo.vn.impl.base.AbstractTextRenderer;
 	@Override
 	protected double getLayoutWidth(int startLine, int endLine) {			
 		TextLayout layout = getLayout();
-		return TextDrawable.getLayoutWidth(layout, startLine, endLine);
+		return TextDrawable.getLayoutRight(layout, startLine, endLine);
 	}
 		
 	@Override

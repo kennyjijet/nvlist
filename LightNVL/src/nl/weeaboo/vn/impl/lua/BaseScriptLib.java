@@ -5,7 +5,10 @@ import static org.luaj.vm2.LuaValue.valueOf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 
+import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScriptLib;
 
 import org.luaj.vm2.LuaString;
@@ -16,6 +19,12 @@ public abstract class BaseScriptLib implements IScriptLib, Serializable {
 	private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
 	private static final LuaString PATH = valueOf("path");
+	
+	protected final INotifier notifier;
+	
+	public BaseScriptLib(INotifier ntf) {
+		notifier = ntf;
+	}
 	
 	//Functions
 	public String normalizeFilename(String name) {
@@ -56,6 +65,22 @@ public abstract class BaseScriptLib implements IScriptLib, Serializable {
 	}
 
 	protected abstract long getExternalScriptModificationTime(String filename) throws IOException;
+	
+	@Override
+	public Collection<String> getScriptFiles(String folder, boolean includeBuiltIn) {
+		Collection<String> result = new ArrayList<String>();
+		if (includeBuiltIn) {
+			try {
+				LuaNovel.getBuiltInScripts(result, folder);
+			} catch (IOException ioe) {
+				notifier.w("Error retrieving a list of built-in script files", ioe);
+			}
+		}
+		getExternalScriptFiles(result, folder);
+		return result;
+	}
+	
+	protected abstract void getExternalScriptFiles(Collection<String> out, String folder);
 	
 	//Setters
 	

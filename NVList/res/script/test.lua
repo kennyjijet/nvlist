@@ -317,7 +317,7 @@ while not input:consumeConfirm() and not tb:consumePress() do
 end
 ]]
 
---[[ Volatile screenshots ]]
+--[[ Volatile screenshots
 bgf("bg/bg1")
 wait(60)
 local ss = screen2image(nil, -32768, false, true)
@@ -330,6 +330,7 @@ end
 rmf(ss)
 wait(60)
 rmbgf()
+]]
 
 yield()
 

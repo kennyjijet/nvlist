@@ -59,10 +59,10 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 		double uw = 1;
 		double vh = 1;
 		if (texture != null) {
-			w = getTextWidth();
-			uw = (2*PAD + getLayoutWidth()) / texture.getWidth();
-			h = getTextHeight();
-			vh = (2*PAD + getLayoutHeight()) / texture.getHeight();
+			w  = getTextWidth();
+			uw = getLayoutWidth() / texture.getWidth();
+			h  = getTextHeight();
+			vh = getLayoutHeight() / texture.getHeight();
 		}
 		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
 				dx, dy, w, h, 0, 0, uw, vh, null);
@@ -77,7 +77,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 				//HACK: Change the cursor size automatically based on the text size
 				IImageDrawable id = (IImageDrawable)cursor;
 				int cl = getStartLine(); //Use first line instead of cursor line to prevent size jitter (constant relayouting)
-				double scale = getTextHeight(cl, cl+1) / id.getUnscaledHeight();
+				double scale = Math.max(.001, getTextHeight(cl, cl+1) / id.getUnscaledHeight());
 				if (id.getScaleX() != scale || id.getScaleY() != scale) {
 					id.setScale(scale);
 					invalidateLayout();

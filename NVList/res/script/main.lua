@@ -26,5 +26,5 @@ function titlescreen()
     local extraScript = nil
     
     --This shows the default titlescreen (the function is defined in titlescreen.lua)
-    return call("test") --defaultTitlescreen(startScript, extraScript)
+    return defaultTitlescreen(startScript, extraScript)
 end

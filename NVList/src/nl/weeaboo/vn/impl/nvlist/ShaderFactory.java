@@ -6,10 +6,12 @@ import java.io.Serializable;
 import nl.weeaboo.gl.shader.GLShader;
 import nl.weeaboo.gl.shader.ShaderCache;
 import nl.weeaboo.io.EnvironmentSerializable;
+import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IHardwarePS;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseShaderFactory;
 
+@LuaSerializable
 public class ShaderFactory extends BaseShaderFactory implements Serializable {
 	
 	private final ShaderCache shCache;

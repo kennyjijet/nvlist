@@ -58,6 +58,7 @@ public abstract class BaseScreenshot implements IScreenshot {
 	}
 	
 	@Override
+	@Deprecated
 	public final void makeTransient() {
 		markTransient();
 	}

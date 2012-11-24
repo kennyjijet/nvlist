@@ -136,9 +136,12 @@ public class DebugImagePanel extends JPanel {
 		
 		addHierarchyListener(new HierarchyListener() {
 			public void hierarchyChanged(HierarchyEvent e) {
-				if (!isDisplayable() || !isVisible()) {
+				Component c = e.getChanged();
+				if (c == null) c = DebugImagePanel.this;
+				
+				if (!c.isDisplayable() || !c.isVisible() || !isVisible()) {
 					timer.stop();
-				} else if (isVisible()) {
+				} else if (c.isVisible() && isVisible()) {
 					timer.start();
 					update();
 				}

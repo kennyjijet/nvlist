@@ -40,6 +40,11 @@
       <p>Drawables marked as invisible return <code>false</code> from the call <code>drawable.isVisible(.001)</code> which also means they aren't rendered.</p>
     </section>
 
+    <section title="Script" level="2">
+      <figure src="img/debug-script.png" alt="Debug window script tab" float="right" />
+      <p>Shows information about the scripts (line/word count and other stats). The &quot;Call Script&quot; button injects a <code>call</code> into the current script, instantly jumping to the selected script file. Instantly jumping to another script may have unintended side effects: images remaining on the screen, etc.</p>
+    </section>
+
     <section title="Log" level="2">
       <figure src="img/debug-log.png" alt="Debug window log tab" float="right" />
       <p>Gives a less filtered view of the combined even log for NVlist and its subsystems (OpenGL, audio, etc).</p>

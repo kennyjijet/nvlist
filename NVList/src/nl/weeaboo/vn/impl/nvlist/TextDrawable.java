@@ -19,13 +19,13 @@ public class TextDrawable extends BaseTextDrawable {
 	//Functions	
 		
 	//Getters
-	protected static double getLayoutWidth(TextLayout layout, int startLine, int endLine) {
+	protected static double getLayoutRight(TextLayout layout, int startLine, int endLine) {
 		startLine = Math.max(0, startLine);
 		endLine = Math.min(layout.getNumLines(), endLine);
 		
 		double w = 0;
 		for (int line = startLine; line < endLine; line++) {
-			w = Math.max(w, layout.getLine(line).getWidth());
+			w = Math.max(w, layout.getLineRight(line));
 		}
 		return w;
 	}

@@ -89,7 +89,7 @@ import com.jogamp.common.nio.Buffers;
 		//System.out.println(getLayoutMaxWidth() + " " + getLayoutWidth() + " " + tex.getTexWidth());
 		
 		AWTParagraphRenderer pr = trStore.createAWTParagraphRenderer();
-		pr.setBounds(PAD, PAD, getLayoutMaxWidth(), getLayoutMaxHeight());
+		pr.setBounds(0, 0, getLayoutMaxWidth(), getLayoutMaxHeight());
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars(visibleChars);
@@ -132,7 +132,7 @@ import com.jogamp.common.nio.Buffers;
 	@Override
 	protected double getLayoutWidth(int startLine, int endLine) {			
 		TextLayout layout = getLayout();
-		return TextDrawable.getLayoutWidth(layout, startLine, endLine);
+		return TextDrawable.getLayoutRight(layout, startLine, endLine);
 	}
 		
 	@Override

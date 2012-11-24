@@ -24,6 +24,9 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -353,6 +356,35 @@ public abstract class LuaNovel extends BaseNovel {
 			return null;
 		}
 		return LuaNovel.class.getResourceAsStream("/script/" + filename);
+	}
+	
+	public static void getBuiltInScripts(Collection<String> out, String folder) throws IOException {
+		if (!isBuiltInScript(folder) && !"".equals(folder) && !"/".equals(folder)) {
+			//Not in builtin/ (treat root folder as builtin)
+			return;
+		}
+		
+		//Strip 'builtin/' from the start, make sure it ends in '/'
+		if (folder.startsWith("builtin/")) {
+			folder = folder.substring(8);
+		}
+		if (!folder.endsWith("/")) {
+			folder = folder + "/";
+		}
+
+		ClassLoader cl = LuaNovel.class.getClassLoader();
+		if (cl == null) {
+			return;
+		}
+		
+		Enumeration<URL> e = cl.getResources("builtin/script/" + folder);
+		while (e.hasMoreElements()) {
+			String filename = "builtin/" + folder + e.nextElement().getFile();
+			System.out.println(filename);
+			if (isBuiltInScript(filename)) {
+				out.add(filename);
+			}
+		}
 	}
 	
 	protected abstract void onScriptError(Exception e);
