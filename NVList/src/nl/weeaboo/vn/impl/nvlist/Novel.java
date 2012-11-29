@@ -28,7 +28,6 @@ import nl.weeaboo.vn.impl.lua.AbstractKeyCodeMetaFunction;
 import nl.weeaboo.vn.impl.lua.LuaMediaPreloader;
 import nl.weeaboo.vn.impl.lua.LuaNovel;
 
-import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
@@ -140,11 +139,6 @@ public class Novel extends LuaNovel {
 		}		
 		message.append(" :: ");
 		message.append(msg);
-		while (t instanceof LuaError && t.getCause() != null) {
-			message.append(" :: ");
-			message.append(t.getMessage());
-			t = t.getCause();
-		}
 		
 		getNotifier().e(message.toString(), t);		
 		
