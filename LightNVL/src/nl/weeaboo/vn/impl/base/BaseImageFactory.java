@@ -17,6 +17,8 @@ public abstract class BaseImageFactory extends BaseMediaFactory implements IImag
 	//protected final int imgWidth, imgHeight; //The screen size according to img.ini
 	protected final int width, height; //Virtual width, usually the same as ImageState's
 	
+	private boolean isTextRightToLeft;
+	
 	public BaseImageFactory(ISeenLog sl, INotifier ntf, int w, int h) {
 		super(new String[]{"png", "jpg"}, sl, ntf);
 		
@@ -68,6 +70,13 @@ public abstract class BaseImageFactory extends BaseMediaFactory implements IImag
 		return getMediaFiles(folder);
 	}
 	
+	public boolean isTextRightToLeft() {
+		return isTextRightToLeft;
+	}
+	
 	//Setters
+	public void setTextRightToLeft(boolean rtl) {
+		isTextRightToLeft = rtl;
+	}
 	
 }

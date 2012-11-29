@@ -59,6 +59,14 @@ public abstract class BaseHardwarePS extends BaseShader implements IHardwarePS, 
 	public void postDraw(IRenderer r) {
 		if (shading) {
 			shading = false;
+			
+			int t = 0;
+			int[] texIndices = new int[textures.size()];
+			for (ITexture tex : textures) {
+				texIndices[t++] = getTextureIndex(tex);
+			}
+			resetTextures(r, texIndices);
+			
 			stopShader(r);
 		}
 	}
@@ -67,6 +75,8 @@ public abstract class BaseHardwarePS extends BaseShader implements IHardwarePS, 
 	
 	protected abstract void stopShader(IRenderer r);
 
+	protected abstract void resetTextures(IRenderer r, int... texIndices);
+	
 	protected void applyShaderParam(IRenderer r, String name, Object value) {
 		if (value instanceof ITexture) {
 			ITexture tex = (ITexture)value;

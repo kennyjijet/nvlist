@@ -173,9 +173,6 @@
           <th><javadoc-link class="nl.weeaboo.vn.impl.base.DistortGS">DistortGS</javadoc-link></th>
         </tr>
         <tr>
-          <th>GLSL</th>
-        </tr>
-        <tr>
           <th><javadoc-link class="nl.weeaboo.vn.layout.NullLayout">NullLayout</javadoc-link></th>
         </tr>
         <tr>

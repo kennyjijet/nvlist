@@ -21,7 +21,7 @@ import nl.weeaboo.game.input.UserInput;
 import nl.weeaboo.gl.GLResourceCache;
 import nl.weeaboo.gl.shader.ShaderCache;
 import nl.weeaboo.gl.text.FontManager;
-import nl.weeaboo.gl.text.GLTextRendererStore;
+import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.texture.TextureCache;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.sound.SoundManager;
@@ -77,10 +77,10 @@ public class Launcher extends BaseLauncher {
 	@Override
 	protected IGame newGame(IConfig config, ExecutorService executor, GameDisplay display, GameUpdater gu,
 			FileManager fm, FontManager fontManager, TextureCache tc, ShaderCache sc,
-			GLResourceCache rc, GLTextRendererStore trs, SoundManager sm, UserInput in,
+			GLResourceCache rc, GlyphManager gman, SoundManager sm, UserInput in,
 			IKeyConfig kc, FolderSet folders)
 	{
-		return new Game(config, executor, display, gu, fm, fontManager, tc, sc, rc, trs, sm, in, kc,
+		return new Game(config, executor, display, gu, fm, fontManager, tc, sc, rc, gman, sm, in, kc,
 				folders.image, folders.video);
 	}
 	

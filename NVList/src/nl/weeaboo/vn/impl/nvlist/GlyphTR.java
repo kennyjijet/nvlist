@@ -1,21 +1,23 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import nl.weeaboo.gl.text.GLTextRendererStore;
+import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.text.ParagraphRenderer;
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.textlayout.LineElement;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.impl.base.AbstractTextRenderer;
 
-@LuaSerializable class GlyphTR extends AbstractTextRenderer<TextLayout> {
+@LuaSerializable
+class GlyphTR extends AbstractTextRenderer<TextLayout> {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 
-	private final GLTextRendererStore trStore;
+	private final GlyphManager glyphManager;
 	
-	public GlyphTR(ImageFactory imgfac, GLTextRendererStore trStore) {
-		this.trStore = trStore;
+	public GlyphTR(ImageFactory imgfac, GlyphManager trStore) {
+		this.glyphManager = trStore;
 	}
 	
 	@Override
@@ -25,13 +27,35 @@ import nl.weeaboo.vn.impl.base.AbstractTextRenderer;
 		DrawBuffer dd = DrawBuffer.cast(d);
 		dd.drawText(z, clipEnabled, blendMode, argb, getLayout(),
 				getStartLine(), getEndLine(), getVisibleChars(),
-				dx, dy, null);
+				dx + getPadLeft(), dy, null);
+		
+		//System.out.println(getMaxWidth() + "x" + getMaxHeight() + " " + getTextLeading() + " " + getTextWidth());
 	}
 
 	@Override
-	protected TextLayout createLayout(double width, double height) {
-		ParagraphRenderer pr = trStore.createParagraphRenderer();			
+	protected TextLayout createLayout(float width, float height) {
+		ParagraphRenderer pr = glyphManager.createParagraphRenderer();
+		pr.setRightToLeft(isRightToLeft());
 		pr.setDefaultStyle(pr.getDefaultStyle().extend(getDefaultStyle()));
+		
+		/*
+		ExtensibleGlyphStore egs = pr.getGlyphStore();
+		egs.setOverride(1, new AbstractGlyphStore() {
+			@Override
+			public IGlyph getGlyph(TextStyle style, String chars) {
+				GLTexRect tr = imgfac.getTexRect("anim/anim01", null);
+				float h = style.getFontSize();
+				float w = h;
+				if (tr != null) {
+					Dim2D d = ScaleUtil.scaleProp(tr.getWidth(), tr.getHeight(), w, h);
+					w = (float)d.w;
+					h = (float)d.h;
+				}
+				return new TextureGlyph("X", tr, new Area2D(0, 0, w, h), w, h);
+			}
+		});
+		*/
+				
 		return pr.getLayout(getText(), width);
 	}
 			
@@ -54,15 +78,37 @@ import nl.weeaboo.vn.impl.base.AbstractTextRenderer;
 	}
 	
 	@Override
-	protected double getLayoutWidth(int startLine, int endLine) {			
+	protected float getLayoutLeading(int line) {			
 		TextLayout layout = getLayout();
-		return TextDrawable.getLayoutRight(layout, startLine, endLine);
+		return (isRightToLeft() ? layout.getPadRight(line) : layout.getPadLeft(line));
+	}
+	
+	@Override
+	protected float getLayoutTrailing(int line) {			
+		TextLayout layout = getLayout();
+		return (isRightToLeft() ? layout.getPadLeft(line) : layout.getPadRight(line));
 	}
 		
 	@Override
-	public double getLayoutHeight(int startLine, int endLine) {
+	public float getLayoutWidth(int line) {
+		TextLayout layout = getLayout();
+		return (line >= 0 && line < layout.getNumLines() ? layout.getLineWidth(line) : 0);
+	}
+	
+	@Override
+	public float getLayoutHeight(int startLine, int endLine) {
 		TextLayout layout = getLayout();
 		return layout.getHeight(Math.max(0, startLine), Math.min(layout.getNumLines(), endLine));
+	}
+	
+	public LineElement getLayoutHitElement(float cx, float cy) {
+		return TextDrawable.getLayoutHitElement(getLayout(), getStartLine(), getEndLine(), cx - getPadLeft(), cy);
+	}
+	
+	@Override
+	public int[] getHitTags(float cx, float cy) {
+		LineElement le = getLayoutHitElement(cx, cy);
+		return (le != null ? le.getStyle().getTags() : null);
 	}
 	
 }

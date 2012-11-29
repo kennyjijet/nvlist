@@ -30,7 +30,7 @@ public abstract class BaseTextState implements ITextState {
 	private ITextLog textLog;
 	private double baseTextSpeed;
 	private double textSpeed;
-	private ITextDrawable textDrawable;	
+	private ITextDrawable textDrawable;		
 	
 	protected BaseTextState() {
 		this(new TextLog());
@@ -159,7 +159,7 @@ public abstract class BaseTextState implements ITextState {
 		}
 		return baseTextSpeed * textSpeed;
 	}
-	
+		
 	//Setters		
 	@Override
 	public void setText(String t) {

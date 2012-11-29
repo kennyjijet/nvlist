@@ -20,6 +20,7 @@ import nl.weeaboo.vn.math.IPolygon;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.math.Polygon;
+import nl.weeaboo.vn.math.Vec2;
 
 public abstract class BaseButtonDrawable extends BaseImageDrawable implements IButtonDrawable {
 
@@ -183,17 +184,16 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			BlendMode blend = getBlendMode();
 			int argb = getColorARGB();
 			
-			double pad = getTouchMargin();
-			double x = getX() + pad + LayoutUtil.alignAnchorX(getWidth(), getTextWidth(), textAnchor);
-			double y = getY() + pad + LayoutUtil.alignAnchorY(getHeight(), getTextHeight(), textAnchor);
-			textRenderer.draw(d, (short)(z-1), clip, blend, argb, x, y);
+			Vec2 trPos = new Vec2();
+			getTextRendererAbsoluteXY(trPos);
+			textRenderer.draw(d, (short)(z-1), clip, blend, argb, trPos.x, trPos.y);
 		}
 	}
 	
 	@Override
 	protected void invalidateTransform() {
 		super.invalidateTransform();
-		textRenderer.setMaxSize(getWidth(), getHeight());
+		textRenderer.setMaxSize((float)getWidth(), (float)getHeight());
 	}
 		
 	@Override
@@ -238,6 +238,15 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 				return;
 			}
 		}
+	}
+	
+	protected void getTextRendererAbsoluteXY(Vec2 out) {
+		getTextRendererXY(out);
+		out.x += getX() + touchMargin;
+		out.y += getY() + touchMargin;
+	}
+	protected void getTextRendererXY(Vec2 out) {
+		LayoutUtil.getTextRendererXY(out, getWidth(), getHeight(), textRenderer, textAnchor);
 	}
 	
 	protected boolean isInputHeld(IInput input) {

@@ -169,7 +169,7 @@ function SaveSlot:setBounds(x, y, w, h)
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
 	b:setScale(scale, scale)
 
-	l:setDefaultStyle(createStyle{fontName="sans serif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
+	l:setDefaultStyle(createStyle{fontName="SansSerif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
 	if i ~= nil then
 		local imgScale = scale * math.min(224 / i:getUnscaledWidth(), 126 / i:getUnscaledHeight())
@@ -247,7 +247,7 @@ function SaveScreen.new(self)
 	self.cancelButton:setText(cancelText)
 	
 	local sz = self.okButton:getHeight() / 2.5	
-	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
+	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
 	self.okButton:setDefaultStyle(buttonStyle)
 	self.cancelButton:setDefaultStyle(buttonStyle)
     

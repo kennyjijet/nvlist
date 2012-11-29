@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import java.io.Serializable;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import nl.weeaboo.gl.GLManager;
@@ -50,6 +51,18 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 		glm.setShader(null);
 	}
 
+	@Override
+	protected void resetTextures(IRenderer r, int... texIndices) {
+		Renderer rr = Renderer.cast(r);
+		GLManager glm = rr.getGLManager();
+		GL gl = glm.getGL();
+		for (int texIndex : texIndices) {
+			gl.glActiveTexture(GL.GL_TEXTURE0 + texIndex);
+			gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+		}
+		gl.glActiveTexture(GL.GL_TEXTURE0);
+	}
+	
 	@Override
 	protected void applyTextureParam(IRenderer r, String name, int texIndex, ITexture tex) {
 		int texId = 0;

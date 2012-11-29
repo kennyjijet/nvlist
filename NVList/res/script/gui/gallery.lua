@@ -237,7 +237,7 @@ local ImageGallery = {
 function ImageGallery.new(folder, self)
 	self = extend(ImageGallery, self or {})
 		
-	self.buttonStyle = self.buttonStyle or createStyle{fontName="sans serif", fontStyle="bold", shadowColor=0}
+	self.buttonStyle = self.buttonStyle or createStyle{fontName="SansSerif", fontStyle="bold", shadowColor=0}
 	
 	self.slots = self.slots or {}
 	self.returnButton = button("gui/imagegallery#button-")

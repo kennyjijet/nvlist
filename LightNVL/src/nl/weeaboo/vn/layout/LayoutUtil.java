@@ -3,6 +3,7 @@ package nl.weeaboo.vn.layout;
 import java.util.Collection;
 
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Vec2;
 
@@ -98,6 +99,16 @@ public final class LayoutUtil {
 		double h = 0;
 		for (ILayoutComponent lc : components) h = Math.max(h, lc.getHeight());
 		return h;
+	}
+	
+	public static void getTextRendererXY(Vec2 out, double outerW, double outerH, ITextRenderer tr, int anchor) {
+		out.x = LayoutUtil.alignAnchorX(outerW, tr.getTextWidth(), anchor);
+		if (tr.isRightToLeft()) {
+			out.x -= tr.getTextTrailing();
+		} else {
+			out.x -= tr.getTextLeading();
+		}
+		out.y = LayoutUtil.alignAnchorY(outerH, tr.getTextHeight(), anchor);
 	}
 	
 }

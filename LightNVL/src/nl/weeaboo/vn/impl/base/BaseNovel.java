@@ -4,6 +4,7 @@ import static nl.weeaboo.vn.NovelPrefs.EFFECT_SPEED;
 import static nl.weeaboo.vn.NovelPrefs.MUSIC_VOLUME;
 import static nl.weeaboo.vn.NovelPrefs.SOUND_VOLUME;
 import static nl.weeaboo.vn.NovelPrefs.TEXTLOG_PAGE_LIMIT;
+import static nl.weeaboo.vn.NovelPrefs.RTL;
 import static nl.weeaboo.vn.NovelPrefs.TEXT_SPEED;
 import static nl.weeaboo.vn.NovelPrefs.TIMER_IDLE_TIMEOUT;
 import static nl.weeaboo.vn.NovelPrefs.VOICE_VOLUME;
@@ -173,6 +174,11 @@ public abstract class BaseNovel implements INovel {
 		double effectSpeed = config.get(EFFECT_SPEED);
 		setEffectSpeed(effectSpeed, 8 * effectSpeed);
 
+		BaseImageFactory imgfac = getImageFactory();
+		if (imgfac != null) {
+			imgfac.setTextRightToLeft(config.get(RTL));
+		}
+		
 		ITextState ts = getTextState();
 		if (ts != null) {
 			ts.setBaseTextSpeed(config.get(TEXT_SPEED));
@@ -189,7 +195,7 @@ public abstract class BaseNovel implements INovel {
 		ITimer timer = getTimer();
 		if (timer != null) {
 			timer.setIdleTimeout(config.get(TIMER_IDLE_TIMEOUT));
-		}		
+		}
 	}
 	
 	//Getters

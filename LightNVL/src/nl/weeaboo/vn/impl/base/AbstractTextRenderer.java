@@ -13,10 +13,11 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 	private StyledText stext;
 	private TextStyle defaultStyle;
 	private int startLine;
-	private double visibleChars;
-	private double width, height;
-	private double displayScale;
-	private IDrawable cursor;
+	private float visibleChars;
+	private float width, height;
+	private float displayScale;
+	private boolean isRightToLeft;
+	private IDrawable cursor;	
 	
 	private /*transient*/ RenderEnv renderEnv;
 	
@@ -49,7 +50,7 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		markChanged();
 	}
 	
-	protected abstract L createLayout(double width, double height);
+	protected abstract L createLayout(float width, float height);
 	
 	protected void markChanged() {
 		changed = true;
@@ -90,70 +91,144 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		return startLine;
 	}
 		
-	protected double getVisibleChars() {
+	protected float getVisibleChars() {
 		return visibleChars;
 	}
 	
-	protected double getDisplayScale() {
+	protected float getDisplayScale() {
 		return displayScale;
 	}
 	
-	protected double getMaxWidth() {
+	@Override
+	public float getMaxWidth() {
 		return width;
 	}
 	
-	protected double getMaxHeight() {
+	@Override
+	public float getMaxHeight() {
 		return height;
 	}
 		
-	protected int getLayoutMaxWidth() {
-		IDrawable cursor = getCursor();
-		return (int)Math.ceil(width - (cursor != null ? cursor.getWidth() : 0));
+	protected float getCursorWidth() {
+		return (cursor != null ? (float)cursor.getWidth() : 0);		
 	}
 	
+	protected int getLayoutMaxWidth() {
+		return (int)Math.ceil(width - getCursorWidth());
+	}	
 	protected int getLayoutMaxHeight() {
 		return (int)Math.ceil(height);
 	}
-	
-	protected double getLayoutWidth() {
-		return getLayoutWidth(startLine, getEndLine());
-	}
 
-	protected abstract double getLayoutWidth(int startLine, int endLine);	
-	
-	protected double getLayoutHeight() {
+	protected final float getLayoutWidth() {
+		return getLayoutWidth(startLine, getEndLine());		
+	}
+	protected final float getLayoutWidth(int startLine, int endLine) {
+		return getLayoutMaxWidth() - getLayoutLeading(startLine, endLine) - getLayoutTrailing(startLine, endLine);		
+	}	
+	protected final float getLayoutHeight() {
 		return getLayoutHeight(startLine, getEndLine());		
+	}	
+	protected final float getLayoutLeading() {
+		return getLayoutLeading(startLine, getEndLine());		
+	}	
+	protected final float getLayoutLeading(int startLine, int endLine) {
+		startLine = Math.max(0, startLine);
+		endLine = Math.min(getLineCount(), endLine);
+		if (endLine <= startLine) {
+			return 0;
+		}
+		
+		float w = Float.MAX_VALUE;
+		for (int line = startLine; line < endLine; line++) {
+			w = Math.min(w, getLayoutLeading(line));
+		}		
+		return w;
 	}
-
-	protected abstract double getLayoutHeight(int startLine, int endLine);	
+	
+	protected final float getLayoutTrailing() {
+		return getLayoutTrailing(startLine, getEndLine());		
+	}	
+	protected final float getLayoutTrailing(int startLine, int endLine) {
+		startLine = Math.max(0, startLine);
+		endLine = Math.min(getLineCount(), endLine);
+		if (endLine <= startLine) {
+			return 0;
+		}
+		
+		float w = Float.MAX_VALUE;
+		for (int line = startLine; line < endLine; line++) {
+			w = Math.min(w, getLayoutTrailing(line));
+		}		
+		return w;
+	}
+	
+	protected abstract float getLayoutWidth(int line);
+	protected abstract float getLayoutHeight(int startLine, int endLine);	
+	protected abstract float getLayoutLeading(int line);
+	protected abstract float getLayoutTrailing(int line);
 	
 	@Override
-	public double getTextWidth() {
+	public float getTextLeading() {
+		return getTextLeading(startLine, getEndLine());
+	}
+	
+	@Override
+	public float getTextLeading(int startLine, int endLine) {
+		return getLayoutLeading(startLine, endLine);
+	}
+
+	@Override
+	public float getTextWidth() {
 		return getTextWidth(startLine, getEndLine());
 	}
-
+	
 	@Override
-	public double getTextWidth(int startLine, int endLine) {
-		return getLayoutWidth(startLine, getEndLine());
+	public float getTextWidth(int startLine, int endLine) {
+		return getLayoutWidth(startLine, endLine);
 	}
 	
 	@Override
-	public double getTextHeight() {
+	public float getLineWidth(int line) {
+		return getLayoutWidth(line);
+	}	
+		
+	@Override
+	public float getTextTrailing() {
+		return getTextTrailing(startLine, getEndLine());
+	}
+	
+	@Override
+	public float getTextTrailing(int startLine, int endLine) {
+		return getLayoutTrailing(startLine, endLine);
+	}
+	
+	@Override
+	public float getTextHeight() {
 		return getTextHeight(startLine, getEndLine());
 	}
 	
 	@Override
-	public double getTextHeight(int startLine, int endLine) {
+	public float getTextHeight(int startLine, int endLine) {
 		return getLayoutHeight(startLine, endLine);
+	}
+	
+	@Override
+	public boolean isRightToLeft() {
+		return isRightToLeft;
 	}
 	
 	protected RenderEnv getRenderEnv() {
 		return renderEnv;
 	}
 	
+	protected double getPadLeft() {	
+		return (isRightToLeft ? getCursorWidth() : 0);
+	}
+	
 	//Setters
 	@Override
-	public void setMaxSize(double w, double h) {
+	public void setMaxSize(float w, float h) {
 		if (width != w || height != h) {
 			width = w;
 			height = h;
@@ -179,7 +254,7 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 	}
 	
 	@Override
-	public void setVisibleText(int sl, double vc) {
+	public void setVisibleText(int sl, float vc) {
 		if (startLine != sl || visibleChars != vc) {
 			startLine = sl;
 			visibleChars = vc;
@@ -197,8 +272,16 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		if (renderEnv != env) {
 			renderEnv = env;
 			
-			displayScale = env.getScale();
+			displayScale = (float)env.getScale();
 			onDisplayScaleChanged();
+		}
+	}
+	
+	@Override
+	public void setRightToLeft(boolean rtl) {
+		if (isRightToLeft != rtl) {
+			isRightToLeft = rtl;
+			invalidateLayout();
 		}
 	}
 	

@@ -81,7 +81,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		if (!getCurrentLinesFullyVisible()) {
 			setVisibleChars(textSpeed >= 0 ? getVisibleChars()+textSpeed : 999999);
 		}
-		textRenderer.setVisibleText(getStartLine(), getVisibleChars());
+		textRenderer.setVisibleText(getStartLine(), (float)getVisibleChars());
 
 		if (textRenderer.update()) {
 			markChanged();
@@ -116,10 +116,9 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			}
 		}
 		
-		double pad = getPadding();
-		double x = getX() + pad + LayoutUtil.alignAnchorX(getInnerWidth(), getTextWidth(), anchor);
-		double y = getY() + pad + LayoutUtil.alignAnchorY(getInnerHeight(), getTextHeight(), anchor);
-		textRenderer.draw(d, z, clip, blend, argb, x, y);
+		Vec2 trPos = new Vec2();
+		getTextRendererAbsoluteXY(trPos);
+		textRenderer.draw(d, z, clip, blend, argb, trPos.x, trPos.y);
 		validateCursorPos();
 	}
 	
@@ -134,9 +133,9 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		}
 		
 		if (cursorAutoPos) {
-			double pad = getPadding();
-			Vec2 pos = getCursorXY();
-			cursor.setPos(getX() + pad + pos.x, getY() + pad + pos.y);
+			Vec2 pos = new Vec2();
+			getCursorAbsoluteXY(pos);
+			cursor.setPos(pos.x, pos.y);
 		}
 		cursor.setClipEnabled(isClipEnabled());
 	}
@@ -173,7 +172,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	}
 	
 	private void onSizeChanged() {
-		textRenderer.setMaxSize(getInnerWidth(), getInnerHeight());
+		textRenderer.setMaxSize((float)getInnerWidth(), (float)getInnerHeight());
 		invalidateCursorPos();
 	}
 	
@@ -181,24 +180,24 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		return textSpeed < 0 || textSpeed >= 100000;		
 	}
 	
+	@Override
+	protected void onRenderEnvChanged() {
+		super.onRenderEnvChanged();
+		invalidateCursorPos();		
+	}
+	
 	//Getters
 	@Override
 	public Rect2D getBounds() {
-		double pad = getPadding();
-		double x = getX() + LayoutUtil.alignAnchorX(getInnerWidth(), getTextWidth(), anchor);
-		double y = getY() + LayoutUtil.alignAnchorY(getInnerHeight(), getTextHeight(), anchor);
-		double w, h;
-		if (getBackgroundAlpha() > 0) {
-			w = getWidth();
-			h = getHeight();
-		} else {
-			w = getTextWidth() + pad*2;
-			h = getTextHeight() + pad*2;
-		}
-				
+		Vec2 pos = new Vec2();
+		pos.x = getX();
+		pos.y = getY();
+		
+		double w = getWidth();
+		double h = getTextHeight();
 		w = (Double.isNaN(w) ? 0 : Math.max(0, w));
 		h = (Double.isNaN(h) ? 0 : Math.max(0, h));
-		return new Rect2D(x, y, w, h);
+		return new Rect2D(pos.x, pos.y, w, h);
 	}
 	
 	@Override
@@ -273,11 +272,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	
 	@Override
 	public double getTextWidth() {
-		return getTextWidth(startLine, getEndLine());
-	}
-	
-	public double getTextWidth(int startLine, int endLine) {
-		return textRenderer.getTextWidth(startLine, endLine);
+		return textRenderer.getTextWidth();
 	}
 	
 	@Override
@@ -299,7 +294,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		int sl = getStartLine();
 		int el = getEndLine();
 		for (int line = el-1; line >= sl; line--) {
-			double w = textRenderer.getTextWidth(line, line+1);
+			double w = textRenderer.getLineWidth(line);
 			if (w > 0) {
 				return line;
 			}
@@ -307,17 +302,38 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		return sl;
 	}
 	
-	protected Vec2 getCursorXY() {
-		Vec2 out = new Vec2();		
+	protected void getTextRendererAbsoluteXY(Vec2 out) {
+		getTextRendererXY(out);
+		out.x += getX() + pad;
+		out.y += getY() + pad;
+	}
+	protected void getTextRendererXY(Vec2 out) {
+		LayoutUtil.getTextRendererXY(out, getInnerWidth(), getInnerHeight(), textRenderer, anchor);
+	}
+	
+	protected void getCursorAbsoluteXY(Vec2 out) {
+		getCursorXY(out);
+		out.x += getX() + pad;
+		out.y += getY() + pad;
+	}
+	
+	protected void getCursorXY(Vec2 out) {
 		if (getLineCount() > 0) {
 			int sl = getStartLine();
 			int cl = getCursorLine();
 			IDrawable cursor = getCursor();
-			
-			out.x = textRenderer.getTextWidth(cl, cl+1);		
-			out.y = getTextHeight(sl, cl+1) - (cursor != null ? cursor.getHeight() : 0);
+
+			Vec2 trPos = new Vec2();
+			getTextRendererXY(trPos);			
+			if (textRenderer.isRightToLeft()) {
+				out.x = trPos.x + textRenderer.getTextTrailing(cl, cl+1) + textRenderer.getTextWidth() - textRenderer.getLineWidth(cl);
+			} else {
+				out.x = trPos.x + textRenderer.getTextLeading(cl, cl+1) + textRenderer.getLineWidth(cl);
+			}
+			out.y = trPos.y + getTextHeight(sl, cl+1) - (cursor != null ? cursor.getHeight() : 0);
+		} else {
+			out.x = out.y = Double.NaN;
 		}
-		return out;
 	}
 	
 	@Override
@@ -375,8 +391,8 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			if (cursorAuto) {
 				cursor.setAlpha(isInstantTextSpeed() ? getAlpha() : 0);
 			}
-			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
 			invalidateCursorPos();
+			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
 			textRenderer.setText(text);
 			markChanged();
 		}
@@ -388,9 +404,12 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		
 		if (startLine != sl) {
 			startLine = sl;
-			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
+			if (cursorAuto) {
+				cursor.setAlpha(isInstantTextSpeed() ? getAlpha() : 0);
+			}
 			invalidateCursorPos();
-			textRenderer.setVisibleText(startLine, visibleChars);
+			setVisibleChars(isInstantTextSpeed() ? 999999 : 0);
+			textRenderer.setVisibleText(startLine, (float)visibleChars);
 			markChanged();
 		}
 	}
@@ -399,7 +418,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	public void setVisibleChars(double vc) {
 		if (visibleChars != vc) {
 			visibleChars = vc;
-			textRenderer.setVisibleText(startLine, visibleChars);
+			textRenderer.setVisibleText(startLine, (float)visibleChars);
 			markChanged();
 		}
 	}

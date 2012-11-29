@@ -8,29 +8,32 @@ import java.nio.IntBuffer;
 
 import nl.weeaboo.awt.ImageUtil;
 import nl.weeaboo.gl.text.AWTParagraphRenderer;
-import nl.weeaboo.gl.text.GLTextRendererStore;
+import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.textlayout.LineElement;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.TextureTextRenderer;
 
 import com.jogamp.common.nio.Buffers;
 
-//Inner Classes
-@LuaSerializable class TextureTR extends TextureTextRenderer<TextLayout> {
+@LuaSerializable
+public class TextureTR extends TextureTextRenderer<TextLayout> {
 
 	private static final long serialVersionUID = NVListImpl.serialVersionUID;
 	
 	private final ImageFactory imgfac;
-	private final GLTextRendererStore trStore;
+	private final GlyphManager glyphManager;
 	
 	private transient BufferedImage tempImage;
 	private transient IntBuffer tempPixels;
 	
-	public TextureTR(ImageFactory imgfac, GLTextRendererStore trStore) {
+	public TextureTR(ImageFactory imgfac, GlyphManager gman) {
+		super(true);
+		
 		this.imgfac = imgfac;
-		this.trStore = trStore;
+		this.glyphManager = gman;
 	}
 	
 	@Override
@@ -39,7 +42,7 @@ import com.jogamp.common.nio.Buffers;
 	}
 
 	@Override
-	protected ITexture createTexture(int w, int h, double sx, double sy) {
+	protected ITexture createTexture(int w, int h, float sx, float sy) {
 		GLGeneratedTexture inner = imgfac.createGLTexture(null, w, h, 0, 0, 0);
 		return imgfac.createTexture(inner, sx, sy);
 	}
@@ -72,9 +75,9 @@ import com.jogamp.common.nio.Buffers;
 	protected void renderLayoutToTexture(TextLayout layout, ITexture tex) {
 		//System.out.println("RENDER: " + layout.getText().replace("\n", "") + " -> " + tex);
 		
-		int startLine = getStartLine();
-		int endLine = getEndLine();
-		double visibleChars = getVisibleChars();
+		final int sl = getStartLine();
+		final int el = getEndLine();
+		final double visibleChars = getVisibleChars();
 		
 		TextureAdapter ta = (TextureAdapter)tex;
 		GLGeneratedTexture inner = (GLGeneratedTexture)ta.getTexture();
@@ -88,11 +91,13 @@ import com.jogamp.common.nio.Buffers;
 		
 		//System.out.println(getLayoutMaxWidth() + " " + getLayoutWidth() + " " + tex.getTexWidth());
 		
-		AWTParagraphRenderer pr = trStore.createAWTParagraphRenderer();
-		pr.setBounds(0, 0, getLayoutMaxWidth(), getLayoutMaxHeight());
-		pr.setLineOffset(startLine);
-		pr.setVisibleLines(endLine - startLine);
-		pr.setVisibleChars(visibleChars);
+		double offsetX = (isRightToLeft() ? -getLayoutTrailing(sl, el) : -getLayoutLeading(sl, el));
+		
+		AWTParagraphRenderer pr = glyphManager.createAWTParagraphRenderer();
+		pr.setBounds(offsetX, 0, getLayoutMaxWidth(), getLayoutMaxHeight());
+		pr.setLineOffset(sl);
+		pr.setVisibleLines(el - sl);
+		pr.setVisibleChars((float)visibleChars);
 		
 		//System.out.printf("start=%d, end=%d, visibleChars=%.1f\n", startLine, endLine, visibleChars);
 		
@@ -105,10 +110,11 @@ import com.jogamp.common.nio.Buffers;
 	}
 
 	@Override
-	protected TextLayout createLayout(double width, double height) {
-		AWTParagraphRenderer pr = trStore.createAWTParagraphRenderer();
+	protected TextLayout createLayout(float width, float height) {
+		AWTParagraphRenderer pr = glyphManager.createAWTParagraphRenderer();
+		pr.setRightToLeft(isRightToLeft());
 		pr.setDefaultStyle(pr.getDefaultStyle().extend(getDefaultStyle()));
-		return pr.getLayout(getText(), width);
+		return pr.getLayout(getText(), (float)width);
 	}
 			
 	@Override
@@ -130,15 +136,37 @@ import com.jogamp.common.nio.Buffers;
 	}
 	
 	@Override
-	protected double getLayoutWidth(int startLine, int endLine) {			
+	protected float getLayoutLeading(int line) {			
 		TextLayout layout = getLayout();
-		return TextDrawable.getLayoutRight(layout, startLine, endLine);
+		return (isRightToLeft() ? layout.getPadRight(line) : layout.getPadLeft(line));
+	}
+	
+	@Override
+	protected float getLayoutTrailing(int line) {			
+		TextLayout layout = getLayout();
+		return (isRightToLeft() ? layout.getPadLeft(line) : layout.getPadRight(line));
 	}
 		
 	@Override
-	public double getLayoutHeight(int startLine, int endLine) {
+	public float getLayoutWidth(int line) {
+		TextLayout layout = getLayout();
+		return (line >= 0 && line < layout.getNumLines() ? layout.getLineWidth(line) : 0);
+	}
+	
+	@Override
+	public float getLayoutHeight(int startLine, int endLine) {
 		TextLayout layout = getLayout();
 		return layout.getHeight(Math.max(0, startLine), Math.min(layout.getNumLines(), endLine));
+	}
+	
+	public LineElement getLayoutHitElement(float cx, float cy) {
+		return TextDrawable.getLayoutHitElement(getLayout(), getStartLine(), getEndLine(), cx - getPadLeft(), cy);
+	}
+	
+	@Override
+	public int[] getHitTags(float cx, float cy) {
+		LineElement le = getLayoutHitElement(cx * getDisplayScale(), cy * getDisplayScale());
+		return (le != null ? le.getStyle().getTags() : null);
 	}
 	
 }

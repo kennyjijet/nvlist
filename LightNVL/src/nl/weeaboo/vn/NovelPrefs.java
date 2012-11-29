@@ -31,8 +31,9 @@ public final class NovelPrefs {
 	public static final Preference<String>  ENGINE_TARGET_VERSION = newPreference("vn.engineTargetVersion", "3.0", "Engine Target Version", "The version of NVList this VN was created for.");		
 	public static final Preference<Integer> TIMER_IDLE_TIMEOUT = newPreference("vn.timerIdleTimeout", 30, "Timer Idle Timeout", "The number of seconds of user inactivity that are tolerated before the playtime timer is stopped.");
 	public static final Preference<Boolean> ENABLE_PROOFREADER_TOOLS = newPreference("vn.enableProofreaderTools", false, "Enable Proofreader Tools", "Enables available bug reporting features for proofreaders/editors.");
+	public static final Preference<Boolean> RTL = newPreference("vn.rtl", false, "Right-to-Left Text", "Sets the default text direction to RTL (right to left).");
 	
-	private NovelPrefs() {		
+	private NovelPrefs() {
 	}
 	
 	private static TextStyle coloredTextStyle(int argb) {

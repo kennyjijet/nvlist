@@ -12,6 +12,7 @@ public abstract class DecodingScreenshot extends BaseScreenshot {
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
 	private transient ByteBuffer data;
+	private transient boolean isLoaded;
 	
 	public DecodingScreenshot(ByteBuffer b) {
 		super((short)0, false);
@@ -59,27 +60,27 @@ public abstract class DecodingScreenshot extends BaseScreenshot {
 	
 	@Override
 	public int[] getPixels() {
-		if (!isAvailable) {
+		if (!isLoaded) {
 			tryLoad(data);
-			isAvailable = true;
+			isLoaded = true;
 		}		
 		return super.getPixels();
 	}
 
 	@Override
 	public int getPixelsWidth() {
-		if (!isAvailable) {
+		if (!isLoaded) {
 			tryLoad(data);
-			isAvailable = true;
+			isLoaded = true;
 		}		
 		return super.getPixelsWidth();
 	}
 
 	@Override
 	public int getPixelsHeight() {
-		if (!isAvailable) {
+		if (!isLoaded) {
 			tryLoad(data);
-			isAvailable = true;
+			isLoaded = true;
 		}		
 		return super.getPixelsHeight();
 	}

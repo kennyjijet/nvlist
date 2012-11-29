@@ -38,7 +38,7 @@ import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.GLResourceCache;
 import nl.weeaboo.gl.shader.ShaderCache;
 import nl.weeaboo.gl.text.FontManager;
-import nl.weeaboo.gl.text.GLTextRendererStore;
+import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.text.ParagraphRenderer;
 import nl.weeaboo.gl.texture.TextureCache;
 import nl.weeaboo.lua2.io.LuaSerializer;
@@ -116,7 +116,7 @@ public class Game extends BaseGame {
 	
 	public Game(IConfig cfg, ExecutorService e, GameDisplay gd, GameUpdater gu, FileManager fm,
 			FontManager fontman, TextureCache tc, ShaderCache sc, GLResourceCache rc,
-			GLTextRendererStore trs, SoundManager sm, UserInput in, IKeyConfig kc,
+			GlyphManager trs, SoundManager sm, UserInput in, IKeyConfig kc,
 			String imageF, String videoF)
 	{
 		super(cfg, e, gd, gu, fm, fontman, tc, sc, rc, trs, sm, in, kc, imageF, videoF);
@@ -194,7 +194,7 @@ public class Game extends BaseGame {
 		TextureCache texCache = getTextureCache();
 		GLResourceCache resCache = getGLResourceCache();
 		ShaderCache shCache = getShaderCache();		
-		GLTextRendererStore trStore = getTextRendererStore();
+		GlyphManager glyphManager = getGlyphManager();
 		SoundManager sm = getSoundManager();
 		INovelConfig novelConfig = new BaseNovelConfig(config.get(TITLE), config.get(WIDTH), config.get(HEIGHT));
 		Dim nvlSize = new Dim(novelConfig.getWidth(), novelConfig.getHeight());
@@ -242,7 +242,7 @@ public class Game extends BaseGame {
 		SystemLib syslib = new SystemLib(this, notifier);
 		boolean renderTextToTexture = false; //isVNDS();
 		ShaderFactory shfac = new ShaderFactory(notifier, shCache);
-		ImageFactory imgfac = new ImageFactory(texCache, trStore,
+		ImageFactory imgfac = new ImageFactory(texCache, glyphManager,
 				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);

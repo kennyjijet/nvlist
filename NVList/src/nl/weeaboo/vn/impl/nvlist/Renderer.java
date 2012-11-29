@@ -242,8 +242,8 @@ public class Renderer extends BaseRenderer {
 		
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
-		pr.setVisibleChars(visibleChars);
-		pr.drawLayout(glm, layout, x, y);
+		pr.setVisibleChars((float)visibleChars);
+		pr.drawLayout(glm, layout, (float)x, (float)y);
 
 		//gl.glPopMatrix();
 		

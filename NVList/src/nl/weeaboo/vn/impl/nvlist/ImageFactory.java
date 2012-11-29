@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import nl.weeaboo.gl.GLInfo;
-import nl.weeaboo.gl.text.GLTextRendererStore;
+import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
 import nl.weeaboo.gl.texture.GLTexRect;
 import nl.weeaboo.gl.texture.GLTexture;
@@ -34,20 +34,21 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
 	private final TextureCache texCache;
-	private final GLTextRendererStore trStore;
+	private final GlyphManager glyphManager;
 	private final boolean renderTextToTexture;
 	
 	private int imgWidth, imgHeight;
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
+	private boolean isTextRightToLeft;
 	
-	public ImageFactory(TextureCache tc, GLTextRendererStore trStore,
+	public ImageFactory(TextureCache tc, GlyphManager gman,
 			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
 	{
 		super(sl, ntf, w, h);
 		
 		this.analytics = an;
 		this.texCache = tc;
-		this.trStore = trStore;		
+		this.glyphManager = gman;		
 		this.imgWidth = w;
 		this.imgHeight = h;
 		this.subTexLim = 128;
@@ -83,10 +84,14 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	}
 	
 	protected ITextRenderer createTextRenderer() {
+		ITextRenderer tr;
 		if (renderTextToTexture) {
-			return new TextureTR(this, trStore);
+			tr = new TextureTR(this, glyphManager);
+		} else {
+			tr = new GlyphTR(this, glyphManager);
 		}
-		return new GlyphTR(this, trStore);
+		tr.setRightToLeft(isTextRightToLeft);
+		return tr;
 	}
 	
 	@Override
@@ -221,10 +226,18 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		return Math.min(width / (double)imgWidth, height / (double)imgHeight);
 	}
 	
+	public boolean isTextRightToLeft() {
+		return isTextRightToLeft;
+	}
+	
 	//Setters
 	public void setImageSize(int iw, int ih) {
 		imgWidth = iw;
 		imgHeight = ih;
+	}
+	
+	public void setTextRightToLeft(boolean rtl) {
+		isTextRightToLeft = rtl;
 	}
 	
 }

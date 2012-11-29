@@ -7,7 +7,7 @@ final class BaseImpl {
 	private BaseImpl() {		
 	}
 	
-	static final long serialVersionUID = 50L;
+	static final long serialVersionUID = 51L;
 		
 	public static String replaceExt(String filename, String ext) {
 		int index = filename.indexOf('#');

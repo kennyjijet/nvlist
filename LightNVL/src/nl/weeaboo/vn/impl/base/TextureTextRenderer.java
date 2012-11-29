@@ -15,13 +15,16 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 
 	protected static final int PAD = 1;
 	
+	private boolean roundRenderCoordinates;
 	private transient ITexture texture;
 	private transient int textureW, textureH;
 	private transient boolean texContentDirty;
 	private boolean cursorSizeDirty;
 	
-	public TextureTextRenderer() {
+	public TextureTextRenderer(boolean roundRenderCoordinates) {
 		super();
+		
+		this.roundRenderCoordinates = roundRenderCoordinates;
 	}
 	
 	//Functions
@@ -63,6 +66,13 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 			uw = getLayoutWidth() / texture.getWidth();
 			h  = getTextHeight();
 			vh = getLayoutHeight() / texture.getHeight();
+		}
+		
+		dx += getPadLeft() + (isRightToLeft() ? getTextTrailing() : getTextLeading());
+		if (roundRenderCoordinates) {
+			double s = getDisplayScale();
+			dx = Math.round(dx * s) / s;
+			dy = Math.round(dy * s) / s;
 		}
 		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
 				dx, dy, w, h, 0, 0, uw, vh, null);
@@ -125,7 +135,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	/**
 	 * Creates a new texture with pixel dimensions <code>(w, h)</code>. 
 	 */
-	protected abstract ITexture createTexture(int w, int h, double scaleX, double scaleY);
+	protected abstract ITexture createTexture(int w, int h, float scaleX, float scaleY);
 	
 	/**
 	 * Renders the text layout <code>layout</code> to <code>texture</code>. 
@@ -170,15 +180,30 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	protected int getLayoutMaxHeight() {
 		return Math.max(0, (int)Math.ceil(getMaxHeight() * getDisplayScale()));
 	}
-	
+
 	@Override
-	public double getTextWidth(int startLine, int endLine) {
-		return getLayoutWidth(startLine, endLine) / getDisplayScale();
+	public float getTextLeading(int startLine, int endLine) {
+		return super.getTextLeading(startLine, endLine) / getDisplayScale();
+	}
+
+	@Override
+	public float getTextTrailing(int startLine, int endLine) {
+		return super.getTextTrailing(startLine, endLine) / getDisplayScale();
 	}
 	
 	@Override
-	public double getTextHeight(int startLine, int endLine) {
-		return getLayoutHeight(startLine, endLine) / getDisplayScale();
+	public float getTextWidth(int startLine, int endLine) {
+		return super.getTextWidth(startLine, endLine) / getDisplayScale();
+	}
+	
+	@Override
+	public float getTextHeight(int startLine, int endLine) {
+		return super.getTextHeight(startLine, endLine) / getDisplayScale();
+	}
+	
+	@Override
+	public float getLineWidth(int line) {
+		return super.getLineWidth(line) / getDisplayScale();
 	}
 	
 	//Setters	

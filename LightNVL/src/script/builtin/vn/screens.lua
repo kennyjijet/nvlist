@@ -121,15 +121,17 @@ function SaveSlot:setBounds(x, y, w, h)
 	local i = self.image
 	
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
-	b:setScale(scale, scale)
+	b:setScale(scale)
 
-	l:setDefaultStyle(createStyle{fontName="sans serif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
+	l:setDefaultStyle(createStyle{fontName="SansSerif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
 	if i ~= nil then
 		local maxW = 224
 		local maxH = 126
-		if maxW <= b:getWidth() and maxH <= .8*b:getHeight() then
-			i:setScale(scale * math.min(maxW / i:getUnscaledWidth(), maxH / i:getUnscaledHeight()))
+		local iw = i:getUnscaledWidth()
+		local ih = i:getUnscaledHeight()
+		if maxW <= b:getWidth() and maxH <= .8*b:getHeight() and iw >= 1 and ih >= 1 then
+			i:setScale(scale * math.min(maxW / iw, maxH / ih))
 			i:setVisible(true)
 			l:setSize(b:getWidth(), b:getHeight()-i:getHeight())
 		else
@@ -245,7 +247,7 @@ function SaveLoadScreen.new(self)
 	end
 	
 	local sz = self.okButton:getHeight() / 2.5	
-	local buttonStyle = createStyle{fontName="sans serif", fontStyle="bold", fontSize=sz, shadowColor=0}
+	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
 	self.okButton:setDefaultStyle(buttonStyle)
 	self.cancelButton:setDefaultStyle(buttonStyle)
 	for _,tb in pairs(self.pageButtons) do

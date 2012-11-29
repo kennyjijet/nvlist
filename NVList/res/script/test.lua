@@ -14,29 +14,42 @@ text("Aliquam non tortor justo. Sed pulvinar sodales ligula sit amet ornare. Sed
 text("Fusce auctor massa iaculis erat dignissim vel imperdiet velit interdum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam vehicula fringilla turpis. Nulla facilisi. Duis consequat accumsan placerat. Suspendisse consequat venenatis semper. Nulla fermentum fermentum nunc sit amet molestie. Aenean et dolor est. Donec fringilla ipsum a mi vestibulum nec laoreet massa dictum. Praesent ultricies accumsan nisl, eleifend consequat metus porttitor eu. Ut consectetur dignissim porttitor. Nulla porttitor pretium augue id auctor. Integer eleifend sapien at purus porttitor quis tincidunt sem elementum. Maecenas vulputate augue sit amet justo interdum aliquam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed quam sem, vel ultrices dolor.")
 ]]
 
---[[
---Text rendering tests
+--[[ Text rendering tests ]]
+bgf("bg/bg1")
 while true do
-    --Can't break inside かぁ combination 
-    text("中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中かかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかぁななななな", {fontName="sazanami-gothic"})
+    text(createStyledText("111111 111111", {anchor=5, tags={1}}):concat(" filler filler filler  filler filler filler  filler filler filler  filler filler filler "):concat(createStyledText("222222 222222", {anchor=5, tags={2}})))
+
+    --RTL and BiDirectional text
+    text(createStyledText("שהר שהר שהר aaa שהר שהר שהרשהרשהרשהר", {fontName="SansSerif", anchor=5}))
+    text(createStyledText("abc Test שהרשהרשהרשהרשהר (Test2)", {fontName="SansSerif", anchor=7}))
+    text(createStyledText("של 1234 ום WORD של!@#$%^&*()ום", {fontName="SansSerif", anchor=9}))
+
+    --Can't break inside かぁ combination
+    text(createStyledText("中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中かかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかかぁななななな", {fontName="sazanami-gothic"}))
     
     --This line has embedded zero-width spaces
-    text("vrachtautoband​ventieldopjes​fabrieks​directeurs​assistentes​uniformen​knopen​maker")
+    text("embedded zero-width spaces: vrachtautoband​ventieldopjes​fabrieks​directeurs​assistentes​uniformen​knopen​maker")
 
     --Non-breaking spaces
     text("This sentence uses a long word with non-breaking spaces: \"start               end\"")
     
     --Soft hyphens (should be hidden when not the last printable char in a line, UNSUPPORTED)
-    text("vrachtautoband­​ventieldopjes­fabrieks­directeurs­assistentes­uniformen­knopen­maker")
+    --To support would require deleting all SHY characters not at the end of the line.
+    text("embedded soft-hyphens: vrachtautoband­​ventieldopjes­fabrieks­directeurs­assistentes­uniformen­knopen­maker")
 
-    --Ancient Greek    
-    text([Ἰοὺ ἰού· τὰ πάντʼ ἂν ἐξήκοι σαφῆ.
-Ὦ φῶς, τελευταῖόν σε προσϐλέψαιμι νῦν,
-ὅστις πέφασμαι φύς τʼ ἀφʼ ὧν οὐ χρῆν, ξὺν οἷς τʼ
-οὐ χρῆν ὁμιλῶν, οὕς τέ μʼ οὐκ ἔδει κτανών.])
+    --Font/exotic characters test
+    text(createStyledText([=[Ā Á Ǎ À ā á ǎ à
+Ǖ Ǘ Ǚ Ǜ ǖ ǘ ǚ ǜ
+Ĉ ĉ Ĝ ĝ Ĥ ĥ Ĵ ĵ Ŝ ŝ Ŭ ŭ
+Я не говорю по-русски.
+Αυτου οι θανατον μητσομαι.
+Ἰοὺ ἰού· τὰ πάντʼ ἂν ἐξήκοι σαφῆ.
+אני לא לומד
+中 華 民 族 中 华 民 族
+𦮙]=], createStyle{fontName="SansSerif"}))
 
 end
-]]
+rmbgf()
 
 --[[
 --Glow effect test
