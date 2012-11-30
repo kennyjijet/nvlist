@@ -234,17 +234,20 @@ public class Renderer extends BaseRenderer {
 			int startLine, int endLine, double visibleChars, IPixelShader ps)
 	{
 		flushQuadBatch();
-
+		
 		if (ps != null) ps.preDraw(this);
 		
 		//GL2ES1 gl = glm.getGL();		
 		//gl.glPushMatrix();
-		
+
+		glm.pushBlendMode();
+		glm.setBlendMode(GLBlendMode.DEFAULT);
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars((float)visibleChars);
-		pr.drawLayout(glm, layout, (float)x, (float)y);
-
+		pr.drawLayout(glm, layout, Math.round((float)x), Math.round((float)y));
+		glm.popBlendMode();
+		
 		//gl.glPopMatrix();
 		
 		if (ps != null) ps.postDraw(this);		
