@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import nl.weeaboo.styledtext.MutableTextStyle;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
 import nl.weeaboo.vn.BlendMode;
@@ -26,6 +27,14 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
+	private static final TextStyle DEFAULT_STYLE;
+	
+	static {
+		MutableTextStyle mts = new MutableTextStyle();
+		mts.setAnchor(5);
+		DEFAULT_STYLE = mts.immutableCopy();
+	}
+	
 	private boolean rollover;
 	private boolean keyArmed, mouseArmed;
 	private boolean enabled;	
@@ -46,17 +55,19 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	private ITextRenderer textRenderer;
 	private StyledText stext;
 	private TextStyle defaultStyle;
-	private int textAnchor;
+	private double verticalAlign;
 	
 	protected BaseButtonDrawable(ITextRenderer tr) {
 		enabled = true;
 		activationKeys = new HashSet<Integer>();
 		alphaEnableThreshold = 0.9;
 		
-		textRenderer = tr;
 		stext = StyledText.EMPTY_STRING;
-		defaultStyle = TextStyle.defaultInstance();
-		textAnchor = 5;
+		defaultStyle = DEFAULT_STYLE;
+		verticalAlign = .5;
+		
+		tr.setDefaultStyle(defaultStyle);
+		textRenderer = tr;
 	}
 	
 	//Functions
@@ -239,14 +250,20 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			}
 		}
 	}
+		
+	@Override
+	public void extendDefaultStyle(TextStyle style) {
+		setDefaultStyle(getDefaultStyle().extend(style));
+	}
 	
+	//Getters
 	protected void getTextRendererAbsoluteXY(Vec2 out) {
 		getTextRendererXY(out);
 		out.x += getX() + touchMargin;
 		out.y += getY() + touchMargin;
 	}
 	protected void getTextRendererXY(Vec2 out) {
-		LayoutUtil.getTextRendererXY(out, getWidth(), getHeight(), textRenderer, textAnchor);
+		LayoutUtil.getTextRendererXY(out, getWidth(), getHeight(), textRenderer, verticalAlign);
 	}
 	
 	protected boolean isInputHeld(IInput input) {
@@ -264,7 +281,6 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		return false;
 	}
 	
-	//Getters
 	@Override
 	public StyledText getText() {
 		return stext;
@@ -387,10 +403,22 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	@Override
+	@Deprecated
 	public void setTextAnchor(int a) {
-		if (textAnchor != a) {
-			textAnchor = a;
-			markChanged();
+		if (a >= 7 && a <= 9) {
+			setVerticalAlign(0);
+		} else if (a >= 4 && a <= 6) {
+			setVerticalAlign(.5);
+		} else {
+			setVerticalAlign(1);
+		}
+	}
+
+	@Override
+	public void setVerticalAlign(double valign) {
+		if (verticalAlign != valign) {
+			 verticalAlign = valign;
+			 markChanged();
 		}
 	}
 	

@@ -9,8 +9,8 @@ local textB = button("gui/components#button-") --Empty button image
 textB:setText("Text on a button")
 
 local text2B = button("gui/components#button-")
-text2B:setTextAnchor(3) --Bottom right
-text2B:setDefaultStyle(createStyle{fontStyle="italic"})
+text2B:setVerticalAlign(1) --Bottom
+text2B:extendDefaultStyle(createStyle{fontStyle="italic"})
 text2B:setText("Text on a button")
 
 --Padding between buttons is a percentage of the screen size
@@ -29,7 +29,7 @@ while true do
     elseif textB:consumePress() then
         textB:setText("Random text " .. string.sub("abcde", 1, math.random(1, 5)))
     elseif text2B:consumePress() then
-        text2B:setTextAnchor(math.random(1, 9))
+        text2B:setVerticalAlign(math.random(0, 10) / 10)
     end
     yield()
 end

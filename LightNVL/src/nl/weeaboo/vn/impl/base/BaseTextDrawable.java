@@ -33,7 +33,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	private double pad;
 	private double backgroundRGBA[] = {0, 0, 0, 0};
 	private int backgroundARGBInt;
-	private int anchor;
+	private double verticalAlign;
 	private IDrawable cursor;
 	private boolean cursorAuto;
 	private boolean cursorAutoPos;
@@ -45,7 +45,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		
 		text = StyledText.EMPTY_STRING;
 		textSpeed = -1;
-		anchor = 7;
+		verticalAlign = 0;
 		defaultStyle = TextStyle.defaultInstance();
 		
 		initTransients();
@@ -186,6 +186,11 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		invalidateCursorPos();		
 	}
 	
+	@Override
+	public void extendDefaultStyle(TextStyle style) {
+		setDefaultStyle(getDefaultStyle().extend(style));
+	}
+	
 	//Getters
 	@Override
 	public Rect2D getBounds() {
@@ -308,7 +313,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		out.y += getY() + pad;
 	}
 	protected void getTextRendererXY(Vec2 out) {
-		LayoutUtil.getTextRendererXY(out, getInnerWidth(), getInnerHeight(), textRenderer, anchor);
+		LayoutUtil.getTextRendererXY(out, getInnerWidth(), getInnerHeight(), textRenderer, verticalAlign);
 	}
 	
 	protected void getCursorAbsoluteXY(Vec2 out) {
@@ -326,7 +331,8 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			Vec2 trPos = new Vec2();
 			getTextRendererXY(trPos);			
 			if (textRenderer.isRightToLeft()) {
-				out.x = trPos.x + textRenderer.getTextTrailing(cl, cl+1) + textRenderer.getTextWidth() - textRenderer.getLineWidth(cl);
+				out.x = trPos.x + textRenderer.getMaxWidth() - textRenderer.getTextLeading(cl, cl+1)
+					- textRenderer.getLineWidth(cl) - (cursor != null ? cursor.getWidth() : 0);
 			} else {
 				out.x = trPos.x + textRenderer.getTextLeading(cl, cl+1) + textRenderer.getLineWidth(cl);
 			}
@@ -386,7 +392,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	public void setText(StyledText t) {
 		if (!text.equals(t)) {
 			text = t;			
-			
+						
 			startLine = 0;
 			if (cursorAuto) {
 				cursor.setAlpha(isInstantTextSpeed() ? getAlpha() : 0);
@@ -529,10 +535,22 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	}
 	
 	@Override
+	@Deprecated
 	public void setAnchor(int a) {
-		if (anchor != a) {
-			anchor = a;
-			markChanged();
+		if (a >= 7 && a <= 9) {
+			setVerticalAlign(0);
+		} else if (a >= 4 && a <= 6) {
+			setVerticalAlign(.5);
+		} else {
+			setVerticalAlign(1);
+		}
+	}
+	
+	@Override
+	public void setVerticalAlign(double valign) {
+		if (verticalAlign != valign) {
+			 verticalAlign = valign;
+			 markChanged();
 		}
 	}
 	

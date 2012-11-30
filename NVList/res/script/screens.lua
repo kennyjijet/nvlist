@@ -79,7 +79,8 @@ function SaveSlot.new(self)
 	--l:setBackgroundColorARGB(0xA0000000)
 	l:setZ(b:getZ() - 10)
 	l:setPadding(8)
-	l:setAnchor(2)
+	l:extendDefaultStyle(createStyle{anchor=2})
+	l:setVerticalAlign(1)
 	
 	local i = nil	
 	local newI = nil
@@ -123,7 +124,7 @@ function SaveSlot:setBounds(x, y, w, h)
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
 	b:setScale(scale)
 
-	l:setDefaultStyle(createStyle{fontName="SansSerif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
+	l:extendDefaultStyle(createStyle{fontName="SansSerif", anchor=2, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
 	if i ~= nil then
 		local maxW = 224
@@ -248,10 +249,10 @@ function SaveLoadScreen.new(self)
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton:setDefaultStyle(buttonStyle)
-	self.cancelButton:setDefaultStyle(buttonStyle)
+	self.okButton:extendDefaultStyle(buttonStyle)
+	self.cancelButton:extendDefaultStyle(buttonStyle)
 	for _,tb in pairs(self.pageButtons) do
-		tb:setDefaultStyle(buttonStyle)
+		tb:extendDefaultStyle(buttonStyle)
 	end
 		
 	self:setPage(self.page, true)
@@ -545,7 +546,7 @@ function TextLogScreen:run()
 	for p=pages,1,-1 do
 		local t = textimg()
 		t:setClipEnabled(clipEnabled)
-		t:setDefaultStyle(defaultStyle)
+		t:extendDefaultStyle(defaultStyle)
 		t:setText(tl:getPage(-p))
 		--t:setSize(iw, t:getTextHeight()) --Shrink text bounds to what's required (causes problems when text size changes)
 		t:setBlendMode(BlendMode.OPAQUE)
@@ -631,7 +632,7 @@ function ChoiceScreen.new(choiceId, ...)
 	viewport:setPos(self.pad, self.pad)
 	viewport:setZ(-2000)
 	viewport:setPadding(self.pad)
-	viewport:setLayout(createFlowLayout{pack=5, anchor=5, padding=self.ipad, cols=1})
+	viewport:setLayout(createFlowLayout{pack=5, anchor=2, padding=self.ipad, cols=1})
 	self.viewport = viewport
 	
 	setImageLayer(viewport:getLayer())
@@ -649,9 +650,9 @@ function ChoiceScreen.new(choiceId, ...)
 		b:setScale(buttonScale)
 		
 		if seenLog:isChoiceSelected(choiceId, i) then
-			b:setDefaultStyle(self.selectedChoiceStyle)
+			b:extendDefaultStyle(self.selectedChoiceStyle)
 		else
-			b:setDefaultStyle(self.choiceStyle)
+			b:extendDefaultStyle(self.choiceStyle)
 		end
 		table.insert(self.buttons, b)
 		

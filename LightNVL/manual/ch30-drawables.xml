@@ -31,7 +31,7 @@
     <section title="TextDrawable" level="3">
       <p><javadoc-link class="nl.weeaboo.vn.ITextDrawable">Java definition</javadoc-link></p>
       <p>Draws some text on the screen, optionally with a background color. The default text box implementation actually doesn't use a background image, it just changes the background color and padding of a TextDrawable.</p>
-      <p>You can set the maximum size of a TextDrawable with <code>setSize</code>. Text will automatically wordwrap within the given bounds and only lines falling within the given bounds will be drawn. Functions <code>getTextWidth</code>/<code>getTextHeight</code> can be used to determine the bounds of the currently visible text. Relative positioning of the text within the bounds is determined by the <code>setAnchor</code> function.</p>
+      <p>You can set the maximum size of a TextDrawable with <code>setSize</code>. Text will automatically wordwrap within the given bounds and only lines falling within the given bounds will be drawn. Functions <code>getTextWidth</code>/<code>getTextHeight</code> can be used to determine the bounds of the currently visible text. Relative positioning of the text within the bounds is determined by the <code>setVerticalAlign</code> function.</p>
       <p>Text styling (font changes, bold text, etc.) can be achieved either by passing a StyledText object to <code>setText</code>, or to set the default text style: <code>setDefaultStyle</code>.</p>
       <p>To keep text readable on small displays, on Android the text size is configurable by the user and may change at any time.</p>
     </section>

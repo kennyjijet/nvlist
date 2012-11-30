@@ -10,6 +10,11 @@ public interface IButtonDrawable extends IImageDrawable {
 	// === Functions ===========================================================
 	
 	/**
+	 * @see #setDefaultStyle(TextStyle) 
+	 */
+	public void extendDefaultStyle(TextStyle ts);
+	
+	/**
 	 * Buttons store internally if they've been pressed. This method returns if
 	 * that has been the case and clears the internal pressed flag.
 	 */
@@ -157,7 +162,17 @@ public interface IButtonDrawable extends IImageDrawable {
 	 * Sets the relative position of the text within the button's bounds
 	 * 
 	 * @param a The anchor, uses numpad number positions as directions
+	 * @deprecated Use {@link #setVerticalAlign(double)} instead
 	 */
+	@Deprecated
 	public void setTextAnchor(int a);
+	
+	/**
+	 * Sets the relative position of the text within the button's bounds
+	 * 
+	 * @param valign Relative vertical position for the text: <code>0.0</code>
+	 *        is the top, <code>1.0</code> the bottom.
+	 */
+	public void setVerticalAlign(double valign);
 	
 }

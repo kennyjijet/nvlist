@@ -9,7 +9,7 @@
     <section title="ButtonDrawable" level="3">
       <p><javadoc-link class="nl.weeaboo.vn.IButtonDrawable">Java definition</javadoc-link></p>      
       <p>ButtonsDrawables are basic (toggle) buttons, displaying a different texture based on the state of the button (normal, rollover, pressed or disabled). Use the <code>setToggle</code> function to switch between acting like a toggle button (remains selected when pressed) or a regular button.</p>
-      <p>Buttons can optionally display a text label on top of their background image. Use the <code>setText</code>, <code>setDefaultStyle</code> and <code>setTextAnchor</code> functions to control the text display.</p>
+      <p>Buttons can optionally display a text label on top of their background image. Use the <code>setText</code>, <code>setDefaultStyle</code> and <code>setVerticalAlign</code> functions to control the text display.</p>
       <sourcecode lang="lvn"><![CDATA[@local b = button("gui/components#button-")
 
 @while true do

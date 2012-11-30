@@ -18,7 +18,7 @@ The default text style is determined by the [monospace()]text.defaultStyle[style
 @setTextModeNVL()
 @texton()
 
-Change the [style{fontName="DejaVuSansMono"}]fontName[style()] or [style{anchor=1, fontSize=15}]fontSize[style()].
+Change the [style{fontName="DejaVuSansMono"}]fontName[style()] or [style{fontSize=15}]fontSize[style()].
 
 #Attention! Don't forget the quotes around "bold", etc.
 Or change the fontStyle to [style{fontStyle="bold"}]bold[style()], [style{fontStyle="italic"}]italic[style()], [style{fontStyle="bolditalic"}]bolditalic[style()].

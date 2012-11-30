@@ -14,10 +14,10 @@ local panel = createPanel(300, 300)
 panel:setBackground(colorTex(0xFF800080, 64, 64))
 
 local corners = {}
-for i=1,4 do corners[i] = colorTex(0xC08080, 16, 16) end
+for i=1,4 do corners[i] = colorTex(0xFFC08080, 16, 16) end
 
 local sides = {}
-for i=1,4 do sides[i] = colorTex(0x80C080, 16, 16) end
+for i=1,4 do sides[i] = colorTex(0xFF80C080, 16, 16) end
     
 panel:setBorderInsets(16)
 panel:setBorder(sides, corners)

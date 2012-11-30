@@ -7,6 +7,11 @@ public interface ITextDrawable extends IDrawable {
 
 	// === Functions ===========================================================
 	
+	/**
+	 * @see #setDefaultStyle(TextStyle) 
+	 */
+	public void extendDefaultStyle(TextStyle ts);
+	
 	// === Getters =============================================================
 		
 	public StyledText getText();
@@ -158,15 +163,30 @@ public interface ITextDrawable extends IDrawable {
 	
 	/**
 	 * Sets the relative position of the text within the textbox's bounds
+	 * 
 	 * @param a The anchor, uses numpad number positions as directions
+	 * @deprecated Use {@link #setVerticalAlign(double)} instead
 	 */
+	@Deprecated
 	public void setAnchor(int a);
 	
 	/**
+	 * Sets the relative position of the text within the textbox's bounds
+	 * 
+	 * @param valign Relative vertical position for the text: <code>0.0</code>
+	 *        is the top, <code>1.0</code> the bottom.
+	 */
+	public void setVerticalAlign(double valign);
+	
+	/**
 	 * Sets a drawable as this text drawable's continue indicator.
-	 * @param d The drawable to use as the continue indicator. Its alpha will be manipulated by the text drawable.
-	 * @param autoConfig Automatically configure size and possibly some other properties.
-	 * @param autoPos Automatically position the cursor at the end of the visible text.
+	 * 
+	 * @param d The drawable to use as the continue indicator. Its alpha will be
+	 *        manipulated by the text drawable.
+	 * @param autoConfig Automatically configure size and possibly some other
+	 *        properties.
+	 * @param autoPos Automatically position the cursor at the end of the
+	 *        visible text.
 	 */
 	public void setCursor(IDrawable d, boolean autoConfig, boolean autoPos);
 	

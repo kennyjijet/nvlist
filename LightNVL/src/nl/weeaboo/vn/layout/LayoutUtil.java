@@ -101,14 +101,15 @@ public final class LayoutUtil {
 		return h;
 	}
 	
-	public static void getTextRendererXY(Vec2 out, double outerW, double outerH, ITextRenderer tr, int anchor) {
-		out.x = LayoutUtil.alignAnchorX(outerW, tr.getTextWidth(), anchor);
+	public static void getTextRendererXY(Vec2 out, double outerW, double outerH, ITextRenderer tr, double valign) {
+		out.x = 0;
+		/*out.x = LayoutUtil.alignAnchorX(outerW, tr.getTextWidth(), anchor);
 		if (tr.isRightToLeft()) {
 			out.x -= tr.getTextTrailing();
 		} else {
 			out.x -= tr.getTextLeading();
-		}
-		out.y = LayoutUtil.alignAnchorY(outerH, tr.getTextHeight(), anchor);
+		}*/
+		out.y = (outerH - tr.getTextHeight()) * valign;
 	}
 	
 }

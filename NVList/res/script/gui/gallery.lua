@@ -38,7 +38,8 @@ function ImageSlot.new(self)
     
 	if #self.fullpaths > 1 then
 		self.label = textimg("(" .. #self.fullpaths .. ")")
-		self.label:setAnchor(3)
+		self.label:extendDefaultStyle(createStyle{anchor=3})
+		self.label:setVerticalAlign(1)
 	end
 	
 	self.overlay = img("gui/imagegallery#white")
@@ -146,7 +147,7 @@ function ImageSlot:show()
 	local lbl = nil
 	if length > 1 then
 		lbl = textimg("")
-		lbl:setDefaultStyle(createStyle{anchor=9})
+		lbl:extendDefaultStyle(createStyle{anchor=9})
 		lbl:setZ(-5)
 		lbl:setPadding(screenHeight / 64)
 		--lbl:setAnchor(9)
@@ -242,7 +243,7 @@ function ImageGallery.new(folder, self)
 	self.slots = self.slots or {}
 	self.returnButton = button("gui/imagegallery#button-")
 	self.returnButton:setText("Return")
-	self.returnButton:setDefaultStyle(self.buttonStyle)
+	self.returnButton:extendDefaultStyle(self.buttonStyle)
 	
 	self.topFade = img("gui/imagegallery#fade-top")
 	self.topFade:setZ(10)
@@ -355,7 +356,7 @@ function ImageGallery:setFolder(folder)
 	for p=1,numPages do
 		local tb = button("gui/imagegallery#pageButton-")
 		tb:setText(p)
-		tb:setDefaultStyle(self.buttonStyle)
+		tb:extendDefaultStyle(self.buttonStyle)
 		tb:setToggle(true)
 		table.insert(self.pageButtons, tb)
 	end

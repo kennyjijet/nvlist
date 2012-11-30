@@ -123,9 +123,10 @@ function SaveSlot.new(self)
 	
 	local l = textimg(self.label)
 	--l:setBackgroundColorARGB(0xA0000000)
+	l:extendDefaultStyle(createStyle{anchor=2})
 	l:setZ(b:getZ() - 10)
 	l:setPadding(8)
-	l:setAnchor(2)
+	l:setVerticalAlign(1)
 	
 	local i = nil	
 	local newI = nil
@@ -169,7 +170,7 @@ function SaveSlot:setBounds(x, y, w, h)
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
 	b:setScale(scale, scale)
 
-	l:setDefaultStyle(createStyle{fontName="SansSerif", anchor=5, fontSize=scale * 16, shadowDx=1, shadowDy=1})
+	l:extendDefaultStyle(createStyle{fontName="SansSerif", anchor=2, fontSize=scale * 16, shadowDx=1, shadowDy=1})
 
 	if i ~= nil then
 		local imgScale = scale * math.min(224 / i:getUnscaledWidth(), 126 / i:getUnscaledHeight())
@@ -248,8 +249,8 @@ function SaveScreen.new(self)
 	
 	local sz = self.okButton:getHeight() / 2.5	
 	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton:setDefaultStyle(buttonStyle)
-	self.cancelButton:setDefaultStyle(buttonStyle)
+	self.okButton:extendDefaultStyle(buttonStyle)
+	self.cancelButton:extendDefaultStyle(buttonStyle)
     
 	self:initSaves()
 

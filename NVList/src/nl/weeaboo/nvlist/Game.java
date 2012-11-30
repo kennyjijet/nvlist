@@ -170,7 +170,7 @@ public class Game extends BaseGame {
 		//We're using the volume settings from NovelPrefs instead...
 		config.set(BaseGameConfig.MUSIC_VOLUME, 1.0);
 		config.set(BaseGameConfig.SOUND_VOLUME, 1.0);
-		config.set(BaseGameConfig.VOICE_VOLUME, 1.0);
+		config.set(BaseGameConfig.VOICE_VOLUME, 1.0);		
 		
 		if (bugReporter != null) {
 			bugReporter.dispose();
