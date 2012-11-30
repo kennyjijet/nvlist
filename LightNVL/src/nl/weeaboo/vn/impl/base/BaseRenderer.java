@@ -68,7 +68,7 @@ public abstract class BaseRenderer implements IRenderer {
 			
 			renderReset();
 			renderBegin();
-			renderLayer(layer, env.screenClip, dd);
+			renderLayer(layer, env.screenClip, env.screenClip.toRect2D(), dd);
 			renderEnd();			
 		} finally {
 			rendering = false;			
@@ -86,7 +86,7 @@ public abstract class BaseRenderer implements IRenderer {
 	
 	protected abstract void renderEnd();
 	
-	protected void renderLayer(ILayer layer, Rect parentClip, BaseDrawBuffer buffer) {
+	protected void renderLayer(ILayer layer, Rect parentClip, Rect2D parentClip2D, BaseDrawBuffer buffer) {
 		int cstart = buffer.getLayerStart(layer);
 		int cend = buffer.getLayerEnd(layer);
 		if (cend <= cstart) {
@@ -98,24 +98,23 @@ public abstract class BaseRenderer implements IRenderer {
 		
 		//Setup clipping/translate
 		final Rect2D bounds = layer.getBounds();
-		
-		final int cx, cy, cw, ch; //Clip rect in screen coords
-		if (bounds == null) {			
-			cx = parentClip.x; cy = parentClip.y; cw = parentClip.w; ch = parentClip.h;
+		final Rect2D layerClip2D;
+		if (bounds == null) {
+			layerClip2D = parentClip2D;
 		} else {
-			//Rounded to ints, crop rect should be no bigger than the non-rounded version.
-			int tx0 = (int)Math.ceil(bounds.x * env.scale);
-			int ty0 = (int)Math.ceil(bounds.y * env.scale);
-			//We can't just floor() the w/h because the ceil() of the x/y would skew the result.
-			int tx1 = (int)Math.floor((bounds.x+bounds.w) * env.scale);
-			int ty1 = (int)Math.floor((bounds.y+bounds.h) * env.scale);
-			
-			cx = parentClip.x + Math.max(0, Math.min(parentClip.w, tx0));
-			cy = parentClip.y + Math.max(0, Math.min(parentClip.h, parentClip.h-ty1));
-			cw = Math.max(0, Math.min(parentClip.w-tx0, tx1-tx0));
-			ch = Math.max(0, Math.min(parentClip.h-ty0, ty1-ty0));
+			double bx0 = bounds.x * env.scale;
+			double by0 = bounds.y * env.scale;
+			double bx1 = (bounds.x+bounds.w) * env.scale;
+			double by1 = (bounds.y+bounds.h) * env.scale;
+
+			layerClip2D = new Rect2D(
+				parentClip2D.x + Math.max(0, Math.min(parentClip2D.w, bx0)),
+				parentClip2D.y + Math.max(0, Math.min(parentClip2D.h, parentClip2D.h-by1)),
+				Math.max(0, Math.min(parentClip2D.w-bx0, bx1-bx0)),
+				Math.max(0, Math.min(parentClip2D.h-by0, by1-by0))
+			);
 		}		
-		final Rect layerClip = new Rect(cx, cy, cw, ch);
+		final Rect layerClip = roundClipRect(layerClip2D);
 		
 		setClipRect(layerClip);
 		translate(bounds.x, bounds.y);
@@ -153,7 +152,7 @@ public abstract class BaseRenderer implements IRenderer {
 			switch (cmd.id) {
 			case LayerRenderCommand.id: {
 				LayerRenderCommand lrc = (LayerRenderCommand)cmd;
-				renderLayer(lrc.layer, layerClip, buffer);
+				renderLayer(lrc.layer, layerClip, layerClip2D, buffer);
 			} break;
 			case QuadRenderCommand.id: {
 				QuadRenderCommand qrc = (QuadRenderCommand)cmd;
@@ -185,7 +184,7 @@ public abstract class BaseRenderer implements IRenderer {
 			} break;
 			case ScreenshotRenderCommand.id: {
 				ScreenshotRenderCommand src = (ScreenshotRenderCommand)cmd;
-				renderScreenshot(src.ss, (src.clipEnabled ? layerClip : env.screenClip));
+				renderScreenshot(src.ss, src.clipEnabled ? layerClip : env.screenClip);
 			} break;
 			default: {
 				if (!renderUnknownCommand(cmd)) {
@@ -201,8 +200,8 @@ public abstract class BaseRenderer implements IRenderer {
 			}
 		}
 		
-		setClipRect(parentClip);
 		translate(-bounds.x, -bounds.y);
+		setClipRect(parentClip);
 	}
 			
 	protected void preRenderCommand(BaseRenderCommand cmd) {		
@@ -244,6 +243,18 @@ public abstract class BaseRenderer implements IRenderer {
 	
 	protected abstract void setClipRect(Rect glRect);
 	protected abstract void translate(double dx, double dy);
+	
+	protected Rect roundClipRect(Rect2D clip2D) {
+		//Rounded to ints, resulting clip rect should be no bigger than the non-rounded version.
+		int x0 = (int)Math.ceil(clip2D.x);		
+		int y0 = (int)Math.ceil(clip2D.y);
+		
+		//We can't just floor() the w/h because the ceil() of the x/y would skew the result.
+		int x1 = (int)Math.floor(clip2D.x+clip2D.w);
+		int y1 = (int)Math.floor(clip2D.y+clip2D.h);
+		
+		return new Rect(x0, y0, Math.max(0, x1-x0), Math.max(0, y1-y0));
+	}
 	
 	//Getters
 	
