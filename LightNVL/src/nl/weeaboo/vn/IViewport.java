@@ -33,22 +33,22 @@ public interface IViewport extends IContainer {
 	public ILayer getLayer();
 	
 	/**
-	 * @see #setFadingEdges(double, ITexture, ITexture)
+	 * @see #setFadingEdges(double, int, ITexture, ITexture)
 	 */
 	public double getFadeSize();
 	
 	/**
-	 * @see #setFadingEdges(double, ITexture, ITexture)
+	 * @see #setFadingEdges(double, int, ITexture, ITexture)
 	 */
 	public int getFadeColorRGB();
 	
 	/**
-	 * @see #setFadingEdges(double, ITexture, ITexture)
+	 * @see #setFadingEdges(double, int, ITexture, ITexture)
 	 */
 	public ITexture getFadeTop();
 	
 	/**
-	 * @see #setFadingEdges(double, ITexture, ITexture)
+	 * @see #setFadingEdges(double, int, ITexture, ITexture)
 	 */
 	public ITexture getFadeBottom();
 	

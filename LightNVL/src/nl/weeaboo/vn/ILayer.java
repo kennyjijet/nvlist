@@ -21,7 +21,7 @@ public interface ILayer extends IDrawable {
 	public void clearContents();
 
 	/**
-	 * @see #push(short)
+	 * @see #pushContents(short)
 	 */
 	public void pushContents();
 	
@@ -69,7 +69,7 @@ public interface ILayer extends IDrawable {
 	
 	/**
 	 * @return A buffer for pending screenshots. The screenshots will be
-	 *         scheduled during the next call to {@link #draw(IRenderer)}.
+	 *         scheduled during the next call to {@link #draw(IDrawBuffer)}.
 	 */
 	public IScreenshotBuffer getScreenshotBuffer();
 	

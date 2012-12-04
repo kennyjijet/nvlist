@@ -15,7 +15,7 @@ public interface IPanel extends IContainer {
 	public Insets2D getMargin();
 
 	/**
-	 * @see #setBorderInsets(Insets2D)
+	 * @see #setBorderInsets(double, double, double, double)
 	 */
 	public Insets2D getBorderInsets();
 	
