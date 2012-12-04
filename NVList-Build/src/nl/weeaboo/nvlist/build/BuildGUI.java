@@ -34,6 +34,7 @@ public class BuildGUI extends LogoPanel {
 		ERROR, UNABLE, REFUSED, EXISTS, CREATED;
 	}
 	
+	private final File buildIniF;
 	private final INIFile iniFile;
 	
 	private Build build;
@@ -46,6 +47,7 @@ public class BuildGUI extends LogoPanel {
 	public BuildGUI() {
 		super("header.png");
 
+		buildIniF = new File("build.ini");
 		iniFile = new INIFile();
 				
 		headerPanel = new HeaderPanel(getBackground());
@@ -269,7 +271,11 @@ public class BuildGUI extends LogoPanel {
 	}
 		
 	protected void loadSettings() throws IOException {
-		iniFile.read(new File("build.ini"));
+		iniFile.clear();
+		if (buildIniF.exists()) {
+			iniFile.read(buildIniF);
+		}
+		
 		if (iniFile.containsKey("engineFolder")) {
 			setEngineFolder(new File(iniFile.getString("engineFolder", "")));
 		}
@@ -282,7 +288,7 @@ public class BuildGUI extends LogoPanel {
 			iniFile.put("engineFolder", build.getEngineFolder().toString());
 			iniFile.put("projectFolder", build.getProjectFolder().toString());
 		}
-		iniFile.write(new File("build.ini"));
+		iniFile.write(buildIniF);
 	}
 			
 	//Getters

@@ -200,8 +200,8 @@ public class ProjectPropertyPanel extends JPanel {
 	}
 	
 	private void addImportantProperties() {
-		List<String> buildImp = Arrays.asList("project-name", "program-args", "obfuscate", "include-private-jre"
-				/*", applet-width", "applet-height"*/ );		
+		List<String> buildImp = Arrays.asList("project-name", "program-args", "obfuscate", "splashscreen",
+				"include-private-jre"/*", applet-width", "applet-height"*/ );		
 		addAsGroup(importantProperties, GROUP_BUILD, buildImp);
 		
 		List<String> gameImp = Arrays.asList("title", "fps", "width", "height", "vn.enableProofreaderTools");

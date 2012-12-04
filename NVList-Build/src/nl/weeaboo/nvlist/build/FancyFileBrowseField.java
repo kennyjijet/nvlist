@@ -1,5 +1,6 @@
 package nl.weeaboo.nvlist.build;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -11,6 +12,8 @@ public class FancyFileBrowseField extends FileBrowseField {
 
 	public FancyFileBrowseField(boolean justFolders, boolean write) {
 		super(justFolders, write);
+		
+		field.setForeground(Color.BLACK);
 		
 		final FocusListener focusListener = new FocusListener() {
 			@Override
@@ -26,7 +29,9 @@ public class FancyFileBrowseField extends FileBrowseField {
 		field.addFocusListener(focusListener);
 		button.addFocusListener(focusListener);
 		
-		field.setPreferredSize(new Dimension(50, button.getPreferredSize().height));
+		int height = 23;
+		button.setPreferredSize(new Dimension(4 * height, height));
+		field.setPreferredSize(new Dimension(50, height));
 		onFocusChanged();
 	}
 
