@@ -14,14 +14,14 @@ text("Aliquam non tortor justo. Sed pulvinar sodales ligula sit amet ornare. Sed
 text("Fusce auctor massa iaculis erat dignissim vel imperdiet velit interdum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam vehicula fringilla turpis. Nulla facilisi. Duis consequat accumsan placerat. Suspendisse consequat venenatis semper. Nulla fermentum fermentum nunc sit amet molestie. Aenean et dolor est. Donec fringilla ipsum a mi vestibulum nec laoreet massa dictum. Praesent ultricies accumsan nisl, eleifend consequat metus porttitor eu. Ut consectetur dignissim porttitor. Nulla porttitor pretium augue id auctor. Integer eleifend sapien at purus porttitor quis tincidunt sem elementum. Maecenas vulputate augue sit amet justo interdum aliquam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed quam sem, vel ultrices dolor.")
 ]]
 
---[[ Text rendering tests
+--[[ Text rendering tests ]]
 bgf("bg/bg1")
 while true do
     text(createStyledText("111111 111111", {anchor=5, tags={1}}):concat(" filler filler filler  filler filler filler  filler filler filler  filler filler filler "):concat(createStyledText("222222 222222", {anchor=5, tags={2}})))
 
     --RTL and BiDirectional text
     text(createStyledText("שהר שהר שהר aaa שהר שהר שהרשהרשהרשהר", {fontName="SansSerif", anchor=5}))
-    text(createStyledText("abc Test שהרשהרשהרשהרשהר (Test2)", {fontName="SansSerif", anchor=7}))
+    text(createStyledText("abc Test שהרשהרשהרשהרשהר (Test2)", {fontName="SansSerif", anchor=7, underline=true}))
     text(createStyledText("של 1234 ום WORD של!@#$%^&*()ום", {fontName="SansSerif", anchor=9}))
 
     --Can't break inside かぁ combination
@@ -50,7 +50,6 @@ while true do
 
 end
 rmbgf()
-]]
 
 --[[
 --Glow effect test

@@ -204,7 +204,7 @@
       <fileset dir="${src.dir}" excludes="**/*.java" />
     </copy>
   </target>
-
+  
   <!-- Do a clean compile and generate the main jar -->
   <target name="jar" depends="compile">
   	<delete file="${gamedata.dir}/${project-name}.jar" />
@@ -214,10 +214,12 @@
         <attribute name="Class-Path" value="${jar-classpath}"/>
         <attribute name="Main-Class" value="${main-class}"/>
         <attribute name="Implementation-Version" value="${DSTAMP}"/>
+        <attribute name="SplashScreen-Image" value="${splashscreen}"/>
       </manifest>
       
       <path refid="javabin" />
-      <fileset file="license.txt" />
+      <fileset dir="." includes="license.txt" />
+      <fileset dir="${build-res.dir}" includes="${splashscreen}" />      
     </jar> 
   	
     <create-launchers dir="${gamedata.dir}" extra-args="&quot;${gamedata.dir}&quot;" />  	
@@ -268,6 +270,11 @@
 
   <!-- Prepare the dist folder for library distribution -->
   <target name="dist-lib" depends="dist-src">
+    <!-- Delete src folder we don't need -->
+    <delete includeEmptyDirs="true">
+      <fileset dir="${dist.dir}/src" includes="**/*" />
+    </delete>
+  
     <!-- Copy extra-dist-files to the main folder -->
     <copy todir="${dist.dir}">
       <fileset dir="${build-res.dir}/extra-dist-files" />

@@ -17,7 +17,7 @@ local textAlpha = 1
 local speaker = {}
 local lineRead = true
 local textLayerConstructors = {}
-local currentStyle = nil
+local styleStack = {}
 
 -- ----------------------------------------------------------------------------
 --  Text Functions
@@ -104,9 +104,9 @@ local function updateSpeakerName()
 		end
 		
 		--Append name to text log (and to textState if no nameText exists)
-		local oldStyle = currentStyle
+		pushStyle()
 		if speaker.nameStyle ~= nil then
-			currentStyle = extendStyle(currentStyle, speaker.nameStyle)
+			style(speaker.nameStyle)
 		end
 		if nameText ~= nil then
 			appendTextLog("[" .. speaker.name .. "]\n")
@@ -117,7 +117,7 @@ local function updateSpeakerName()
 				appendText("[" .. speaker.name .. "]\n")
 			end
 		end			
-		currentStyle = oldStyle			
+		popStyle()			
 
 		textfade(1, 1, function(k, d)
 			return isNameTextDrawable(k)
@@ -166,7 +166,8 @@ end
 -- object)
 function appendText(str)
 	local styled = nil
-	local logStyled = nil	
+	local logStyled = nil
+	local currentStyle = getCurrentStyle()
 	if lineRead and prefs.textReadStyle ~= nil then
 		styled = createStyledText(str, extendStyle(prefs.textReadStyle, currentStyle))
 		logStyled = createStyledText(str, currentStyle)
@@ -309,18 +310,39 @@ end
 -- Usage: <code>text text text [style{color=0xFFFF0000}] text text</code><br/>
 -- For a list of all TextStyle properties (besides color), see: createStyle<br/>
 --
--- @param s The style to extends the current style with. Use <code>nil</code>
--- to reset to the default style.
 -- @see createStyle
 function style(s)
+	local i = #styleStack
+	
 	if s == nil then
-		currentStyle = s
-	else
-		if type(s) ~= "userdata" then
-			s = createStyle(s)
-		end
-		currentStyle = extendStyle(currentStyle, s)
+		styleStack[i] = nil
 	end
+	
+	if type(s) ~= "userdata" then
+		s = createStyle(s)
+	end
+	styleStack[i] = extendStyle(styleStack[i], s)
+	return styleStack[i]
+end
+
+---Returns the top of the current style state. The style stack can be
+-- manipulated with <code>pushStyle</code>, <code>popStyle</code>,
+-- <code>style</code>.
+function getCurrentStyle()
+	return styleStack[#styleStack]
+end
+
+---Adds a new entry to the top of the style stack that's a copy of
+-- <code>getCurrentStyle</code>. 
+function pushStyle()
+	local st = getCurrentStyle()
+	table.insert(styleStack, st)
+	return st
+end
+
+---Pops the top entry from the style stack.
+function popStyle()
+	return table.remove(styleStack)
 end
 
 ---Sets the text speed to the default speed multiplied by the specified factor.
@@ -471,12 +493,19 @@ function textLog()
 	end)
 end
 
+---Registers text tag handler functions (open/close) for a specific text tag
+function registerTextTagHandler(tag, openFunc, closeFunc)
+	paragraph.tagHandlers[tag] = openFunc
+	paragraph.tagHandlers["/" .. tag] = closeFunc
+end
+
 -- ----------------------------------------------------------------------------
 --  Paragraph Functions
 -- ----------------------------------------------------------------------------
 
 paragraph = {
-	stringifiers={}
+	stringifiers={},
+	tagHandlers={}
 }
 
 local paragraphFilename = nil
@@ -535,6 +564,38 @@ function paragraph.append(string)
 	waitForTextVisible()
 end
 
+---Gets called at the end of each text line
+function paragraph.finish()
+	--Now wait until all text has faded in, otherwise the waitClick can be called
+	--prematurely
+	waitForTextVisible()
+
+	--Turn off skip mode if applicable
+	if getSkipMode() == SkipMode.PARAGRAPH then
+		setSkipMode(0)
+	end
+	
+	--Wait for click
+	waitClick()	
+	
+	--Reset speaker
+	if speaker.resetEOL then
+		say()
+	end
+	
+	--Clear style stack
+	styleStack = {}
+	
+	--Reset textbox's text speed
+	textSpeed()
+	
+	--Register line as read
+	if paragraphFilename ~= nil and paragraphLineNum >= 1 then
+		seenLog:setTextLineRead(paragraphFilename, paragraphLineNum)
+	end
+	lineRead = true
+end
+
 ---Gets called during execution of a text line to replace words starting with
 -- a dollar sign. If a handler function is registered for the word in the
 -- <code>paragraph.stringifiers</code> table, that function is evaluated.
@@ -568,37 +629,23 @@ function paragraph.stringify(word)
 	paragraph.append(value)
 end
 
----Gets called at the end of each text line
-function paragraph.finish()
-	--Now wait until all text has faded in, otherwise the waitClick can be called
-	--prematurely
-	waitForTextVisible()
-
-	--Turn off skip mode if applicable
-	if getSkipMode() == SkipMode.PARAGRAPH then
-		setSkipMode(0)
+--[[
+function paragraph.tagOpen(tag, values)
+	local func = paragraph.tagHandlers[tag]
+	if func == nil then
+		return
 	end
-	
-	--Wait for click
-	waitClick()	
-	
-	--Reset speaker
-	if speaker.resetEOL then
-		say()
-	end
-	
-	--Reset style
-	style()
-	
-	--Reset textbox's text speed
-	textSpeed()
-	
-	--Register line as read
-	if paragraphFilename ~= nil and paragraphLineNum >= 1 then
-		seenLog:setTextLineRead(paragraphFilename, paragraphLineNum)
-	end
-	lineRead = true
+	return func(tag, values)
 end
+
+function paragraph.tagClose(tag)
+	local func = paragraph.tagHandlers["/" .. (tag or "")]
+	if func == nil then
+		return
+	end
+	return func(tag, values)
+end
+]]
 
 -- ----------------------------------------------------------------------------
 --  Layer constructors

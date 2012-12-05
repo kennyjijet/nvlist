@@ -92,9 +92,7 @@ public class Novel extends LuaNovel {
 	}
 	
 	@Override
-	public void initLuaRunState() {
-		super.initLuaRunState();
-		
+	public void initLuaRunState() {		
 		LuaRunState lrs = getLuaRunState();
 		LuaValue globals = lrs.getGlobalEnvironment();
 		try {
@@ -107,7 +105,9 @@ public class Novel extends LuaNovel {
 			}
 		} catch (LuaException e) {
 			onScriptError(e);
-		}		
+		}
+		
+		super.initLuaRunState();
 	}
 
 	@Override

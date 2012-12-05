@@ -19,10 +19,10 @@ import org.luaj.vm2.Varargs;
 public class LuaTextLib extends LuaLibrary {
 
 	private static final long serialVersionUID = LuaImpl.serialVersionUID;
-
+	
 	private static final String[] NAMES = {
 		"createStyle",
-		"createStyledText"
+		"createStyledText",
 	};
 
 	private static final int INIT               = 0;
@@ -105,5 +105,5 @@ public class LuaTextLib extends LuaLibrary {
 		}
 		return LuajavaLib.toUserdata(st, StyledText.class);
 	}
-			
+
 }

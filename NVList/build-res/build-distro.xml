@@ -69,8 +69,8 @@
           importPackage(java.io);
           importPackage(javax.imageio);
     
-          var splashFolder = project.getProperty("build-res.dir");
-          var img = ImageIO.read(new File(splashFolder+"/splash.png"));
+          var splashPath = project.getProperty("build-res.dir") + "/" + project.getProperty("splashscreen");
+          var img = ImageIO.read(new File(splashPath));
           var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
           opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
           ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));

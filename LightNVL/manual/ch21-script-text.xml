@@ -110,8 +110,7 @@ NoSpaces${myVariable}BetweenWords]]></sourcecode>
     
     <section title="Custom Fonts" level="2">
       <p>Fonts must be places in the <code>res/font</code> folder. The <code>text.defaultStyle</code> preference can be used to change the default font — use <code>Build.jar</code> to change its value. Alternatively, the <code>fontName</code> attribute can be used in <code>style</code> or <code>createStyle</code>.</p>
-    </section>
-    
+    </section>    
   </section>
 
   <section title="Custom Text Box" level="1">
@@ -138,6 +137,8 @@ NoSpaces${myVariable}BetweenWords]]></sourcecode>
   
   <section title="Non-English Languages" level="1">
     <p>The default font doesn't support every language. If letters display as empty rectangles, try using a different font. If the text shows up as completely different characters, make sure you've saved your script using UTF-8 encoding. Right-to-left and bidirectional text isn't supported at the moment.</p>
+    
+    <p>From version 3.2 onwards, NVList has basic support for right-to-left and bidirectional text. To make the default text direction right-to-left, enable the <code>vn.rtl</code> preference. This changes the default horizontal alignment for text and which side the text cursor is on.</p>
   </section>
   
 </section>

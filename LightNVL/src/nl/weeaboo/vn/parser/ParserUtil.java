@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.parser;
 
 
+
 public class ParserUtil {
 
 	private static final char ZERO_WIDTH_SPACE = 0x200B;
@@ -20,25 +21,30 @@ public class ParserUtil {
 	};
 	
 	public static String escape(String s) {
-		if (s == null) return null;
-		
 		StringBuilder sb = new StringBuilder(s.length());
+		escape(sb, s);
+		return sb.toString();
+	}
+	public static void escape(StringBuilder out, String s) {
+		if (s == null || s.length() == 0) {
+			return;
+		}
+		
 		for (int n = 0; n < s.length(); n++) {
 			char c = s.charAt(n);
 			
 			int t;
 			for (t = 0; t < escapeList.length; t+=2) {
 				if (c == escapeList[t+1]) {
-					sb.append('\\');
-					sb.append(escapeList[t]);
+					out.append('\\');
+					out.append(escapeList[t]);
 					break;
 				}
 			}			
 			if (t >= escapeList.length) {
-				sb.append(c);
+				out.append(c);
 			}
 		}
-		return sb.toString();
 	}
 	
 	public static String unescape(String s) {
@@ -139,6 +145,28 @@ public class ParserUtil {
 		} catch (NumberFormatException nfe) {
 			return -1;
 		}
+	}
+
+	static int findBlockEnd(String str, int off, char endChar) {
+		final int end = str.length();
+		boolean inQuotes = false;
+		int brackets = 0;
+		
+		int x = off;
+		while (x < end) {
+			int d = str.charAt(x);
+			if (d == '\\') {
+				x++;
+			} else if (d == '\"') {
+				inQuotes = !inQuotes;
+			} else if (!inQuotes) {
+				if (brackets <= 0 && d == endChar) return x;
+				else if (d == '[') brackets++;
+				else if (d == ']') brackets--;
+			}
+			x++;
+		}
+		return Math.min(x, end);
 	}
 	
 }

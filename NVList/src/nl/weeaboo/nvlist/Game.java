@@ -131,24 +131,26 @@ public class Game extends BaseGame {
 	@Override
 	public void stop(final boolean force, final Runnable onStop) {
 		super.stop(force, new Runnable() {
-			public void run() {				
-				if (novel != null) {
-					novel.savePersistent();
-					generatePreloaderData(); //Generate a preloader info from analytics					
-					novel.reset();
-					novel = null;
+			public void run() {
+				try {
+					if (novel != null) {
+						novel.savePersistent();
+						generatePreloaderData(); //Generate a preloader info from analytics					
+						novel.reset();
+						novel = null;
+					}
+					if (bugReporter != null) {
+						bugReporter.dispose();
+					}
+					if (gmf != null) {
+						gmf.dispose();
+						gmf = null;
+					}
+				} finally {				
+					if (onStop != null) {
+						onStop.run();
+					}
 				}
-				if (bugReporter != null) {
-					bugReporter.dispose();
-				}
-				if (gmf != null) {
-					gmf.dispose();
-					gmf = null;
-				}
-				
-				if (onStop != null) {
-					onStop.run();
-				}				
 			}
 		});
 	}
@@ -273,6 +275,7 @@ public class Game extends BaseGame {
 		}
         luaSerializer = new EnvLuaSerializer();
         saveHandler.setNovel(novel, luaSerializer);
+		onNovelCreated(novel);
 		onConfigPropertiesChanged();
    		
 		restart("main");
@@ -434,6 +437,10 @@ public class Game extends BaseGame {
 		}
 		
 		super.draw(glm);
+	}
+	
+	protected void onNovelCreated(Novel novel) {
+		
 	}
 	
 	@Override

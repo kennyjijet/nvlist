@@ -1,9 +1,14 @@
 package nl.weeaboo.vn.parser;
 
-import static nl.weeaboo.vn.parser.ParserUtil.*;
+import static nl.weeaboo.vn.parser.ParserUtil.collapseWhitespace;
+import static nl.weeaboo.vn.parser.ParserUtil.escape;
+import static nl.weeaboo.vn.parser.ParserUtil.findBlockEnd;
+import static nl.weeaboo.vn.parser.ParserUtil.unescape;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import nl.weeaboo.io.StreamUtil;
@@ -111,62 +116,48 @@ public class LVNParser {
 		throws ParseException
 	{
 		if (line.length() == 0) {
-			return line; //Ignore empty lines
+			return ""; //Empty line
 		}
 		
 		List<String> out = new ArrayList<String>(8);
 		out.add(beginParagraphCommand(filename, textLineNum));
 		
-		StringBuilder sb = new StringBuilder(line.length());
-		
+		StringBuilder sb = new StringBuilder(line.length());		
 		for (int n = 0; n < line.length(); n++) {
 			char c = line.charAt(n);
 			if (c == '\\') {
 				n++;
-				c = line.charAt(n);
-				sb.append(ParserUtil.unescape(c));
-			} else if (c == '[' || c == '$') { //Read [lua code] or $stringify or ${stringify}
-				int start = n;
-				int end = start;
+				if (n < line.length()) {
+					sb.append(unescape(c));
+				} else {
+					sb.append('\\');
+				}
+			} else if (c == '[' || c == '$'/* || c == '{'*/) { //Read [lua code] or $stringify or ${stringify}
+				parseTextLine_flush(out, sb);
 
+				//Find block start/end characters
+				int start = n + 1;
 				char startChar = c;
 				char endChar = ' ';
 				if (startChar == '[') {
 					endChar = ']';
+				//} else if (startChar == '{') {
+				//	endChar = '}';
 				} else if (startChar == '$' && start+1 < line.length() && line.charAt(start+1) == '{') {
 					start++;
 					endChar = '}';
 				}
-						
-				if (sb.length() > 0) { //Flush buffered chars
-					String ln = appendTextCommand(sb.toString());
-					if (ln.length() > 0) out.add(ln);
-					sb.delete(0, sb.length());
-				}
 				
-				boolean inQuotes = false;
-				int brackets = (startChar == '[' ? 1 : 0);
-				for (int x = n+1; x < line.length(); x++) {
-					int d = line.charAt(x);
-					if (d == '\\') {
-						x++;
-					} else if (d == '\"') {
-						inQuotes = !inQuotes;
-					} else if (!inQuotes) {
-						if (d == '[') brackets++;
-						else if (d == ']') brackets--;
-						
-						if (brackets <= 0 && d == endChar) {
-							end = x;
-							break;
-						}
-					}
-				}
+				//Find block end
+				int end = findBlockEnd(line, start, endChar);
 				
-				if (end > start+1) {
-					String str = line.substring(start+1, end);
+				//Process block
+				if (end > start) {
+					String str = line.substring(start, end);
 					if (startChar == '$') {
 						out.add(parseStringifier(str));
+					//} else if (startChar == '{') {
+					//	out.add(parseTextTag(str));
 					} else {
 						out.add(parseCodeLine(str));
 					}
@@ -177,12 +168,7 @@ public class LVNParser {
 				sb.append(c);
 			}
 		}
-		
-		if (sb.length() > 0) { //Flush buffered chars
-			String ln = appendTextCommand(sb.toString());
-			if (ln.length() > 0) out.add(ln);
-			sb.delete(0, sb.length());
-		}
+		parseTextLine_flush(out, sb);
 		out.add(endParagraphCommand());
 		
 		//Merge out lines into a String
@@ -192,25 +178,76 @@ public class LVNParser {
 		}
 		return sb.toString();
 	}
+	protected void parseTextLine_flush(Collection<String> out, StringBuilder sb) {
+		if (sb.length() > 0) { //Flush buffered chars
+			String ln = appendTextCommand(sb.toString());
+			if (ln.length() > 0) out.add(ln);
+			sb.delete(0, sb.length());
+		}		
+	}
+
+	protected String parseTextTag(String str) throws ParseException {
+		String tag = "";
+		int index = findBlockEnd(str, 0, ' ');
+		if (index > 0) {
+			tag = str.substring(0, index).trim();
+		}
+		boolean isOpenTag = true;
+		if (tag.startsWith("/")) {
+			tag = tag.substring(1);
+			isOpenTag = false;
+		}
+		
+		//Call paragraph.tagOpen() for regular tags, paragraph.tagClose() for tags starting with a '/'
+		StringBuilder sb = new StringBuilder();
+		if (isOpenTag) {
+			sb.append("paragraph.tagOpen(\"");
+		} else {
+			sb.append("paragraph.tagClose(\"");
+		}
+		sb.append(escape(tag));
+		sb.append("\"");
+		
+		if (isOpenTag) {
+			//Parse list of values aaa,bbb,ccc and pass them to the function as a single Lua table.
+			sb.append(", {");
+			int start = index + 1;
+			while (start < str.length()
+				&& (index = findBlockEnd(str, start, ',')) >= 0)
+			{			
+				String valString = unescape(str.substring(start, index).trim());
+				sb.append("\"");
+				sb.append(escape(valString));
+				sb.append("\",");
+				
+				start = index + 1;
+			}
+			sb.append("}");
+		}
+
+		sb.append(")");
+		return sb.toString();
+	}
 	
-	protected String parseStringifier(String str) {
-		return String.format("paragraph.stringify(\"%s\")", escape(str));
-	}	
 	protected String parseCodeLine(String line) throws ParseException {
 		return line.trim();
 	}
 
+	protected String parseStringifier(String str) {
+		return "paragraph.stringify(\"" + escape(str) + "\")";
+	}
+	
 	protected String beginParagraphCommand(String filename, int textLineNum) {
-		return String.format("paragraph.start(\"%s\", %d)", escape(filename), textLineNum);
+		return "paragraph.start(\"" + escape(filename) + "\", " + textLineNum + ")";
 	}
 	protected String appendTextCommand(String line) {
 		if (line.length() == 0) return "";
 		line = collapseWhitespace(escape(line), false);
 		if (line.length() == 0) return "";
-		return String.format("paragraph.append(\"%s\")", line);
+		return "paragraph.append(\"" + line + "\")";
 	}
 	protected String endParagraphCommand() {
-		return String.format("paragraph.finish()");
+		return "paragraph.finish()";
 	}
 	
 }

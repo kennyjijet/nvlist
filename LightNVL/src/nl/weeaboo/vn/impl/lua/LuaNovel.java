@@ -25,9 +25,11 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import nl.weeaboo.common.Benchmark;
@@ -115,6 +117,7 @@ public abstract class LuaNovel extends BaseNovel {
 	
 	// !!WARNING!! Do not add properties without adding code for saving/loading
 	
+	private List<LuaInitializer> luaInitializers;
 	private String[] bootstrapScripts;
 	private LuaRunState luaRunState;
 	private LuaFunctionLink mainThread;
@@ -135,6 +138,7 @@ public abstract class LuaNovel extends BaseNovel {
 		super(gc, imgfac, is, imgfxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib,
 				tl, sharedGlobals, globals, seenLog, analytics, tmr);
 		
+		luaInitializers = new ArrayList<LuaInitializer>();
 		bootstrapScripts = new String[] {"main.lua"};
 		preloader = new LuaMediaPreloader(imgfac, sndfac);
 		linkedProperties = new LuaLinkedProperties();
@@ -179,8 +183,7 @@ public abstract class LuaNovel extends BaseNovel {
 		onPrefsChanged(prefs);
 		
 		luaRunState = new LuaRunState();
-		initLuaRunState();
-		
+		initLuaRunState();		
 		mainThread = luaRunState.newThread(mainFuncName);
 		mainThread.setPersistent(true);
 		mainThreadUserdata = LuajavaLib.toUserdata(mainThread, mainThread.getClass());		
@@ -199,6 +202,15 @@ public abstract class LuaNovel extends BaseNovel {
 			throw new FileNotFoundException(filename);
 		}
 		return new Resource(normalized, in);
+	}
+	
+	public void addLuaInitializer(LuaInitializer li) {
+		if (!luaInitializers.contains(li)) {
+			luaInitializers.add(li);
+		}
+	}
+	public void removeLuaInitializer(LuaInitializer li) {
+		luaInitializers.remove(li);
 	}
 		
 	@Override
@@ -226,6 +238,12 @@ public abstract class LuaNovel extends BaseNovel {
 		mainThread = (LuaFunctionLink)in.readObject();
 		mainThreadUserdata = LuajavaLib.toUserdata(mainThread, mainThread.getClass());
 		linkedProperties = (LuaLinkedProperties)in.readObject();
+		
+		int luaInitializersLen = in.readInt();
+		luaInitializers.clear();
+		for (int n = 0; n < luaInitializersLen; n++) {
+			luaInitializers.add((LuaInitializer)in.readObject());
+		}
 	}
 	
 	@Override
@@ -248,6 +266,11 @@ public abstract class LuaNovel extends BaseNovel {
 		}
 		out.writeObject(mainThread);		
 		out.writeObject(linkedProperties);
+		
+		out.writeInt(luaInitializers.size());
+		for (LuaInitializer li : luaInitializers) {
+			out.writeObject(li);
+		}
 	}
 	
 	protected InputStream compileScriptFile(String filename, InputStream in, long modificationTime)
@@ -496,6 +519,11 @@ public abstract class LuaNovel extends BaseNovel {
 				glsl.rawset("getVersion", shaderTable.rawget("getGLSLVersion"));
 				glsl.rawset("isVersionSupported", shaderTable.rawget("isGLSLVersionSupported"));
 				globals.rawset("GLSL", glsl);
+			}
+			
+			//Register Lua initializers
+			for (LuaInitializer li : luaInitializers) {
+				li.init(lrs);
 			}
 		} catch (LuaException le) {
 			onScriptError(le);

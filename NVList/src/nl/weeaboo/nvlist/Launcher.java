@@ -80,8 +80,9 @@ public class Launcher extends BaseLauncher {
 			GLResourceCache rc, GlyphManager gman, SoundManager sm, UserInput in,
 			IKeyConfig kc, FolderSet folders)
 	{
-		return new Game(config, executor, display, gu, fm, fontManager, tc, sc, rc, gman, sm, in, kc,
+		Game g = new Game(config, executor, display, gu, fm, fontManager, tc, sc, rc, gman, sm, in, kc,
 				folders.image, folders.video);
+		return g;
 	}
 	
 	//Getters

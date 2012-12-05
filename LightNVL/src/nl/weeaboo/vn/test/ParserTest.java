@@ -27,7 +27,7 @@ public class ParserTest {
 			in.close();
 		}
 
-		//System.err.println(contents);
+		System.err.println(contents);
 		
 		in = new FileInputStream(filename + ".lua");		
 		try {
@@ -38,7 +38,6 @@ public class ParserTest {
 		
 		/*
 		String check = new String(checkBytes, "UTF-8");
-		System.err.println(contents);
 		System.out.println(check);
 		
 		for (int n = 0; n < Math.max(check.length(), contents.length()); n++) {

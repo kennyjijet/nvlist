@@ -1,8 +1,10 @@
 
+@@
 if not Shader.isGLSLVersionSupported("1.1") then
 	Your graphics card doesn't support GLSL shaders.
 	return
 end
+@@
 
 Pixelate shader...
 @local shader = Shader.createGLSLShader("pixelate")

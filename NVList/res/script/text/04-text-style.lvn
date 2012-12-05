@@ -40,5 +40,7 @@ You can easily have a character speak using a custom text style by using the sec
 
 @say()
 @rmf(sprite)
+
+The [pushStyle(); style{fontStyle="italic"}]pushStyle and [pushStyle(); style{fontStyle="bolditalic"}]popStyle[popStyle()] functions can be used to temporarily change the style[popStyle()], then change it back to the style used earlier in the line.
 @rmbgf()
 @clearText()
