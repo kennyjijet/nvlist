@@ -33,7 +33,7 @@ while true do
     --Non-breaking spaces
     text("This sentence uses a long word with non-breaking spaces: \"start               end\"")
     
-    --Soft hyphens (should be hidden when not the last printable char in a line, UNSUPPORTED)
+    --Soft hyphens (should be hidden when not the last printable char in a line. Supported in NVList 3.1+, may not work on Android)
     --To support would require deleting all SHY characters not at the end of the line.
     text("embedded soft-hyphens: vrachtautoband­​ventieldopjes­fabrieks­directeurs­assistentes­uniformen­knopen­maker")
 
