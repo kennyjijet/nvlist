@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.nio.IntBuffer;
 import java.util.concurrent.ThreadFactory;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 
@@ -16,6 +17,7 @@ import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.GLUtil;
 import nl.weeaboo.gl.PBO;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
+import nl.weeaboo.gl.texture.GLTexUtil;
 import nl.weeaboo.gl.texture.GLTexture;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.ogg.StreamUtil;
@@ -61,8 +63,8 @@ public final class Movie extends BaseVideo {
 	}	
 	
 	protected void createPlayer() throws IOException {
-		videoSink = new RGBVideoSink();		
-		//videoSink = new YUVVideoSink();
+		//videoSink = new RGBVideoSink();		
+		videoSink = new YUVVideoSink();
 		
 		player = new Player(new PlayerListener() {
 			public void onPauseChanged(boolean p) {
@@ -97,13 +99,14 @@ public final class Movie extends BaseVideo {
 			pbo.dispose();
 			pbo = null;
 		}
+		
 		if (textures != null) {
 			for (GLTexture tex : textures) {
 				if (tex != null) {
 					tex.dispose();
 				}
 			}
-			textures = null;
+			textures = null;			
 		}
 	}
 	
@@ -164,21 +167,17 @@ public final class Movie extends BaseVideo {
 			textures = new GLGeneratedTexture[2];
 		}
 		
-		IntBuffer pixels = null;
+		IntBuffer rgbPixels = null;
+		YUVBuffer yuvPixels = null;
 		if (videoSink instanceof YUVVideoSink) {
 			YUVVideoSink vs = (YUVVideoSink)videoSink;
-			YUVBuffer yuvPixels = vs.get();
-			if (yuvPixels != null) {
-				//synchronized (yuvPixels) {
-					pixels = vs.convertToRGB(yuvPixels);
-				//}
-			}
+			yuvPixels = vs.get();			
 		} else {
 			RGBVideoSink vs = (RGBVideoSink)videoSink;
-			pixels = vs.get();
+			rgbPixels = vs.get();
 		}
-
-		if (pixels != null && w > 0 && h > 0) {
+		
+		if ((yuvPixels != null || rgbPixels != null) && w > 0 && h > 0) {
 			readIndex = (readIndex + 1) % textures.length;			
 
 			GLGeneratedTexture writeTex = textures[(readIndex + 1) % textures.length];
@@ -197,8 +196,15 @@ public final class Movie extends BaseVideo {
 				writeTex = writeTex.forceLoad(glm);
 			}
 
-			if (!uploadPixelsPBO(glm, pixels, w, h, writeTex)) {
-				uploadPixels(glm, pixels, w, h, writeTex);
+			if (yuvPixels != null && rgbPixels == null) {
+				//synchronized block prevent tearing and flushes buffered updates to YUVBuffer from other threads.
+				synchronized (yuvPixels) {
+					rgbPixels = ((YUVVideoSink)videoSink).convertToRGB(yuvPixels);
+				}													
+			}
+			
+			if (!uploadPixelsPBO(glm, rgbPixels, w, h, writeTex)) { // Try RGB async			
+				uploadPixels(glm, rgbPixels, w, h, writeTex); //Try RGB
 			}
 		}
 
@@ -211,45 +217,59 @@ public final class Movie extends BaseVideo {
 		}		
 	}
 	
-	protected boolean uploadPixelsPBO(GLManager glm, IntBuffer pixels, int w, int h,
+	private boolean uploadPixelsPBO(GLManager glm, IntBuffer pixels, int w, int h,
 			GLGeneratedTexture writeTex)
 	{
+		GLInfo info = glm.getGLInfo();
 		GL2ES1 gl = glm.getGL();
-		if (!gl.isGL2()) {
+		if (!gl.isGL2ES2()) {
 			return false;
 		}
-		
-		GLInfo info = glm.getGLInfo();
+				
 		if (pbo == null || pbo.isDisposed()) {
-			pbo = vfac.createPBO(gl);	
+			//Init PBO
+			pbo = vfac.createPBO(gl);
 			if (pbo == null || pbo.isDisposed()) {
 				return false;
 			}
 		}
-		pbo.bindUpload(gl);
+				
+		//long t0 = System.nanoTime();
 		
+		pbo.bindUpload(gl);
 		try {
-			//long t0 = System.nanoTime();
-			if (info.getDefaultPixelFormatARGB() != GL2.GL_BGRA) {
-				//Should never happen, BGRA is preferred and should always be supported when PBO's are available
-				GLUtil.swapRedBlue(pixels, pixels);
+			int glInternalFormat, glFormat, glType;
+			{
+				glInternalFormat = GL.GL_RGBA;
+				glFormat = info.getDefaultPixelFormatARGB();
+				glType = info.getDefaultPixelTypeARGB();
+
+				if (glFormat != GL2.GL_BGRA) {
+					//Should never happen, BGRA is preferred and should always be supported when PBO's are available
+					GLUtil.swapRedBlue(pixels, pixels);
+				}
 			}
-			pbo.setData(gl, pixels, w*h*4);
-			
-			//long t1 = System.nanoTime();
-			
+			/* else {
+				glInternalFormat = GL.GL_LUMINANCE;
+				glFormat = GL.GL_LUMINANCE;
+				glType = GL.GL_UNSIGNED_BYTE;
+				YUVBuffer ybuf = (YUVBuffer)pixels;
+				pixelData = ShortBuffer.wrap(ybuf.data);
+				System.out.println(ybuf.data + " " + (w*h) + " " + GLTexUtil.getBytesPerPixel(glFormat, glType));
+			}*/
+			pbo.setData(gl, pixels, w * h * GLTexUtil.getBytesPerPixel(glFormat, glType));				
+						
 			//Stream PBO data to texture
 			glm.setTexture(writeTex);
-			gl.glTexImage2D(GL2.GL_TEXTURE_2D, 0, GL2.GL_RGBA8, w, h, 0,
-					info.getDefaultPixelFormatARGB(), info.getDefaultPixelTypeARGB(), 0);
-			glm.setTexture(null);
-			
-			//long t2 = System.nanoTime();
-			//System.out.printf("%.2fms %.2fms\n", (t1-t0)/1000000.0, (t2-t1)/1000000.0);
+			gl.glTexImage2D(GL2.GL_TEXTURE_2D, 0, glInternalFormat, w, h, 0, glFormat, glType, 0);
+			glm.setTexture(null);			
 		} finally {
 			pbo.unbind(gl);
 		}
 
+		//long t1 = System.nanoTime();
+		//System.out.printf("%.2fms\n", (t1-t0)/1000000.0);
+		
 		return true;
 	}
 	

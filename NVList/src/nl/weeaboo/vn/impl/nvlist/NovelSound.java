@@ -31,7 +31,7 @@ public final class NovelSound extends BaseSound {
 	@Override
 	protected void _start() throws IOException {
 		SoundManager sm = soundFactory.getSoundManager();
-		int fadeTime = soundFactory.getFadeTimeMillis(getSoundType());
+		int fadeTime = soundFactory.getFadeTimeMillis(getSoundType(), true);
 		String filename = getFilename();
 		SoundDesc desc = sm.getSoundDesc(filename);
 		long loopStart = -1, loopEnd = -1;
@@ -47,6 +47,7 @@ public final class NovelSound extends BaseSound {
 			sound = sm.play(ch, SoundFactory.convertSoundType(getSoundType()),
 					sin.in, sin.length, 0, getLoopsLeft(),
 					loopStart, loopEnd);
+			
 			sound.setPrivateVolume(getVolume(), fadeTime);
 			ok = true;
 		} finally {			
@@ -57,7 +58,7 @@ public final class NovelSound extends BaseSound {
 	@Override
 	protected void _stop() {
 		if (sound != null) {
-			sound.stop(soundFactory.getFadeTimeMillis(getSoundType()));
+			sound.stop(soundFactory.getFadeTimeMillis(getSoundType(), false));
 		}
 	}
 

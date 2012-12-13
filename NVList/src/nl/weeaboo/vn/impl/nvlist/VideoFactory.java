@@ -12,6 +12,7 @@ import javax.media.opengl.GL2ES1;
 import nl.weeaboo.filemanager.FileManager;
 import nl.weeaboo.gl.GLResourceCache;
 import nl.weeaboo.gl.PBO;
+import nl.weeaboo.gl.shader.ShaderCache;
 import nl.weeaboo.gl.texture.GLGeneratedTexture;
 import nl.weeaboo.gl.texture.TextureCache;
 import nl.weeaboo.io.EnvironmentSerializable;
@@ -26,19 +27,21 @@ public class VideoFactory extends BaseVideoFactory implements Serializable {
 
 	private final FileManager fm;
 	private final TextureCache texCache;
+	//private final ShaderCache shCache;
 	private final GLResourceCache resCache;
 	private final EnvironmentSerializable es;
 
 	private String pathPrefix;
 	private int videoWidth, videoHeight;
 	
-	public VideoFactory(FileManager fm, TextureCache tc, GLResourceCache rc,
+	public VideoFactory(FileManager fm, TextureCache tc, ShaderCache sc, GLResourceCache rc,
 			ISeenLog sl, INotifier ntf)
 	{
 		super(sl, ntf);
 		
 		this.fm = fm;
 		this.texCache = tc;
+		//this.shCache = sc;
 		this.resCache = rc;
 		this.pathPrefix = "video/";
 		

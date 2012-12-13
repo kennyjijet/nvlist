@@ -248,7 +248,7 @@ public class Game extends BaseGame {
 				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
-		VideoFactory vidfac = new VideoFactory(fm, texCache, resCache, seenLog, notifier);
+		VideoFactory vidfac = new VideoFactory(fm, texCache, shCache, resCache, seenLog, notifier);
 		GUIFactory guifac = new GUIFactory(imgfac, notifier);
 		ScriptLib scrlib = new ScriptLib(fm, notifier);
 		TweenLib tweenLib = new TweenLib(notifier, imgfac, shfac);

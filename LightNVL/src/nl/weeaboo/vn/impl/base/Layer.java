@@ -237,7 +237,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 			for (int t = 0; t < tempArray.length; t++) {
 				IDrawable d = tempArray[t];
 				if (d == null) break; //The array can only contain nulls at the end
-				
+								
 				if (!d.isDestroyed() && d.isVisible(.001)) {
 					if (d instanceof ILayer) {
 						ILayer l = (ILayer)d;

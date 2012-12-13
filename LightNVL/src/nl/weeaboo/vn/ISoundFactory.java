@@ -45,9 +45,12 @@ public interface ISoundFactory {
 	public Collection<String> getSoundFiles(String folder);
 	
 	/**
+	 * @param fadeIn <code>true</code> to get the fade-in time (sound becomes
+	 *        louder), <code>false</code> for the fade-out time (sound becomes
+	 *        quieter).
 	 * @return The default fade-in/fade-out time for the specified sound type.
 	 */
-	public int getFadeTimeMillis(SoundType type);
+	public int getFadeTimeMillis(SoundType type, boolean fadeIn);
 	
 	// === Setters =============================================================
 	

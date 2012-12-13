@@ -143,7 +143,7 @@ public class Renderer extends BaseRenderer {
 		if (quadTexture != tex && (quadTexture == null || ta == null || quadTexture.getTexId() != ta.getTexId())) {
 			flushQuadBatch();
 		}
-
+		
 		quadTexture = ta;		
 		if (ta != null) {
 			ta.forceLoad(glm);

@@ -58,9 +58,9 @@ public abstract class BaseSoundFactory extends BaseMediaFactory implements ISoun
 	}
 	
 	@Override
-	public int getFadeTimeMillis(SoundType type) {
+	public int getFadeTimeMillis(SoundType type, boolean fadeIn) {
 		if (type == SoundType.MUSIC) {
-			return 750;
+			return (fadeIn ? 500 : 250);
 		}
 		return 0;
 	}
