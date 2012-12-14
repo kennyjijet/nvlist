@@ -197,6 +197,8 @@ local SaveLoadScreen = {
 	qh=screenHeight/14,
 	qpack=6,
 	pad=nil,
+	screenshotWidth=nil,
+	screenshotHeight=nil,
 	--GUI Components
 	pageButtons=nil,
 	saves=nil,
@@ -212,6 +214,8 @@ function SaveLoadScreen.new(self)
 				
 	self.page = self.page or getSharedGlobal(KEY_SAVE_PAGE) or 1
 	self.pad = self.pad or math.min(self.w, self.h) / 100
+	self.screenshotWidth = self.screenshotWidth or prefs.saveScreenshotWidth				
+	self.screenshotHeight = self.screenshotHeight or prefs.saveScreenshotHeight				
 				
 	self.saves = {}
 	self.qsaves = {}		
@@ -384,7 +388,7 @@ function SaveLoadScreen:setPage(p, force)
 			local si = saved[i]
 			if si ~= nil then
 				slot = si:getSlot()
-				screenshot = si:getScreenshot()
+				screenshot = si:getScreenshot(self.screenshotWidth, self.screenshotHeight)
 				label = si:getLabel()
 				empty = false
 				new = (lastSaved == i)

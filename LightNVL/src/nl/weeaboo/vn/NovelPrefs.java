@@ -11,6 +11,8 @@ public final class NovelPrefs {
 
 	public static final Preference<Boolean> SCRIPT_DEBUG = newPreference("vn.scriptDebug", false, "Script Debug", "Certain functions detect and warn about additional errors when script debug is turned on.");
 	public static final Preference<Integer> FPS = newPreference("vn.fps", 60, "Framerate", "The target game update and redraw rate in frames per second.");
+	public static final Preference<Integer> SAVE_SCREENSHOT_WIDTH = newPreference("vn.saveScreenshotWidth", 224, "Save Screenshot Width", "Width (in pixels) to store the save slot screenshots at.");
+	public static final Preference<Integer> SAVE_SCREENSHOT_HEIGHT = newPreference("vn.saveScreenshotHeight", 126, "Save Screenshot Height", "Height (in pixels) to store the save slot screenshots at.");
 	public static final Preference<TextStyle> TEXT_STYLE = newPreference("vn.textStyle", new TextStyle(null, FontStyle.PLAIN, 30), "Default Text Style", "The default style to be used for rendered text.");
 	public static final Preference<TextStyle> TEXT_READ_STYLE = newPreference("vn.textReadStyle", TextStyle.defaultInstance(), "Read Text Style", "The text style to use for previously read text");
 	public static final Preference<TextStyle> TEXT_LOG_STYLE = newPreference("vn.textLogStyle", coloredTextStyle(0xFFFFFF80), "Text Log Style", "The text style to use for the text log.");

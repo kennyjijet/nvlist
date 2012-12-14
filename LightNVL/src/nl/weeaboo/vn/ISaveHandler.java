@@ -2,10 +2,12 @@ package nl.weeaboo.vn;
 
 import java.io.IOException;
 
+import nl.weeaboo.common.Dim;
+
 public interface ISaveHandler {
 
 	public void delete(int slot) throws IOException;
-	public void save(int slot, IScreenshot ss, IStorage meta, IProgressListener pl) throws IOException;
+	public void save(int slot, IScreenshot ss, Dim screenshotEncodeSize, IStorage meta, IProgressListener pl) throws IOException;
 	public void load(int slot, IProgressListener pl) throws IOException;
 	public ISaveInfo loadSaveInfo(int slot) throws IOException;
 	

@@ -5,6 +5,7 @@ import static nl.weeaboo.vn.impl.lua.LuaSaveHandler.QUICK_SAVE_OFFSET;
 import static nl.weeaboo.vn.impl.lua.LuaSaveHandler.isAutoSaveSlot;
 import static nl.weeaboo.vn.impl.lua.LuaSaveHandler.isQuickSaveSlot;
 
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,14 +15,15 @@ import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.IStorage;
 import nl.weeaboo.vn.impl.base.BaseStorage;
 
-public class SaveInfo implements ISaveInfo {
+public abstract class LuaSaveInfo implements ISaveInfo {
 
 	private final int slot;
 	long timestamp;
-	IScreenshot screenshot;
+	private IScreenshot screenshot;
+	ByteBuffer screenshotBytes;
 	IStorage metaData;
 	
-	SaveInfo(int slot) {
+	protected LuaSaveInfo(int slot) {
 		this.slot = slot;
 		this.metaData = new BaseStorage();
 	}
@@ -74,9 +76,14 @@ public class SaveInfo implements ISaveInfo {
 	}
 
 	@Override
-	public IScreenshot getScreenshot() {
+	public IScreenshot getScreenshot(int maxW, int maxH) {
+		if (screenshot == null) {
+			screenshot = decodeScreenshot(screenshotBytes, maxW, maxH);
+		}
 		return screenshot;
 	}
+	
+	protected abstract IScreenshot decodeScreenshot(ByteBuffer screenshotBytes, int maxW, int maxH);
 	
 	@Override
 	public IStorage getMetaData() {

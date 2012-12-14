@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl.lua;
 
 import java.io.IOException;
 
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.lua2.LuaRunState;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
@@ -82,11 +83,15 @@ public class LuaSaveLib extends LuaLibrary {
 	protected Varargs save(Varargs args) {
 		int slot = args.checkint(1);
 		
-		//Screenshot
+		//Screenshot		
 		Object screenshotObj;
+		int ssw = 224;
+		int ssh = 126;
 		if (args.istable(2)) {
 			LuaTable t = args.checktable(2);
 			screenshotObj = t.get("screenshot").touserdata();
+			ssw = t.get("width").optint(ssw);
+			ssh = t.get("height").optint(ssh);
 		} else {
 			screenshotObj = args.touserdata(2);
 		}
@@ -104,7 +109,7 @@ public class LuaSaveLib extends LuaLibrary {
 		final LuaThread thread = lrs.getRunningThread();
 		Varargs result = thread.yield(NONE);
 		try {
-			saveHandler.save(slot, ss, metaData, null);
+			saveHandler.save(slot, ss, new Dim(ssw, ssh), metaData, null);
 		} catch (IOException e) {
 			throw new LuaError(e);
 		}

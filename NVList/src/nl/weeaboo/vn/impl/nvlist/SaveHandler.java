@@ -22,12 +22,9 @@ import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.impl.lua.LuaSaveHandler;
-import nl.weeaboo.vn.impl.lua.SaveInfo;
+import nl.weeaboo.vn.impl.lua.LuaSaveInfo;
 
 public class SaveHandler extends LuaSaveHandler implements Serializable {
-
-	private static final Dim screenshotSaveSize = new Dim(224, 126);
-	private static final Dim screenshotLoadSize = new Dim(224, 126);
 	
 	private final EnvironmentSerializable es;
 	
@@ -57,12 +54,12 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	}
 	
 	@Override
-	protected byte[] encodeScreenshot(IScreenshot ss) {
+	protected byte[] encodeScreenshot(IScreenshot ss, Dim maxSize) {
 		if (ss == null || ss.isCancelled() || !ss.isAvailable()) {
 			return new byte[0];
 		}
 		
-		int argb[] = ss.getPixels();
+		int[] argb = ss.getPixels();
 		int w = ss.getPixelsWidth();
 		int h = ss.getPixelsHeight();
 		if (argb == null || w <= 0 || h <= 0) {
@@ -70,10 +67,8 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 		}
 		
 		BufferedImage image = ImageUtil.createBufferedImage(w, h, argb, false);		
-		if (screenshotSaveSize != null) {
-			image = ImageUtil.getScaledImageProp(image,
-					screenshotSaveSize.w, screenshotSaveSize.h,
-					Image.SCALE_AREA_AVERAGING);
+		if (maxSize != null) {
+			image = ImageUtil.getScaledImageProp(image, maxSize.w, maxSize.h, Image.SCALE_AREA_AVERAGING);
 		}
 		
 		ByteChunkOutputStream bout = new ByteChunkOutputStream(32 << 10);
@@ -118,8 +113,8 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	}
 
 	@Override
-	public SaveInfo[] getSaves(int start, int end) {
-		List<SaveInfo> result = new ArrayList<SaveInfo>();
+	public LuaSaveInfo[] getSaves(int start, int end) {
+		List<LuaSaveInfo> result = new ArrayList<LuaSaveInfo>();
 		try {
 			//for (String filename : fm.getFolderContents(pathPrefix, false)) {
 			//    int slot = getSlot(filename);
@@ -143,12 +138,12 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 		} catch (IOException e) {
 			//Ignore
 		}
-		return result.toArray(new SaveInfo[result.size()]);
+		return result.toArray(new LuaSaveInfo[result.size()]);
 	}
 	
 	@Override
-	protected IScreenshot decodeScreenshot(ByteBuffer b) {
-		return new ImageDecodingScreenshot(b, screenshotLoadSize.w, screenshotLoadSize.h);
+	protected LuaSaveInfo newSaveInfo(int slot) {
+		return new SaveInfo(slot);
 	}
 
 	@Override
@@ -164,6 +159,18 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	@Override
 	protected void onSaveWarnings(String[] warnings) {
 		notifier.w(ObjectSerializer.toErrorString(Arrays.asList(warnings)));
+	}
+	
+	//Inner Classes
+	private static class SaveInfo extends LuaSaveInfo {
+		
+		public SaveInfo(int slot) {
+			super(slot);
+		}
+		
+		protected IScreenshot decodeScreenshot(ByteBuffer data, int maxW, int maxH) {
+			return new ImageDecodingScreenshot(data, maxW, maxH);			
+		}
 	}
 	
 }

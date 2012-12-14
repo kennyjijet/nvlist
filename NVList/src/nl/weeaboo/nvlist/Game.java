@@ -362,7 +362,7 @@ public class Game extends BaseGame {
 					Benchmark.tick();
 					int slot = sh.getQuickSaveSlot(1);
 					String filename = String.format("save-%03d.sav", slot);
-					sh.save(slot, null, null, null);
+					sh.save(slot, null, null, null, null);
 					long bytes = (getFileManager().getFileExists(filename) ? getFileManager().getFileSize(filename) : 0);
 					ntf.addMessage(this, String.format("Quicksave took %s (%s)",
 							StringUtil.formatTime(Benchmark.tock(false), TimeUnit.NANOSECONDS),

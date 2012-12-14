@@ -7,7 +7,7 @@ public interface ISaveInfo {
 	public String getLabel();
 	public String getDateString();
 	public long getTimestamp();	
-	public IScreenshot getScreenshot();
+	public IScreenshot getScreenshot(int maxW, int maxH);
 	public IStorage getMetaData();
 	
 }

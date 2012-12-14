@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.io.ByteChunkOutputStream;
 import nl.weeaboo.io.StreamUtil;
 import nl.weeaboo.lua2.LuaException;
@@ -90,7 +91,7 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 	}
 	
 	@Override
-	public final void save(int slot, IScreenshot ss, IStorage metaData, IProgressListener pl)
+	public final void save(int slot, IScreenshot ss, Dim ssMaxSize, IStorage metaData, IProgressListener pl)
 		throws IOException
 	{
 		checkNovelSet();
@@ -116,7 +117,7 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 				}
 			}
 			if (!chunkSaveIgnoreList.contains(CHUNK_SCREENSHOT_ID)) {
-				writeScreenshotChunk(dout, ss);
+				writeScreenshotChunk(dout, ss, ssMaxSize);
 			}
 			if (!chunkSaveIgnoreList.contains(CHUNK_DATA_ID)) {
 				writeDataChunk(dout, pl);
@@ -147,8 +148,8 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 		byte[] b = serializeStorageObject(metaData);
 		SaveChunk.write(dout, CHUNK_META_DATA_ID, CHUNK_META_DATA_VERSION, false, b, 0, b.length);
 	}
-	private void writeScreenshotChunk(DataOutputStream dout, IScreenshot ss) throws IOException {
-		writeScreenshotChunk(dout, encodeScreenshot(ss));
+	private void writeScreenshotChunk(DataOutputStream dout, IScreenshot ss, Dim maxSize) throws IOException {
+		writeScreenshotChunk(dout, encodeScreenshot(ss, maxSize));
 	}
 	private void writeScreenshotChunk(DataOutputStream dout, byte[] b) throws IOException {
 		SaveChunk.write(dout, CHUNK_SCREENSHOT_ID, CHUNK_SCREENSHOT_VERSION, false, b, 0, b.length);		
@@ -198,11 +199,11 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 
 	@Override
 	public final void load(int slot, IProgressListener pl) throws IOException {
-		SaveInfo info = new SaveInfo(slot);
+		LuaSaveInfo info = newSaveInfo(slot);
 		load(info, false, true, pl);		
 	}
 	
-	private void load(SaveInfo info, boolean loadScreenshot, boolean loadData,
+	private void load(LuaSaveInfo info, boolean loadScreenshot, boolean loadData,
 			IProgressListener pl) throws IOException
 	{
 		checkNovelSet();
@@ -278,11 +279,13 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 	}
 		
 	@Override
-	public SaveInfo loadSaveInfo(int slot) throws IOException {
-		SaveInfo info = new SaveInfo(slot);
+	public LuaSaveInfo loadSaveInfo(int slot) throws IOException {
+		LuaSaveInfo info = newSaveInfo(slot);
 		load(info, true, false, null);
 		return info;
 	}
+	
+	protected abstract LuaSaveInfo newSaveInfo(int slot);
 	
 	protected void onSaveSuccessful(int slot) {
 		INotifier ntf = novel.getNotifier();
@@ -295,12 +298,12 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 		}
 	}
 	
-	protected void onLoadSuccessful(SaveInfo info) {
+	protected void onLoadSuccessful(LuaSaveInfo info) {
 		INotifier ntf = novel.getNotifier();
 		ntf.message(String.format("Save slot loaded (%s)", info.getTitle()));
 	}
 	
-	private void readFileHeader(DataInputStream din, SaveInfo info) throws IOException {
+	private void readFileHeader(DataInputStream din, LuaSaveInfo info) throws IOException {
 		long fileId = din.readLong();
 		if (fileId != FILE_ID) throw new IOException("Invalid fileId: " + fileId + ", expected: " + FILE_ID); 
 		
@@ -309,14 +312,13 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 
 		info.timestamp = din.readLong();
 	}
-	private void readScreenshotChunk(SaveChunk chunk, SaveInfo info) throws IOException {
+	private void readScreenshotChunk(SaveChunk chunk, LuaSaveInfo info) throws IOException {
 		SaveChunk.checkId(chunk, CHUNK_SCREENSHOT_ID);
 		SaveChunk.checkVersion(chunk, CHUNK_SCREENSHOT_VERSION);
 
 		InputStream in = chunk.getData();
 		try {			
-			byte[] b = StreamUtil.readFully(in);
-			info.screenshot = decodeScreenshot(ByteBuffer.wrap(b));
+			info.screenshotBytes = ByteBuffer.wrap(StreamUtil.readFully(in));
 		} finally {
 			in.close();
 		}
@@ -342,7 +344,7 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 			in.close();
 		}
 	}
-	private void readMetaDataChunk(SaveChunk chunk, SaveInfo info) throws IOException, ClassNotFoundException {
+	private void readMetaDataChunk(SaveChunk chunk, LuaSaveInfo info) throws IOException, ClassNotFoundException {
 		SaveChunk.checkId(chunk, CHUNK_META_DATA_ID);
 		SaveChunk.checkVersion(chunk, CHUNK_META_DATA_VERSION);
 		
@@ -370,9 +372,12 @@ public abstract class LuaSaveHandler implements ISaveHandler, Serializable {
 		if (pl != null) pl.onProgressChanged(1.0f);
 	}
 			
-	protected abstract byte[] encodeScreenshot(IScreenshot ss);
-	
-	protected abstract IScreenshot decodeScreenshot(ByteBuffer data);
+	/**
+	 * @param ss The screenshot object to serialize.
+	 * @param maxSize Size hint for rescaling the screenshot prior to saving (to
+	 *        prevent memory use getting out of hand).
+	 */
+	protected abstract byte[] encodeScreenshot(IScreenshot ss, Dim maxSize);
 	
 	protected abstract InputStream openSaveInputStream(int slot) throws IOException;
 	

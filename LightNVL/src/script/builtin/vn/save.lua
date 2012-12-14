@@ -163,12 +163,13 @@ local function saveLoadScreen(isSave)
 		
 		if selected ~= 0 then
 			if isSave then
-				local ss = nil
+				local ssTable = nil
 				if selected < math.min(Save.getQuickSaveSlot(1), Save.getAutoSaveSlot(1)) then
-					ss = screenshot(imageState:getDefaultLayer(), -32768)
+					local ss = screenshot(imageState:getDefaultLayer(), -32768)
 					ss:markTransient()
+					ssTable = {screenshot=ss, width=prefs.saveScreenshotWidth, height=prefs.saveScreenshotHeight}
 				end
-				Save.save(selected, ss, metaData)
+				Save.save(selected, ssTable, metaData)
 			else
 				Save.load(selected)
 			end
