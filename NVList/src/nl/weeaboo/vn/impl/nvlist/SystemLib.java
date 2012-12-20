@@ -7,10 +7,12 @@ import java.io.Serializable;
 import java.net.URI;
 
 import nl.weeaboo.io.EnvironmentSerializable;
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
+import nl.weeaboo.vn.impl.lua.LuaNovel;
 
 @LuaSerializable
 public class SystemLib extends BaseSystemLib implements Serializable {
@@ -44,13 +46,15 @@ public class SystemLib extends BaseSystemLib implements Serializable {
 	
 	@Override
 	public void exit(boolean force) {
-		game.stop(force, new Runnable() {
-			public void run() {
-				game.dispose();
-			}
-		});
+		game.nativeStop(force);
 	}
 		
+	@Override
+	public void softExit() throws LuaException {
+		LuaNovel novel = game.getNovel();
+		novel.onExit();
+	}
+	
 	@Override
 	public void openWebsite(String url) {
 		Desktop desktop = Desktop.getDesktop();

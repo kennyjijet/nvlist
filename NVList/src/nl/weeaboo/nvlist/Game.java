@@ -41,6 +41,7 @@ import nl.weeaboo.gl.text.FontManager;
 import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.text.ParagraphRenderer;
 import nl.weeaboo.gl.texture.TextureCache;
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.io.LuaSerializer;
 import nl.weeaboo.nvlist.debug.BugReporter;
 import nl.weeaboo.nvlist.debug.DebugImagePanel;
@@ -129,7 +130,22 @@ public class Game extends BaseGame {
 
 	//Functions
 	@Override
-	public void stop(final boolean force, final Runnable onStop) {
+	public void stop(boolean force, Runnable onStop) {
+		try {
+			novel.onExit();
+		} catch (LuaException le) {
+			GameLog.e("Error calling onExit", le);
+			nativeStop(force);
+		}
+	}
+	
+	public void nativeStop(final boolean force) {
+		final Runnable onStop = new Runnable() {
+			public void run() {
+				Game.this.dispose();
+			}
+		};
+		
 		super.stop(force, new Runnable() {
 			public void run() {
 				try {

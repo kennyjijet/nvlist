@@ -39,8 +39,12 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 		this.notifier = n;
 
 		es = new EnvironmentSerializable(this);
-				
-		addAllowedPackages("nl.weeaboo.gl", "nl.weeaboo.gl.capture", "nl.weeaboo.gl.texture");
+
+		addAllowedPackages(
+			"nl.weeaboo.gl",
+			"nl.weeaboo.gl.capture",
+			"nl.weeaboo.gl.shader",
+			"nl.weeaboo.gl.texture");
 	}
 
 	//Functions
@@ -168,8 +172,9 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 			super(slot);
 		}
 		
-		protected IScreenshot decodeScreenshot(ByteBuffer data, int maxW, int maxH) {
-			return new ImageDecodingScreenshot(data, maxW, maxH);			
+		@Override
+		protected IScreenshot decodeScreenshot(ByteBuffer data, Dim maxSize) {
+			return new ImageDecodingScreenshot(data, maxSize);			
 		}
 	}
 	

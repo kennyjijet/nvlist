@@ -39,7 +39,13 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 		glm.setShader(shader);
 
 		GLTexture tex = glm.getTexture();
-		applyTextureParam(r, "tex", 0, tex != null ? tex.getTexId() : 0);
+		if (tex == null) {
+			applyTextureParam(r, "tex", 0, 0);
+			//applyShaderParam(r, "texSize", new float[2]);
+		} else {
+			applyTextureParam(r, "tex", 0, tex.getTexId());
+			//applyShaderParam(r, "texSize", new float[] {tex.getCropWidth(), tex.getCropHeight()});
+		}
 		
 		return true;
 	}

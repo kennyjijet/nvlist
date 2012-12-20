@@ -4,12 +4,14 @@ import java.io.Externalizable;
 import java.io.Serializable;
 
 import nl.weeaboo.common.StringUtil;
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.LuaUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.impl.base.BaseSystemLib;
 
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -27,7 +29,8 @@ public class LuaSystemLib extends LuaLibrary {
 		"openWebsite",
 		"restart",
 		"registerJavaClass",
-		"compareVersion"
+		"compareVersion",
+		"softExit"
 	};
 
 	private static final int INIT                = 0;
@@ -40,6 +43,7 @@ public class LuaSystemLib extends LuaLibrary {
 	private static final int RESTART             = 7;
 	private static final int REGISTER_JAVA_CLASS = 8;
 	private static final int COMPARE_VERSION     = 9;
+	private static final int SOFT_EXIT           = 10;
 	
 	private final INotifier notifier;
 	private final BaseSystemLib syslib;
@@ -67,6 +71,7 @@ public class LuaSystemLib extends LuaLibrary {
 		case RESTART: return restart(args);
 		case REGISTER_JAVA_CLASS: return registerJavaClass(args);
 		case COMPARE_VERSION: return compareVersion(args);
+		case SOFT_EXIT: return softExit(args);
 		default: return super.invoke(args);
 		}
 	}
@@ -74,6 +79,15 @@ public class LuaSystemLib extends LuaLibrary {
 	protected Varargs exit(Varargs args) {
 		boolean force = args.optboolean(1, false);
 		syslib.exit(force);
+		return NONE;
+	}
+	
+	protected Varargs softExit(Varargs args) {
+		try {
+			syslib.softExit();
+		} catch (LuaException e) {
+			throw new LuaError(e);
+		}
 		return NONE;
 	}
 	

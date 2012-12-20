@@ -617,6 +617,7 @@ public abstract class LuaNovel extends BaseNovel {
 		}		
 	}
 	
+	public void onExit() throws LuaException { luaCall("onExit"); }
 	protected void setMode(String funcName) { luaCall("edt.addEvent", funcName); }	
 	public void openTextLog() throws LuaException { setMode("textLog"); }
 	public void openViewCG() throws LuaException { setMode("viewCG"); }	

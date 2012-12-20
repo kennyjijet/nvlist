@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.vn.ISaveInfo;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.IStorage;
@@ -76,14 +77,23 @@ public abstract class LuaSaveInfo implements ISaveInfo {
 	}
 
 	@Override
+	public IScreenshot getScreenshot() {
+		return getScreenshot(0, 0);
+	}
+	
+	@Override
 	public IScreenshot getScreenshot(int maxW, int maxH) {
 		if (screenshot == null) {
-			screenshot = decodeScreenshot(screenshotBytes, maxW, maxH);
+			Dim maxSize = null;
+			if (maxW > 0 && maxH > 0) { //Zero or negative sizes means the decode function gets to decide.
+				maxSize = new Dim(maxW, maxH);
+			}
+			screenshot = decodeScreenshot(screenshotBytes, maxSize);
 		}
 		return screenshot;
 	}
 	
-	protected abstract IScreenshot decodeScreenshot(ByteBuffer screenshotBytes, int maxW, int maxH);
+	protected abstract IScreenshot decodeScreenshot(ByteBuffer screenshotBytes, Dim maxSize);
 	
 	@Override
 	public IStorage getMetaData() {

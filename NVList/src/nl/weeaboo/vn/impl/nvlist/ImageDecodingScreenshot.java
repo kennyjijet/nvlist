@@ -13,6 +13,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import nl.weeaboo.awt.ImageUtil;
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.io.ByteBufferInputStream;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.impl.base.DecodingScreenshot;
@@ -20,17 +21,16 @@ import nl.weeaboo.vn.impl.base.DecodingScreenshot;
 @LuaSerializable
 class ImageDecodingScreenshot extends DecodingScreenshot {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	
 	private boolean preciseScaling = true;
 	
-	private final int targetW, targetH;
+	private final Dim targetSize; //May be null
 	
-	public ImageDecodingScreenshot(ByteBuffer b, int targetW, int targetH) {
+	public ImageDecodingScreenshot(ByteBuffer b, Dim targetSize) {
 		super(b);
 		
-		this.targetW = targetW;
-		this.targetH = targetH;
+		this.targetSize = targetSize;
 	}
 	
 	@Override
@@ -48,14 +48,14 @@ class ImageDecodingScreenshot extends DecodingScreenshot {
 					int h = reader.getHeight(0);
 					
 					ImageReadParam readParam = reader.getDefaultReadParam();
-					if (!preciseScaling) {
-						int sampleFactor = Math.max(1, Math.min(w/targetW, h/targetH));
+					if (targetSize != null && !preciseScaling) {
+						int sampleFactor = Math.max(1, Math.min(w/targetSize.w, h/targetSize.h));
 						readParam.setSourceSubsampling(sampleFactor, sampleFactor, sampleFactor>>1, sampleFactor>>1);
 					}
 
 					image = reader.read(0, readParam);
-					if (image != null && preciseScaling) {
-						image = ImageUtil.getScaledImageProp(image, targetW, targetH, Transparency.OPAQUE);
+					if (image != null && targetSize != null && preciseScaling) {
+						image = ImageUtil.getScaledImageProp(image, targetSize.w, targetSize.h, Transparency.OPAQUE);
 					}
 				}
 			} catch (IOException ioe) {

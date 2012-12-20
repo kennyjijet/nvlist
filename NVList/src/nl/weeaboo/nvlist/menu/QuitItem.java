@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JMenuItem;
 
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 
@@ -19,13 +20,13 @@ public class QuitItem extends GameMenuAction {
 	@Override
 	public void actionPerformed(JMenuItem item, ActionEvent e, final Game game, Novel nvl) {
 		if (nvl != null) {
-			nvl.getSystemLib().exit(false);
+			try {
+				nvl.getSystemLib().softExit();
+			} catch (LuaException le) {
+				nvl.getNotifier().e("Error calling onExit function", le);
+			}
 		} else if (game != null) {
-			game.stop(false, new Runnable() {
-				public void run() {
-					game.dispose();
-				}
-			});
+			game.nativeStop(false);
 		}
 	}
 

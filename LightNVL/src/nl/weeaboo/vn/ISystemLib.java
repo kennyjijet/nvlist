@@ -1,5 +1,7 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.lua2.LuaException;
+
 public interface ISystemLib {
 
 	// === Functions ===========================================================
@@ -7,6 +9,11 @@ public interface ISystemLib {
 	 * Completely restarts the game. 
 	 */
 	public void restart();
+	
+	/**
+	 * Tries to calls the Lua <code>onExit()</code> function.
+	 */
+	public void softExit() throws LuaException;
 	
 	/**
 	 * Attempt to exit the game, if <code>force == true</code> the user is not
