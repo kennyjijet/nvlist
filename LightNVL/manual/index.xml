@@ -28,6 +28,7 @@
       <chapter url="ch40-script-env.xml">Lua environment</chapter>
       <chapter url="../script-reference/index.html">Script functions</chapter>
       <chapter url="../engine-internals/index.html">Engine internals</chapter>
+      <chapter url="ch43-android-differences.xml">Differences on Android</chapter>
     </chapter-group>
     <chapter-group title="Distribution">
       <chapter url="ch50-create-distro.xml">Creating a distribution</chapter>

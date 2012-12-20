@@ -186,4 +186,14 @@
     
   </section>
   
+  <section title="Linking Java to Lua" level="1">
+    <section title="Instantiating Java Objects" level="2">
+      <p>It's possible use custom Java classes from within Lua. Use the <code>registerJavaClass</code> function to register a class constructor, then <code><em>&lt;SimpleClassName&gt;</em>.new</code> to create a new instance of the class. You only need to register the class once at the beginning of the program.</p>
+      <sourcecode lang="lvn"><![CDATA[@registerJavaClass("java.lang.Integer")
+@local myInt = Integer.new(12345)
+@print(myInt:intValue())]]></sourcecode>
+      <p>Classes registered in this way should implement either <code>Serializable</code> or <code>Externalizable</code> and be marked with the <code>nl.weeaboo.lua2.io.LuaSerializable</code> annotation.</p>
+    </section>
+  </section>
+  
 </section>

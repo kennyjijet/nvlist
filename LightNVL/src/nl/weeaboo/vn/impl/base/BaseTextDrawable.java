@@ -23,6 +23,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
 	protected final ITextRenderer textRenderer;
+	private final LinkedTextHelper linkHelper;
 	
 	private StyledText text;
 	private TextStyle defaultStyle;
@@ -42,6 +43,7 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	
 	protected BaseTextDrawable(ITextRenderer tr) {
 		textRenderer = tr;
+		linkHelper = new LinkedTextHelper(tr);
 		
 		text = StyledText.EMPTY_STRING;
 		textSpeed = -1;
@@ -86,6 +88,10 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		if (textRenderer.update()) {
 			markChanged();
 		}
+		
+		Vec2 trPos = new Vec2();
+		getTextRendererAbsoluteXY(trPos);		
+		linkHelper.update(input, trPos.x, trPos.y);
 		
 		targetCursorAlpha = 0;
 		validateCursorPos();
@@ -180,6 +186,16 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		return textSpeed < 0 || textSpeed >= 100000;		
 	}
 	
+	@Override
+	public void clearLinks() {
+		linkHelper.clearLinks();
+	}
+	
+	@Override
+	public int[] consumePressedLinks() {
+		return linkHelper.consumePressedLinks();
+	}
+
 	@Override
 	protected void onRenderEnvChanged() {
 		super.onRenderEnvChanged();
@@ -383,7 +399,12 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	public IDrawable getCursor() {
 		return cursor;
 	}
-		
+
+	@Override
+	public String getLink(int tag) {
+		return linkHelper.getLink(tag);
+	}
+	
 	//Setters
 	@Override
 	public void setText(String t) {
@@ -579,6 +600,11 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 	public void setRenderEnv(RenderEnv env) {
 		super.setRenderEnv(env);
 		textRenderer.setRenderEnv(env);
+	}
+	
+	@Override
+	public String setLink(int tag, String link) {
+		return linkHelper.setLink(tag, link);
 	}
 	
 }

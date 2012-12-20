@@ -97,9 +97,9 @@ function setExitFunction(func, cleanup)
 	exitFunctions.cleanup = cleanup
 end
 
----Create a Lua wrapper for the specified Java class (the class file must of
--- course be available from the current classpath). The registered class should
--- be Serializable or Externalizable and tagged with the
+---Create a Lua wrapper for the specified Java class (the class file must be
+-- available from the current classpath). The registered class should be
+-- Serializable or Externalizable and tagged with the
 -- <code>nl.weeaboo.lua2.io.LuaSerializable</code> annotation.
 -- @param className Fully-qualified Java class name
 -- @param env Lua table to register the functions in (default=_G).

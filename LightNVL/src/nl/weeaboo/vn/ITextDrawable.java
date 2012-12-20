@@ -3,7 +3,7 @@ package nl.weeaboo.vn;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
 
-public interface ITextDrawable extends IDrawable {
+public interface ITextDrawable extends IDrawable, ILinked {
 
 	// === Functions ===========================================================
 	
