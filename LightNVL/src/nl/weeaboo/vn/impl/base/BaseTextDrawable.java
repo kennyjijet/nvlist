@@ -198,8 +198,10 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 		pos.x = getX();
 		pos.y = getY();
 		
+		boolean hasBackground = (getAlpha() > 0 && getBackgroundAlpha() > 0);
+		
 		double w = getWidth();
-		double h = getTextHeight();
+		double h = (hasBackground ? getHeight() : getTextHeight());
 		w = (Double.isNaN(w) ? 0 : Math.max(0, w));
 		h = (Double.isNaN(h) ? 0 : Math.max(0, h));
 		return new Rect2D(pos.x, pos.y, w, h);

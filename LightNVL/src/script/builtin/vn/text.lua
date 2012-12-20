@@ -119,7 +119,7 @@ local function updateSpeakerName()
 		end			
 		popStyle()			
 
-		textfade(1, 1, function(k, d)
+		textfade(textAlpha, 1, function(k, d)
 			return isNameTextDrawable(k)
 		end)
 	else
@@ -362,14 +362,14 @@ end
 
 ---Fades out the main textbox
 function textoff(...)
-	textfade(0, ...)	
 	textAlpha = 0
+	textfade(0, ...)	
 end
 
 ---Fades in the main textbox
 function texton(...)
-	textfade(1, ...)
 	textAlpha = 1
+	textfade(textAlpha, ...)
 end
 
 ---Returns the current text layer
