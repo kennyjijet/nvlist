@@ -11,33 +11,61 @@ textB:setText("Text on a button")
 local text2B = button("gui/components#button-")
 text2B:setVerticalAlign(1) --Bottom
 text2B:extendDefaultStyle(createStyle{fontStyle="italic"})
-text2B:setText("Text on a button")
+text2B:setText("Vertical-align test")
+
+--Create some toggle buttons
+local toggleButtons = {}
+for i=1,4 do
+    local b = button("gui/components#button-")
+    b:setText("Toggle Button")
+    b:extendDefaultStyle(createStyle{anchor=5})
+    b:setToggle(true)
+    b:setSelected(i == 1)
+    toggleButtons[i] = b
+end
 
 --Padding between buttons is a percentage of the screen size
 local pad = math.min(screenWidth, screenHeight) / 64
 
---Create layout object to position the buttons for us
-doLayout(GridLayout, 0, 0, screenWidth, screenHeight,
-	{padding=pad, pack=5, cols=2},
+--Position regular buttons
+doLayout(GridLayout, 0, 0, screenWidth/2, screenHeight,
+	{padding=pad, pack=5, cols=1},
 	{normalB, disabledB, textB, text2B})
 
+--Position toggle buttons
+doLayout(GridLayout, screenWidth/2, 0, screenWidth/2, screenHeight,
+	{padding=pad, pack=5, cols=1},
+	toggleButtons)
+    
+clearText()
+appendText("Press the top-left button to continue.")
+    
 while true do
     if normalB:consumePress() then
         normalB:setEnabled(false) --Prevent button from being pressed again while text is showing
-        text("Button pressed")
         break
     elseif textB:consumePress() then
         textB:setText("Random text " .. string.sub("abcde", 1, math.random(1, 5)))
     elseif text2B:consumePress() then
         text2B:setVerticalAlign(math.random(0, 10) / 10)
     end
+    
+    for _,b in ipairs(toggleButtons) do
+        if b:consumePress() then
+            --Make it so only one togglebutton is selected at a time.
+            for _,b2 in ipairs(toggleButtons) do
+                if b ~= b2 then
+                    b2:setSelected(false)
+                end
+            end
+        end
+    end
+    
     yield()
 end
 
-rm(normalB)
-rm(disabledB)
-rm(textB)
-rm(text2B)
+destroyValues{normalB, disabledB, textB, text2B}
+destroyValues(toggleButtons)
 
 clearText()
 

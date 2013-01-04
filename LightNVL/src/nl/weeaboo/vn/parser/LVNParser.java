@@ -143,7 +143,7 @@ public class LVNParser {
 					endChar = ']';
 				//} else if (startChar == '{') {
 				//	endChar = '}';
-				} else if (startChar == '$' && start+1 < line.length() && line.charAt(start+1) == '{') {
+				} else if (startChar == '$' && start < line.length() && line.charAt(start) == '{') {
 					start++;
 					endChar = '}';
 				}

@@ -119,16 +119,38 @@ public class BuildCommandPanel extends JPanel {
 		editButton.setOpaque(false);
 		editButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				String error = null;
+				
 				File scriptF = new File(build.getProjectFolder(), "res/script");
-				try {
-					Desktop.getDesktop().open(scriptF);
-				} catch (IOException ioe) {
-					try {
-						Runtime.getRuntime().exec("open " + scriptF);
-					} catch (IOException ioe2) {
-						JOptionPane.showMessageDialog(BuildCommandPanel.this, "Error opening script folder: "
-								+ scriptF, "Unable to perform action", JOptionPane.ERROR_MESSAGE);
+				if (!scriptF.exists()) {
+					error = "Script folder doesn't exist: "	+ scriptF;
+				} else {
+					boolean ok = false;
+					if (Desktop.isDesktopSupported()) {
+						try {
+							Desktop desktop = Desktop.getDesktop();
+							desktop.open(scriptF);
+							ok = true;
+						} catch (RuntimeException re) {
+							error = "Unable to open script folder: " + scriptF;
+						} catch (IOException ioe) {
+							error = "Unable to open script folder: " + scriptF;
+						}
 					}
+					if (!ok) {
+						try {
+							Runtime.getRuntime().exec("open " + scriptF);
+						} catch (SecurityException se) {
+							error = "Security error while trying to open script folder: " + scriptF;						
+						} catch (IOException ioe) {
+							error = "Security error while trying to open script folder: " + scriptF;						
+						}					
+					}
+				}
+				
+				if (error != null) {
+					JOptionPane.showMessageDialog(BuildCommandPanel.this, error, "Unable to perform action",
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});

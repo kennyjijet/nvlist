@@ -4,9 +4,14 @@
 
 
 
+Color-tinting the character image (fuchsia)
+@i:setColor(1.0, 0.0, 1.0)
+
+
 
 Blurring the character image
 @@
+i:setColor(1.0, 1.0, 1.0)
 local blurtex = blur(i:getTexture(), 16)
 i:setTexture(blurtex, 5) --5: center aligned
 @@
@@ -29,7 +34,7 @@ local negative = applyColorMatrix("bg/bg1", {-1,0,0,0,1}, {0,-1,0,0,1}, {0,0,-1,
 bgtween(negative)
 @@
 
-Grayscaling the background with a color matrix
+Greyscaling the background with a color matrix
 @@
 local graytex = applyColorMatrix("bg/bg1", {.30,.59,.11}, {.30,.59,.11}, {.30,.59,.11})
 bgtween(graytex)

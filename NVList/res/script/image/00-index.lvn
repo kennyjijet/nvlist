@@ -4,7 +4,7 @@
 while true do
     clearText()
 
-    local selected = choice("Basics", "Transitions", "Animation", "Video", "Camera", "Image FX", "Shaders", "Return")
+    local selected = choice("Basics", "Transitions", "Animation", "Shaders", "Image FX", "Camera", "Return")
     if selected == 1 then
         call("image/01-basics")
     elseif selected == 2 then
@@ -12,13 +12,11 @@ while true do
     elseif selected == 3 then
         call("image/03-animation")
     elseif selected == 4 then
-        call("image/04-video")
+        call("image/04-shaders")
     elseif selected == 5 then
-        call("image/05-camera")
+        call("image/05-imagefx")
     elseif selected == 6 then
-        call("image/06-imagefx")
-    elseif selected == 7 then
-        call("image/07-shaders")
+        call("image/06-camera")
     else
         break
     end

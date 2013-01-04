@@ -1,11 +1,32 @@
 
-Are you in the mood for some waffles?!
+Displays a static choice screen with two options.
 @@
-local selected = choice("Hell yeah I am!", "Uhm... what?")
-if selected == 1 then
-    text("Awww yeah!")
-elseif selected == 2 then
-    text("...?")
+local firstSelected = choice("Apple", "Banana")
+if firstSelected == 1 then
+@@
+    #Indentation optional
+    Apple branch.
+@@
+elseif firstSelected == 2 then
+@@
+    Banana branch.
+@@
 end
-clearText()
 @@
+Merge point of the two choice branches.
+
+Constructing a choice screen using code to add/remove options based on the result of the previous choice.
+@@
+local opts = {"Carrot Cake"}
+if firstSelected == 1 then
+    table.insert(opts, "Apple Pie")
+else
+    table.insert(opts, "Banana Split")
+end
+local selected = choice(opts)
+local food = opts[selected]
+@@
+
+Selected ${food}.
+
+@clearText()

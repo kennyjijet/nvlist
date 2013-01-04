@@ -1,13 +1,13 @@
 
 @@
 while true do
-    local selected = choice("Text", "Image", "Audio", "User Interface", "Special Effects", "Exit")
+    local selected = choice("Text", "Image", "Audio/Video", "User Interface", "Special Effects", "Exit")
     if selected == 1 then
         call("text/00-index")
     elseif selected == 2 then
         call("image/00-index")
     elseif selected == 3 then
-        call("audio/00-index")
+        call("av/00-index")
     elseif selected == 4 then
         call("gui/00-index")
     elseif selected == 5 then

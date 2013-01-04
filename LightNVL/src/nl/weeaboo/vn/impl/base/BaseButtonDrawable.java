@@ -154,7 +154,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			if (mouseArmed) {
 				mouseArmed = false;
 				markChanged();				
-			}			
+			}
 			if (keyArmed) {
 				keyArmed = false;
 				markChanged();				

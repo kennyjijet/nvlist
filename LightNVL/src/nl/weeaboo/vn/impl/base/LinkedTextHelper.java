@@ -20,11 +20,16 @@ public class LinkedTextHelper extends AbstractLinked {
 		double cx = input.getMouseX() - x;
 		double cy = input.getMouseY() - y;
 		int[] hits = tr.getHitTags((float)cx, (float)cy);
-		if (hits != null) {
-			boolean clicked = input.consumeMouse();
-			for (int hit : hits) {
+		if (hits != null && hits.length > 0) {
+			boolean clicked = false;
+			for (int tag : hits) {
+				String link = getLink(tag);
+				if (link != null) {
+					clicked |= input.consumeMouse(); //Only read clicks for tags with associated links.
+				}
+				
 				if (clicked) {
-					onLinkPressed(hit);
+					onLinkPressed(tag);
 				} else {
 					//onLinkHovered(hit); Future addition?
 				}

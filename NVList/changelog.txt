@@ -1,4 +1,55 @@
 
+2012/12/08 -- 3.1 (r86)
+
+enhancements:
+- Update to JOGL-2.0-RC11. Should help with errors on Mac, freezes on Linux.
+- Added option to show a splashscreen during startup.
+- Added a script tab to the debug window. It includes a script info button to
+  display the line/word count for each of the scripts.
+- Added Game.addLuaInitializer() which makes it easier to make an interface in
+  Lua for complex Java code. Use registerJavaClass() for simple Java objects.
+- Added pushStyle/popStyle to make it easier to temporarily change the style
+  within a line of text, then later change it back to the earlier style.
+- Support for using soft-hyphens in words to indicate potential intra-word
+  hyphenation points.
+- Support for setting the default text direction to right-to-left (vn.rtl)
+- Basic support for bidirectional text in TextDrawable/Button.
+- TextDrawable.setAnchor()/ButtonDrawable.setTextAnchor() have been replaced
+  by setVerticalAlign(). Set the horizontal align with the default text style.
+- Using more aggressive coordinate rounding in text display code to make the
+  text appear sharper.
+- Added an optional volatile parameter to screenshot/screen2image functions
+  which, when true, creates a screenshot which stores its pixels only on the
+  GPU. This improves performance, but the pixels may be lost at any time.
+- View CG menu option now prints a warning when it does nothing and uses a
+  fade-in/fade-out effect.
+- Changed behavior of 'stretch' for GridLayout, will now only increase sizes.
+  Added a 'shrink' property to allow shrinking of components.
+- Setting the text anchor to 0 lets the text alignment depend on the default
+  directionality of the containing line of text.
+- Various small improvements to the manual.
+    
+bugfixes:
+- Choice buttons accidentally had their Z changed from -2000 to 0.
+- Screenshots were taken in the wrong layer for layers containing sublayers.
+- Buttons still appeared clickable in view CG mode.
+- Notifications alignment was accidentally changed in v3.0
+- Right-aligned text now behaves the same on the Android port.
+- Incorrect decoding of Unicode code points outside the BMP in Lua.
+- Lua functions didn't show up in stack traces for Java exceptions for certain
+  types of errors.
+- colorTex() didn't properly convert the given ARGB color to premultiplied form
+- Clip rect calculation in BaseRenderer uses the rounded-to-int version.
+  of the parent's clip rect as base. Repeated rounding errors could stack up.
+- Errorneously included some unarchived .java files in the engine distribution.
+- Removed trailing '&' in Linux launcher script, it causes the program not to
+  run properly when using double-click -> run in terminal in some cases.
+- Engine/project fields in Build.jar where clipped on Mac OS X.
+- On some platforms, default textfield foreground is white, making the
+  project/engine browse fields in Build.jar very hard to read.
+
+
+
 2012/11/13 -- 3.0 (r69)
 
 enhancements:

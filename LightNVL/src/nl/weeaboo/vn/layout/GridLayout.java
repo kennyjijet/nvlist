@@ -195,8 +195,8 @@ public class GridLayout extends AbstractLayout {
 	/**
 	 * @see #setShrink(boolean, boolean)
 	 */
-	public void setShrink(boolean stretch) {
-		setShrink(stretch, stretch);
+	public void setShrink(boolean shrink) {
+		setShrink(shrink, shrink);
 	}
 	
 	/**

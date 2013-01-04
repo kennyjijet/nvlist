@@ -135,7 +135,7 @@ function ParallelAnimator:start(loops)
 	self.loops = loops or self.loops or 1
 	destroyAnimatorThread(self)
 		
-	self:multicall("start", 1)
+	self:multicall("start")
 	
     self.thread = newThread(function()
         while not self.destroyed do
@@ -153,7 +153,7 @@ function ParallelAnimator:start(loops)
 	                self:finish()
 	                return --Thread gets killed inside finish() anyway...
 	            else
-	            	self:multicall("start", 1)
+	            	self:multicall("start")
 	            end
 	        end
 	        

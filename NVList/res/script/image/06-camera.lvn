@@ -1,7 +1,11 @@
 
+The camera object assists in doing complex zooms and pans over sprites/backgrounds.
+
 @@
+textoff()
+
 local background = bgf("bg/bg1")
-local sprite = img("arm01m", "l")
+local sprite = imgf("arm01m", "l")
 
 local w = screenWidth
 local h = screenHeight
@@ -42,29 +46,45 @@ anim = camPerspective()
 anim:start(-1)
 
 fadeTo(sprite, 1)
-clearText()
-appendText("1=Toggle depth of field\n2=Toggle perspective transform")
+
+local continueB = button("gui/components#button-")
+continueB:setPos(screenWidth-continueB:getWidth()-10, 10)
+continueB:setText("Continue")
+
+local depthOfFieldB = button("gui/components#button-")
+depthOfFieldB:setPos(10, 10)
+depthOfFieldB:setText("Depth-of-field: On")
+
+local perspectiveB = button("gui/components#button-")
+perspectiveB:setPos(depthOfFieldB:getX()+depthOfFieldB:getWidth()+10, 10)
+perspectiveB:setText("Perspective: 3D")
 
 --Loop camera movement pattern
-while not input:consumeTextContinue() do
-    if input:consumeKey(Keys[1]) then
+while true do
+    if depthOfFieldB:consumePress() then
         local bs = camera:getBlurScale()
         if bs ~= 0 then
             bs = 0
+            depthOfFieldB:setText("Depth-of-field: Off")
         else
             bs = 1
+            depthOfFieldB:setText("Depth-of-field: On")
         end
         camera:setBlurScale(bs)
-    elseif input:consumeKey(Keys[2]) then
+    elseif perspectiveB:consumePress() then
         if camera:getPerspectiveTransform() then
             anim:finish()
             anim = camOrtho()
             anim:start(-1)
+            perspectiveB:setText("Perspective: 2D")
         else
             anim:finish()
             anim = camPerspective()
             anim:start(-1)
+            perspectiveB:setText("Perspective: 3D")
         end
+    elseif continueB:consumePress() then
+        break
     end   
     yield()
 end
@@ -73,6 +93,11 @@ end
 anim:finish()
 camera:destroy()
 
+rm(depthOfFieldB)
+rm(perspectiveB)
+rm(continueB)
+
+texton()
 @@
 
 Camera destroyed

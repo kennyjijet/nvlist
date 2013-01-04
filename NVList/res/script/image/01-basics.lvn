@@ -11,9 +11,6 @@ Changing background image.
 Changing character image.
 @imgtween(i, "arm01l")
 
-Color-tinting the character image (fuchsia)
-@i:setColor(1.0, 0.0, 1.0)
-
 Fading away and deleting sprite.
 @rmf(i)
 

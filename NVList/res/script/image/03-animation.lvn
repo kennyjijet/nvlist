@@ -1,96 +1,77 @@
 
 @@
 
+--Define the frames of animation we'll use
 local frames = {}
 for i=1,4 do
 	frames[i] = {texture=tex("anim/anim01#" .. i), duration=15} --duration is 15 frames (0.25 seconds)
 end
-local drawable = img(frames[1].texture)
-local texAnim = Anim.createFilmstrip(drawable, frames)
-texAnim:start(-1)
 
--- -----------------------------------------------------------------------------
+--Create the 4 animating images
+local drawables = {}
+local anims = {}
+for di=1,4 do
+    drawables[di] = img(frames[1].texture)
+    anims[di] = Anim.createFilmstrip(drawables[di], frames)
+    anims[di]:start(-1)
+end
 
-local moveThread = newThread(function()
-    while not drawable:isDestroyed() do
-        translateTo(drawable, screenWidth-drawable:getWidth(), 0, 180)
-        translateRelative(drawable, -screenWidth/2, screenHeight*.6, 60)
-        
-        --Outwards spiraling motion
-        local cx = drawable:getX()
-        local cy = drawable:getY()
-        for i=1,240 do
-            local r = i
-            drawable:setPos(cx + r * math.cos(i * math.pi / 60), cy + r * math.sin(i * math.pi / 60))
-            yield()
-        end
-        
-        --Back to the origin for another loop
-        translateTo(drawable, 0, 0, 120)
-    end
-end)
+--Position drawables in a grid
+doLayout(GridLayout, screenWidth*.20, 0, screenWidth*.60, screenHeight*.75, {cols=2}, drawables)
+
 @@
 
-Showing a simple animation using movement and a looping image change, click to end.
+Showing a simple background animation. Click to start a one-time (blocking) move animation.
+
+@local baseY = drawables[2]:getY()
+@Anim.tweenFromTo(drawables[2], "y", baseY-50, baseY+50, 120)
+
+Move animation finished. Click to start a looping move animation.
+
 @@
-moveThread:destroy()
-drawable:setPos((screenWidth-drawable:getWidth())/2, (screenHeight-drawable:getHeight())/2)
+local baseY = drawables[3]:getY()
+local loopAnim = Anim.createTween(drawables[3], "y", baseY-50, baseY+50, 120)
+loopAnim:start(3) --Start in the background, repeat 3 times. Use -1 to repeat forever.
+table.insert(anims, loopAnim) --Add animation to our table of background animations (so we can call finish() on it later)
 @@
 
-# ------------------------------------------------------------------------------
-Simple one-time bounce animation...
-@@
-Anim.tweenTo(drawable, "x", 800)
-Anim.tweenTo(drawable, "x", 400)
-@@
+This animation will loop three times, then stop. Click to start a multi-step animation, created with the 'Anim.par' and 'Anim.seq' functions.
 
-# ------------------------------------------------------------------------------
-Animations with custom start positions...
 @@
-Anim.tweenFromTo(drawable, "x", 160, 480)
-Anim.tweenFromTo(drawable, "x", 800, 1120)
-@@
+local d = drawables[4]
+local baseX = d:getX()
+local baseY = d:getY()
 
-# ------------------------------------------------------------------------------
-Background animation demo...
-@@
-local endX = screenWidth-drawable:getWidth()
-local endY = screenHeight-drawable:getHeight()
-local anim = Anim.createTween(drawable, "pos", {0, 0}, {endX, endY}, 300)
-anim:start() --Starts animating in the background
-@@
-The animation continues in the background and instantly finishes once you click past this text line.
-@@
-anim:finish() --Skips the animation to the last frame instantly
-@@
-Background animation finished.
-@texAnim:finish()
-@drawable:destroy()
+local zigzag = Anim.seq{
+    Anim.createTween(d, "x", baseX-50, baseX+50, 90),
+    Anim.createTween(d, "x", baseX+50, baseX-50, 90)
+}
+zigzag.loops = -1 --Zigzag loops forever
 
-# ------------------------------------------------------------------------------
-@@
-local d1 = imgf(frames[1].texture, "lc", screenHeight/2)
-local d2 = imgf(frames[2].texture, "rc", screenHeight/2)
-
-local anim = Anim.seq{
-    Anim.createTween(d1, "y", nil, 0, 120),
+local multiAnim = Anim.seq{
+    Anim.createTween(d, "pos", {baseX, baseY}, {baseX-50, baseY-50}, 120),
     Anim.createWait(20),
-    Anim.createTween(d2, "y", nil, 0, 120),
-    }
-anim:start()
-text("Showing multi-part animation (sequential)")
-anim:finish()
-
-
-local anim = Anim.par{
-    Anim.createTween(d1, "y", nil, screenHeight/2, 120),
-    Anim.createTween(d2, "y", nil, screenHeight/2, 120),
-    }
-anim:start()
-text("Showing multi-part animation (parallel)")
-anim:finish()
-
-rmf(d1)
-rmf(d2)
+    Anim.par{
+        Anim.createTween(d, "y", nil, baseY+50, 180),
+        zigzag
+    },
+}
+multiAnim:start()
 @@
 
+This animation will move to the top-left, then move down and zigzag in the x-direction.
+
+@multiAnim:finish()
+
+Multi-step animation finished.
+
+@@
+--Finish each animation
+for _,a in ipairs(anims) do
+    a:finish()
+end
+@@
+
+Ended all animations.
+
+@destroyValues(drawables)

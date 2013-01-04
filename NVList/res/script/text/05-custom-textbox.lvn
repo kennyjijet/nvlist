@@ -1,5 +1,7 @@
 
-Changing the textbox...
+@bgf("bg/bg1")
+
+Constructing a custom textbox...
 
 @@
 --Customize textbox
@@ -12,7 +14,7 @@ customTextBox(TextMode.ADV, {
     textBackgroundExtra={x=128, y=528},
     
     --Bounds (x,y,w,h) for the speaker name text
-    nameTextBounds={152, 492},
+    nameTextBounds={152, 492, 256, 40},
     --Filename for the part of the background that's behind the speaker name
     --This image disappears when there's no speaker active. Delete the line and
     --draw the namebox into the textBackground if you don't want it to disappear.
@@ -33,9 +35,46 @@ customTextBox(TextMode.ADV, {
 @say("Speaker Name")
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus augue neque, ullamcorper vel luctus ultrices, lobortis ac sapien. Cras posuere venenatis risus, ut lacinia erat hendrerit a. Proin in orci nec nibh vulputate mattis. Suspendisse pellentesque neque dui.
 
+Optional bit: adding a custom button to the textbox...
+
 @@
---Reset speaker
-say()
---Reset textbox
-customTextBox(TextMode.ADV)
+local textLayer = getTextLayer(TextMode.ADV)
+setImageLayer(textLayer) --Create new images/buttons in the text layer
+
+local button = button("gui/components#button-")
+button:setText("Hide Textbox")
+button:setPos(screenWidth*.70, screenHeight*.65)
+button:setZ(-2000)
+
+setImageLayer() --Reset active layer
+
+--Start a background thread to handle button presses
+local buttonThread = newThread(function()
+    while not button:isDestroyed() do
+        if button:consumePress() then --If the button is pressed
+            edt.addEvent(viewCG) --Runs the viewCG function on the main thread (hides the textbox)
+            --We pass the function instead of calling it directly, thus the lack of () after viewCG)
+        end
+        yield()
+    end
+end)
+
 @@
+
+Click the button to hide the textbox.
+
+@@
+say() --Reset speaker
+textoff()
+rm(button)
+buttonThread:destroy()
+
+clearText()
+texton(1)
+@@
+
+#Reset textbox to default
+@customTextBox(TextMode.ADV)
+Restored default textbox
+@clearText()
+@rmbgf()

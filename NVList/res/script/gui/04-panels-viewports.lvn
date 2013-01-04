@@ -2,13 +2,13 @@
 Creating a large panel containing smaller images. Images are automatically positioned according to a layout.
 
 @@
-local continueB = button("gui/components#button-")
-continueB:setPos(10, 10)
-continueB:setText("Continue")
-
 local layoutB = button("gui/components#button-")
-layoutB:setPos(screenWidth-layoutB:getWidth()-10, 10)
+layoutB:setPos(10, 10)
 layoutB:setText("Switch layout")
+
+local continueB = button("gui/components#button-")
+continueB:setPos(screenWidth-continueB:getWidth()-10, 10)
+continueB:setText("Continue")
 
 local panel = createPanel(300, 300)
 panel:setBackground(colorTex(0xFF800080, 64, 64))

@@ -1,7 +1,5 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import java.util.Arrays;
-
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.textlayout.LineElement;
 import nl.weeaboo.textlayout.LineLayout;
@@ -10,7 +8,6 @@ import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.impl.base.BaseTextDrawable;
-import nl.weeaboo.vn.math.Vec2;
 
 @LuaSerializable
 public class TextDrawable extends BaseTextDrawable {
@@ -28,12 +25,7 @@ public class TextDrawable extends BaseTextDrawable {
 			markChanged();
 		}
 		
-		Vec2 pos = new Vec2();
-		getTextRendererAbsoluteXY(pos);
-		int[] tags = textRenderer.getHitTags((float)(input.getMouseX()-pos.x), (float)(input.getMouseY()-pos.y));
-		if (tags != null && tags.length > 0) {
-			System.out.println(Arrays.toString(tags));
-		}
+		//System.out.println(Arrays.toString(consumePressedLinks()));
 				
 		return consumeChanged();
 	}

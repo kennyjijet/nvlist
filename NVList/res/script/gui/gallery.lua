@@ -25,11 +25,10 @@ local ImageSlot = {
 function ImageSlot.new(self)
 	self = extend(ImageSlot, self)
 	
-	self.button = button()
 	if self.thumbnail then
-		self.button:setNormalTexture(tex(self.thumbnail))
+		self.button = button(tex(self.thumbnail))
 	else
-		self.button:setNormalTexture(colorTex(0xFF808080, 32, 32))
+		self.button = button(colorTex(0xFF808080, 32, 32))
 	end
 	self.button:setToggle(true)
 
@@ -74,10 +73,10 @@ function ImageSlot:layout()
 	local b = self.button
 	local o = self.overlay
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
-	
+    
 	b:setScale(scale, scale)		
 	b:setPos(x + (w-b:getWidth())/2, y + (h-b:getHeight())/2)
-		
+    
 	o:setBounds(b:getX(), b:getY(), b:getWidth(), b:getHeight())
 	o:setZ(b:getZ() - 10)
 	
@@ -274,9 +273,9 @@ function ImageGallery:layout()
         {padding=ipad, pack=5},
         self.pageButtons)
         
-	for i=1,2 do
+	for i=1,1 do
         doLayout(GridLayout, ipad, mainPadV, mainW, mainH,
-            {cols=self.cols, pack=5, stretch=true},
+            {cols=self.cols, pack=5, shrink=true, stretch=true},
             self.slots)
     end
     
