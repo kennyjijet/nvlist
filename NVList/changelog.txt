@@ -1,5 +1,5 @@
 
-2013/01/08 -- 3.2 (r93)
+2013/01/09 -- 3.2 (r94)
 
 enhancements:
 - Reduced latency when starting audio while another audio track is already
