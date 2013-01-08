@@ -112,6 +112,13 @@
   
   <!-- html-copy.xsl -->
 
+  <xsl:template match="script">
+    <xsl:element name="{local-name()}">
+      <xsl:apply-templates select="@*"/>
+      <xsl:value-of select="node()" disable-output-escaping="yes" />
+    </xsl:element>
+  </xsl:template>
+  
   <xsl:template match="*">
     <xsl:element name="{local-name()}">
       <xsl:apply-templates select="@*|node()"/>

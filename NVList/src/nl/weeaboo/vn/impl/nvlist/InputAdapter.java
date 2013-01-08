@@ -28,13 +28,13 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 	}
 
 	@Override
-	public boolean isKeyHeld(int keycode) {
-		return input.isKeyHeld(keycode);
+	public boolean isKeyHeld(int keycode, boolean allowConsumedPress) {
+		return input.isKeyHeld(keycode, allowConsumedPress);
 	}
 
 	@Override
-	public long getKeyHeldTime(int keycode) {
-		return input.getKeyHeldTime(keycode);
+	public long getKeyHeldTime(int keycode, boolean allowConsumedPress) {
+		return input.getKeyHeldTime(keycode, allowConsumedPress);
 	}
 	
 	@Override
@@ -62,13 +62,13 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 	}
 
 	@Override
-	public boolean isMouseHeld() {
-		return input.isMouseHeld();
+	public boolean isMouseHeld(boolean allowConsumedPress) {
+		return input.isMouseHeld(allowConsumedPress);
 	}
 
 	@Override
-	public long getMouseHeldTime() {
-		return input.getMouseHeldTime();
+	public long getMouseHeldTime(boolean allowConsumedPress) {
+		return input.getMouseHeldTime(allowConsumedPress);
 	}
 	
 	@Override
@@ -103,7 +103,7 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 	
 	@Override
 	public boolean isConfirmHeld() {
-		return isKeyHeld(VKey.BUTTON2.toKeyCode(1));
+		return isKeyHeld(VKey.BUTTON2.toKeyCode(1), false);
 	}
 	
 	@Override
@@ -113,8 +113,8 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 
 	@Override
 	public boolean isCancelHeld() {
-		return input.isMouseHeld(MouseEvent.BUTTON3)
-			|| isKeyHeld(VKey.BUTTON3.toKeyCode(1));
+		return input.isMouseHeld(MouseEvent.BUTTON3, false)
+			|| isKeyHeld(VKey.BUTTON3.toKeyCode(1), false);
 	}
 	
 	@Override
@@ -161,35 +161,35 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 	
 	@Override
 	public boolean isUpHeld() {
-		return isKeyHeld(VKey.UP.toKeyCode(1));
+		return isKeyHeld(VKey.UP.toKeyCode(1), false);
 	}
 
 	@Override
 	public boolean isDownHeld() {
-		return isKeyHeld(VKey.DOWN.toKeyCode(1));
+		return isKeyHeld(VKey.DOWN.toKeyCode(1), false);
 	}
 
 	@Override
 	public boolean isLeftHeld() {
-		return isKeyHeld(VKey.LEFT.toKeyCode(1));
+		return isKeyHeld(VKey.LEFT.toKeyCode(1), false);
 	}
 
 	@Override
 	public boolean isRightHeld() {
-		return isKeyHeld(VKey.RIGHT.toKeyCode(1));
+		return isKeyHeld(VKey.RIGHT.toKeyCode(1), false);
 	}
 	
 	@Override
 	public boolean isQuickRead() {
-		return getMouseHeldTime() > 1000
-			|| getKeyHeldTime(VKey.BUTTON2.toKeyCode(1)) > 1500
-			|| isKeyHeld(VKey.BUTTON1.toKeyCode(1));
+		return getMouseHeldTime(false) > 1000
+			|| getKeyHeldTime(VKey.BUTTON2.toKeyCode(1), false) > 1500
+			|| isKeyHeld(VKey.BUTTON1.toKeyCode(1), false);
 	}
 	
 	@Override
 	public boolean isQuickReadAlt() {
 		if (!isQuickRead()) return false;
-		return isKeyHeld(VKey.BUTTON7.toKeyCode(1));
+		return isKeyHeld(VKey.BUTTON7.toKeyCode(1), false);
 	}
 	
 	@Override

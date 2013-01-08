@@ -1,4 +1,30 @@
 
+2013/01/08 -- 3.2 (r93)
+
+enhancements:
+- Reduced latency when starting audio while another audio track is already
+  playing by implementing a more fine-grained locking system.
+- Reduced default fade-in/fade-out time when changing background music.
+- Screenshot size for the save screen is now configurable through the
+  vn.saveScreenshotWidth/vn.saveScreenshotHeight preferences.
+- Added a chapter to the manual with the differences when running on Android.
+- Large cleanup/restructuring of bundled tutorial scripts.
+
+bugfixes:
+- Playing video in an upscaled window while an FBO is used for rendering caused
+  the video to be clipped (only lower-left rect visible).
+- Added setExitFunction() which allows you to override the default behavior
+  of the exit confirmation dialog (whether activated by the window close
+  button, exit menu item or the Lua exit function).
+- Screen didn't redraw when changing a textless TextDrawable.
+- Improved error handling for the edit button in the build command panel.
+- Image gallery script was broken.
+- Anim.par() will no longer override its components's loop attribute.
+- Incorrect return value for yielding Lua functions invoked from a Java
+  function (in practice, that means call/dofile).
+
+
+
 2012/12/08 -- 3.1 (r86)
 
 enhancements:

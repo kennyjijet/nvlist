@@ -474,6 +474,16 @@ function Anim.tweenFromTo(obj, property, startval, endval, duration, interpolato
 end
 
 ---Returns an Animator providing more control than <code>Anim.tweenFromTo</code>.
+-- When started, gradually changes the value of <code>property</code> from
+-- <code>startval</code> to <code>endval</code> over the course of
+-- <code>duration</code> frames. 
+-- @param obj The object to change the property of
+-- @param property The property to change
+-- @param startval The initial value to set the property to
+-- @param endval The end value for the property
+-- @param duration The number of frames to take
+-- @param interpolator An optional Interpolator object, can be used to create
+--        an ease-in, ease-out effect.
 -- @see Anim.tweenFromTo
 function Anim.createTween(obj, property, startval, endval, duration, interpolator)
     duration = duration or 60

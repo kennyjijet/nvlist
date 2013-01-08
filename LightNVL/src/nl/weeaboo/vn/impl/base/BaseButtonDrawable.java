@@ -267,14 +267,14 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	}
 	
 	protected boolean isInputHeld(IInput input) {
-		if (input.isMouseHeld()) {
+		if (input.isMouseHeld(true)) {
 			return true;
 		}
 		if (keyboardFocus && input.isConfirmHeld()) {
 			return true;
 		}
 		for (Integer key : activationKeys) {
-			if (input.isKeyHeld(key)) {
+			if (input.isKeyHeld(key, true)) {
 				return true;
 			}
 		}

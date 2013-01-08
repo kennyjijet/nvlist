@@ -19,13 +19,13 @@ public interface IInput {
 	 * @param keycode The key to check the state of
 	 * @return If the specified key is currently pressed
 	 */
-	public boolean isKeyHeld(int keycode);
+	public boolean isKeyHeld(int keycode, boolean allowConsumedPress);
 
 	/**
 	 * @return The time in milliseconds that the specified key has been
 	 *         continuously held.
 	 */
-	public long getKeyHeldTime(int keycode);
+	public long getKeyHeldTime(int keycode, boolean allowConsumedPress);
 	
 	/**
 	 * @param keycode The key to check the state of
@@ -35,13 +35,13 @@ public interface IInput {
 
 	public double getMouseX();
 	public double getMouseY();
-		
+
 	public boolean consumeMouse();
-	public boolean isMouseHeld();
-	public long getMouseHeldTime();
+	public boolean isMouseHeld(boolean allowConsumedPress);
+	public long getMouseHeldTime(boolean allowConsumedPress);
 	public boolean isMousePressed();
 	public int getMouseScroll();
-	
+
 	public boolean consumeUp();
 	public boolean consumeDown();
 	public boolean consumeLeft();

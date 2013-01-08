@@ -100,7 +100,7 @@ import nl.weeaboo.vn.impl.nvlist.VideoState;
 public class Game extends BaseGame {
 
 	public static final int VERSION_MAJOR = 3;
-	public static final int VERSION_MINOR = 1;
+	public static final int VERSION_MINOR = 2;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
 	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
 	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support

@@ -32,12 +32,12 @@ public class EmptyInput implements IInput {
 	}
 
 	@Override
-	public boolean isKeyHeld(int keycode) {
+	public boolean isKeyHeld(int keycode, boolean allowConsumedPress) {
 		return false;
 	}
 
 	@Override
-	public long getKeyHeldTime(int keycode) {
+	public long getKeyHeldTime(int keycode, boolean allowConsumedPress) {
 		return 0;
 	}
 
@@ -62,12 +62,12 @@ public class EmptyInput implements IInput {
 	}
 
 	@Override
-	public boolean isMouseHeld() {
+	public boolean isMouseHeld(boolean allowConsumedPress) {
 		return false;
 	}
 
 	@Override
-	public long getMouseHeldTime() {
+	public long getMouseHeldTime(boolean allowConsumedPress) {
 		return 0;
 	}
 

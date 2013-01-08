@@ -113,7 +113,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 				&& contains(mnew.x, mnew.y) && isVisible();
 		
 		boolean dragging = false;
-		if (input.isMouseHeld()) {
+		if (input.isMouseHeld(false)) {
 			if (mold != null) {
 				dragging = true;
 			} else if (mouseContained && /*input.consumeMouse()*/input.isMousePressed()) {

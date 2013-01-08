@@ -84,14 +84,14 @@ function onExit()
 	end)
 end
 
----Sets the custom function to be called when the user tries to exit the program
+---Sets a custom function to be called when the user tries to exit the program
 -- or when the <code>exit</code> function is called. This starts a new mode
--- &quot;exit&quot; in which the custom exit function is called.
+-- &quot;exit&quot; in which the supplied exit function is called.
 -- @param func The function to call when the &quot;exit&quot; submode is entered.
 --        Return <code>false</code> to cancel the exit process.
 -- @param cleanup An optional function which is called when leaving the
---        &quot;exit&quot; mode. The &quot;exit&quot; mode may end even before
---        <code>func</code> returns.
+--        &quot;exit&quot; mode. (The &quot;exit&quot; mode may end even before
+--        <code>func</code> returns.)
 function setExitFunction(func, cleanup)
 	exitFunctions.func = func
 	exitFunctions.cleanup = cleanup

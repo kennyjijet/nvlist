@@ -183,7 +183,7 @@ public abstract class LuaNovel extends BaseNovel {
 		onPrefsChanged(prefs);
 		
 		luaRunState = new LuaRunState();
-		initLuaRunState();		
+		initLuaRunState();
 		mainThread = luaRunState.newThread(mainFuncName);
 		mainThread.setPersistent(true);
 		mainThreadUserdata = LuajavaLib.toUserdata(mainThread, mainThread.getClass());		
