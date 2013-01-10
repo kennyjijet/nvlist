@@ -489,7 +489,7 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 	public void setDragSnap(double ds) {
 		BaseImpl.checkRange(ds, "ds");
 		
-		dragSnap = ds;
+		dragSnap = Math.max(0, Math.min(1, ds));
 	}
 	
 	public void setScrollBarX(double height, ITexture bar, ITexture thumb,

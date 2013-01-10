@@ -28,13 +28,13 @@ final class BaseImpl {
 	}
 	
 	public static void checkRange(double val, String name) {
-		checkRange(val, name, Double.MIN_VALUE, Double.MAX_VALUE);
+		checkRange(val, name, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 	public static void checkRange(double val, String name, double min) {
-		checkRange(val, name, min, Double.MAX_VALUE);
+		checkRange(val, name, min, Double.POSITIVE_INFINITY);
 	}
 	public static void checkRange(double val, String name, double min, double max) {
-		if (Double.isNaN(val) || Double.isInfinite(val) || val < min || val > max) {
+		if (Double.isNaN(val) || Double.isInfinite(val) || !(val >= min && val <= max)) {
 			throw new IllegalArgumentException("Invalid value for " + name + ": " + val);
 		}
 	}
