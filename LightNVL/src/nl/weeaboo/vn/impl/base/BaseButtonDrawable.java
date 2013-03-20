@@ -241,12 +241,14 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			markChanged();
 			return;
 		}
-		for (Integer key : activationKeys) {
-			if (input.consumeKey(key)) {
-				mouseArmed = false;
-				keyArmed = true;
-				markChanged();
-				return;
+		if (!activationKeys.isEmpty()) {
+			for (Integer key : activationKeys) {
+				if (input.consumeKey(key)) {
+					mouseArmed = false;
+					keyArmed = true;
+					markChanged();
+					return;
+				}
 			}
 		}
 	}
@@ -273,9 +275,11 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		if (keyboardFocus && input.isConfirmHeld()) {
 			return true;
 		}
-		for (Integer key : activationKeys) {
-			if (input.isKeyHeld(key, true)) {
-				return true;
+		if (!activationKeys.isEmpty()) {
+			for (Integer key : activationKeys) {
+				if (input.isKeyHeld(key, true)) {
+					return true;
+				}
 			}
 		}
 		return false;

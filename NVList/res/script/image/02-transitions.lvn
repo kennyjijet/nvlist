@@ -1,5 +1,5 @@
 
-@bgf("bg/a")
+@local b = bgf("bg/a")
 
 Wipe tween (Up, Down, Left, Right)
 @@

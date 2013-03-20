@@ -4,12 +4,12 @@
 
 
 
-Color-tinting the character image (fuchsia)
+Color-tinting the character image (fuchsia)...
 @i:setColor(1.0, 0.0, 1.0)
 
 
 
-Blurring the character image
+Blurring the character image...
 @@
 i:setColor(1.0, 1.0, 1.0)
 local blurtex = blur(i:getTexture(), 16)
@@ -19,7 +19,7 @@ i:setTexture(blurtex, 5) --5: center aligned
 
 
 
-Brightening the character image
+Brightening the character image...
 @@
 local brightened = brighten(i:getTexture(), .25)
 imgtween(i, brightened)
@@ -28,13 +28,13 @@ imgtween(i, brightened)
 
 
 
-Inverting the background color with a color matrix
+Inverting the background color with a color matrix...
 @@
 local negative = applyColorMatrix("bg/bg1", {-1,0,0,0,1}, {0,-1,0,0,1}, {0,0,-1,0,1})
 bgtween(negative)
 @@
 
-Greyscaling the background with a color matrix
+Greyscaling the background with a color matrix...
 @@
 local graytex = applyColorMatrix("bg/bg1", {.30,.59,.11}, {.30,.59,.11}, {.30,.59,.11})
 bgtween(graytex)
@@ -43,7 +43,7 @@ bgtween(graytex)
 
 
 
-Crop texture in software
+Crop texture in software...
 @@
 local cropped = crop(i:getTexture(), 300, 300, 256, 256)
 i:setTexture(cropped, 5) --5: center aligned
@@ -52,7 +52,7 @@ i:setTexture(cropped, 5) --5: center aligned
 
 
 
-Merge textures in software
+Merge textures in software...
 @@
 --The merged result is as if tex2 is drawn on top of tex1.
 --Any parts of tex2 that fall outside the bounds of tex1 are cut off.
@@ -64,6 +64,18 @@ local merged = composite({
 i:setTexture(merged, 5) --5: center aligned
 @@
 
+
+Merge textures in software (overwrite blending)...
+@@
+--Overwrite blending can be 10 to 20 times faster than normal blending,
+--but overwrites the pixels underneath the blended area.
+local merged = composite({
+	{tex="arm01l"},
+	{tex="arm01m", pos={200, 0}, overwrite=true}
+})
+
+i:setTexture(merged, 5) --5: center aligned
+@@
 
 
 

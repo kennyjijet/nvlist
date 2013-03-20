@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
@@ -14,7 +15,7 @@ import java.util.List;
 
 import nl.weeaboo.awt.ImageUtil;
 import nl.weeaboo.common.Dim;
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.io.ByteChunkOutputStream;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.ObjectSerializer;
@@ -29,13 +30,13 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	private final EnvironmentSerializable es;
 	
 	private static final String pathPrefix = "";
-	private final FileManager fm;
+	private final IFileSystem fs;
 	private final INotifier notifier;
 	
-	public SaveHandler(FileManager fm, INotifier n) {
+	public SaveHandler(IFileSystem fs, INotifier n) {
 		super(Game.VERSION);
 		
-		this.fm = fm;
+		this.fs = fs;
 		this.notifier = n;
 
 		es = new EnvironmentSerializable(this);
@@ -50,11 +51,15 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	//Functions
 	@Override
 	public void delete(int slot) throws IOException {
-		if (!fm.delete(getFilename(slot))) {
-			if (getSaveExists(slot)) {
-				throw new IOException("Deletion of slot " + slot + " failed");
-			}
-		}		
+		try {
+			fs.delete(getFilename(slot));
+		} catch (FileNotFoundException fnfe) {
+			//Ignore
+		}
+		
+		if (getSaveExists(slot)) {
+			throw new IOException("Deletion of slot " + slot + " failed");
+		}
 	}
 	
 	@Override
@@ -113,7 +118,7 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 	
 	@Override
 	public boolean getSaveExists(int slot) {
-		return fm.getFileExists(getFilename(slot));
+		return fs.getFileExists(getFilename(slot));
 	}
 
 	@Override
@@ -130,7 +135,7 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 			
 			for (int slot = start; slot < end; slot++) {
 				String filename = getFilename(slot);
-				if (fm.getFileExists(filename)) {
+				if (fs.getFileExists(filename)) {
 					try {
 						result.add(loadSaveInfo(slot));
 					} catch (IOException e) {
@@ -152,12 +157,12 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 
 	@Override
 	protected InputStream openSaveInputStream(int slot) throws IOException {
-		return fm.getInputStream(getFilename(slot));
+		return fs.newInputStream(getFilename(slot));
 	}
 
 	@Override
 	protected OutputStream openSaveOutputStream(int slot) throws IOException {
-		return fm.getOutputStream(getFilename(slot));
+		return fs.newOutputStream(getFilename(slot), false);
 	}
 	
 	@Override

@@ -218,7 +218,7 @@ final class Handlers {
 				
 				createFile(dstF);
 				if (relpath.contains("AndroidNVList")) {
-					System.out.println(relpath + " " + splashFile.exists() + " " + splashFile);
+					//System.out.println(relpath + " " + splashFile.exists() + " " + splashFile);
 					
 					if (relpath.endsWith("icon.png") && iconFile.exists()) {
 						writeImageScaled(iconFile, Math.round(48*scale), Math.round(48*scale), true, dstF);

@@ -700,8 +700,8 @@ end
 local function createTextCursor(textBox)
 	local cursor = nil
 	local cursorTex = tex("gui/cursor#waitClick", true) or tex("gui/cursor", true)
-	if android then
-		cursorTex = tex("android/cursor#waitClick", true) or tex("android/cursor", true) or cursorTex
+	if cursorTex == nil then
+		cursorTex = tex("_std/gui/cursor#waitClick", true) or tex("_std/gui/cursor", true) or cursorTex
 	end
 	
 	if cursorTex ~= nil then

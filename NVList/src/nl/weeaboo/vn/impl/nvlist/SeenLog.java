@@ -6,7 +6,7 @@ import java.io.ObjectStreamException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.SecureFileWriter;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.impl.base.BaseSeenLog;
@@ -14,13 +14,13 @@ import nl.weeaboo.vn.impl.base.BaseSeenLog;
 @LuaSerializable
 public class SeenLog extends BaseSeenLog implements Serializable {
 
+	private final SecureFileWriter fs;
 	private final EnvironmentSerializable es;
-	private final FileManager fm;
 	
-	public SeenLog(FileManager fm, String filename) {
+	public SeenLog(SecureFileWriter fs, String filename) {
 		super(filename);
 		
-		this.fm = fm;
+		this.fs = fs;
 		this.es = new EnvironmentSerializable(this);
 	}
 	
@@ -31,28 +31,12 @@ public class SeenLog extends BaseSeenLog implements Serializable {
 	
 	@Override
 	protected InputStream openInputStream(String filename) throws IOException {
-		if (fm.getFileExists(filename) && fm.getFileSize(filename) > 0) {
-			//Open normal file if exists and non-empty
-			return fm.getInputStream(filename);
-		} else {
-			//Go for the backup if the normal file was invalid
-			return fm.getInputStream(filename+".bak");
-		}
+		return fs.newInputStream(filename);
 	}
 
 	@Override
 	protected OutputStream openOutputStream(String filename) throws IOException {
-		return fm.getOutputStream(filename);
-	}
-
-	@Override
-	protected boolean rename(String oldFilename, String newFilename) {
-		return fm.rename(oldFilename, newFilename);
-	}
-	
-	@Override
-	protected boolean delete(String filename) {
-		return fm.delete(filename);
+		return fs.newOutputStream(filename, false);
 	}
 	
 	//Getters

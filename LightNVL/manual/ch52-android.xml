@@ -38,7 +38,7 @@
     </section>
     <section title="lvlKeyBase64" level="3">
       <p class="optional">Only required if you want to distribute your app via the Google Play store using APK expansion files.</p>
-      <p>Google Play license verification public key encoded in base 64. Can be found under edit profile -> public key within the Android Developer Console webpage. <a href="http://developer.android.com/guide/google/play/licensing/setting-up.html#account">[more information]</a></p>
+      <p>Google Play license verification public key encoded in base 64. Can be found by clicking on your app in the Google Play dev console and going to Services &amp; APIs. The license key should be displayed there under the label &quot;Your license key for this application&quot;. <a href="http://developer.android.com/guide/google/play/licensing/setting-up.html#account">[more information]</a></p>
     </section>
     <section title="splashImage" level="3">
       <p class="optional">Path to the splash screen image used while starting the Android app. You can change the value of this property to point to another image or simply replace the default splash screen image located at <code>build-res/splash-android.png</code> (preferred).</p>

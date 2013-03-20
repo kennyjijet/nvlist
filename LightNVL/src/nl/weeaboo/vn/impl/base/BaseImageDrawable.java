@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IGeometryShader;
@@ -18,8 +19,10 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 	private IImageTween tween;
 	private ITexture image;
 	private IGeometryShader geometryShader;
+	private Area2D uv;
 	
 	public BaseImageDrawable() {
+		uv = IDrawBuffer.DEFAULT_UV;
 	}
 	
 	//Functions
@@ -98,6 +101,11 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 		return geometryShader;
 	}
 		
+	@Override
+	public Area2D getUV() {
+		return uv;
+	}
+	
 	//Setters	
 	@Override
 	public void setTexture(ITexture i) {
@@ -106,13 +114,19 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 	
 	@Override
 	public void setTexture(ITexture i, int anchor) {
-		double w0 = getUnscaledWidth();
-		double h0 = getUnscaledHeight();
-		double w1 = (i != null ? i.getWidth() : 0);
-		double h1 = (i != null ? i.getHeight() : 0);
-		Rect2D rect = LayoutUtil.getBounds(w0, h0, getAlignX(), getAlignY());			
-		Vec2 align = LayoutUtil.alignSubRect(rect, w1, h1, anchor);
-		setTexture(i, align.x, align.y);
+		double alignX = 0, alignY = 0;
+		if (image != i) {
+			double w0 = getUnscaledWidth();
+			double h0 = getUnscaledHeight();
+			double w1 = (i != null ? i.getWidth() : 0);
+			double h1 = (i != null ? i.getHeight() : 0);
+			Rect2D rect = LayoutUtil.getBounds(w0, h0, getAlignX(), getAlignY());			
+			Vec2 align = LayoutUtil.alignSubRect(rect, w1, h1, anchor);
+			alignX = align.x;
+			alignY = align.y;
+		}
+		
+		setTexture(i, alignX, alignY);
 	}
 	
 	@Override
@@ -150,6 +164,25 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 	public void setGeometryShader(IGeometryShader gs) {
 		if (geometryShader != gs) {
 			geometryShader = gs;
+			
+			markChanged();
+		}
+	}
+	
+	@Override
+	public final void setUV(double w, double h) {
+		setUV(0, 0, w, h);
+	}
+	
+	@Override
+	public final void setUV(double x, double y, double w, double h) {
+		setUV(new Area2D(x, y, h, h));
+	}
+	
+	@Override
+	public void setUV(Area2D uv) {
+		if (!uv.equals(this.uv)) {
+			this.uv = uv;
 			
 			markChanged();
 		}

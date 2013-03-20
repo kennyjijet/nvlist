@@ -6,15 +6,18 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import org.luaj.vm2.LuaString;
-import org.luaj.vm2.Varargs;
-
 import nl.weeaboo.io.StreamUtil;
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
 import nl.weeaboo.lua2.lib.LuajavaLib;
-import nl.weeaboo.vn.impl.base.BaseNotifier;
-import nl.weeaboo.vn.impl.lua.BaseScriptLib;
+import nl.weeaboo.vn.INotifier;
+import nl.weeaboo.vn.IScriptLib;
+
+import org.luaj.vm2.LuaBoolean;
+import org.luaj.vm2.LuaString;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 @LuaSerializable
 public class VNDSLib extends LuaLibrary {
@@ -28,14 +31,19 @@ public class VNDSLib extends LuaLibrary {
 	private static final int INIT        = 0;
 	private static final int READ_SCRIPT = 1;
 	
-	private final BaseScriptLib scrfac;
-	private final BaseNotifier notifier;
+	private final IScriptLib scrfac;
+	private final INotifier notifier;
 	
-	public VNDSLib(BaseScriptLib scrfac, BaseNotifier ntf) {
+	public VNDSLib(IScriptLib scrfac, INotifier ntf) {
 		this.scrfac = scrfac;
 		this.notifier = ntf;
 	}
 
+	public static void register(LuaValue globals, IScriptLib scrlib, INotifier ntf) throws LuaException {
+		globals.set("isVNDS", LuaBoolean.TRUE);
+		globals.load(new VNDSLib(scrlib, ntf));
+	}	
+	
 	@Override
 	protected LuaLibrary newInstance() {
 		return new VNDSLib(scrfac, notifier);

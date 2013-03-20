@@ -6,8 +6,8 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collection;
 
-import nl.weeaboo.filemanager.FileManagerView;
-import nl.weeaboo.filemanager.IFileManager;
+import nl.weeaboo.filesystem.FileSystemView;
+import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.INotifier;
@@ -17,13 +17,13 @@ import nl.weeaboo.vn.impl.lua.LuaNovel;
 @LuaSerializable
 public class ScriptLib extends BaseScriptLib implements Serializable {
 
-	private final FileManagerView fm;
+	private final IFileSystem fs;
 	private final EnvironmentSerializable es;
 	
-	public ScriptLib(IFileManager fm, INotifier ntf) {
+	public ScriptLib(IFileSystem fs, INotifier ntf) {
 		super(ntf);
 		
-		this.fm = new FileManagerView(fm, "script/");
+		this.fs = new FileSystemView(fs, "script/", true);
 		this.es = new EnvironmentSerializable(this);
 	}
 	
@@ -34,24 +34,24 @@ public class ScriptLib extends BaseScriptLib implements Serializable {
 	
 	protected boolean getScriptExists(String normalizedFilename) {
 		return LuaNovel.isBuiltInScript(normalizedFilename)
-			|| fm.getFileExists(normalizedFilename);
+			|| fs.getFileExists(normalizedFilename);
 	}
 	
 	@Override
 	protected InputStream openExternalScriptFile(String filename) throws IOException {
-		return fm.getInputStream(filename);
+		return fs.newInputStream(filename);
 	}
 	
 	//Getters
 	@Override
 	protected long getExternalScriptModificationTime(String filename) throws IOException {
-		return fm.getFileModifiedTime(filename);
+		return fs.getFileModifiedTime(filename);
 	}
 
 	@Override
 	protected void getExternalScriptFiles(Collection<String> out, String folder) {
 		try {
-			out.addAll(fm.getFolderContents(folder, true));
+			fs.getFiles(out, folder, true);
 		} catch (IOException e) {
 			notifier.d("Folder doesn't exist or can't be read: " + folder, e);
 		}

@@ -116,7 +116,7 @@ public abstract class BaseSeenLog implements ISeenLog {
 		OutputStream raw = null;
 		ObjectOutputStream out = null;
 		try {
-			raw = new BufferedOutputStream(openOutputStream(filename+".bak"), 8<<10);
+			raw = new BufferedOutputStream(openOutputStream(filename), 8<<10);
 			writeHeader(new DataOutputStream(raw));
 			if (compressed) {
 				raw = new DeflaterOutputStream(raw);
@@ -135,9 +135,6 @@ public abstract class BaseSeenLog implements ISeenLog {
 			if (out != null) out.close();
 			else if (raw != null) raw.close();
 		}
-		
-		delete(filename);
-		rename(filename+".bak", filename);
 	}
 	
 	protected void writeHeader(DataOutputStream dout) throws IOException {
@@ -162,13 +159,8 @@ public abstract class BaseSeenLog implements ISeenLog {
 		out.writeObject(videoSeen);
 	}
 	
-	protected abstract InputStream openInputStream(String filename) throws IOException;
-	
+	protected abstract InputStream openInputStream(String filename) throws IOException;	
 	protected abstract OutputStream openOutputStream(String filename) throws IOException;
-	
-	protected abstract boolean rename(String oldFilename, String newFilename);
-	
-	protected abstract boolean delete(String filename);
 	
 	@Override
 	public void addImage(String filename) {

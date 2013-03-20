@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.opengl.GL2ES1;
 
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.FileSystemView;
+import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.gl.GLResourceCache;
 import nl.weeaboo.gl.PBO;
 import nl.weeaboo.gl.shader.ShaderCache;
@@ -25,25 +26,25 @@ import nl.weeaboo.vn.impl.base.BaseVideoFactory;
 @LuaSerializable
 public class VideoFactory extends BaseVideoFactory implements Serializable {
 
-	private final FileManager fm;
+	private final IFileSystem rootFS;
 	private final TextureCache texCache;
 	//private final ShaderCache shCache;
 	private final GLResourceCache resCache;
 	private final EnvironmentSerializable es;
 
-	private String pathPrefix;
+	private FileSystemView fs;
 	private int videoWidth, videoHeight;
 	
-	public VideoFactory(FileManager fm, TextureCache tc, ShaderCache sc, GLResourceCache rc,
+	public VideoFactory(IFileSystem fs, TextureCache tc, ShaderCache sc, GLResourceCache rc,
 			ISeenLog sl, INotifier ntf)
 	{
 		super(sl, ntf);
 		
-		this.fm = fm;
+		this.rootFS = fs;
+		this.fs = new FileSystemView(fs, "video/", true);
 		this.texCache = tc;
 		//this.shCache = sc;
 		this.resCache = rc;
-		this.pathPrefix = "video/";
 		
 		this.es = new EnvironmentSerializable(this);
 	}
@@ -75,32 +76,32 @@ public class VideoFactory extends BaseVideoFactory implements Serializable {
 		return resCache.createPBO(gl);
 	}
 	
-	protected void onVideoFolderChanged(String folder, int w, int h) {
-		pathPrefix = folder;
+	protected void onVideoFolderChanged(int w, int h) {
 		videoWidth = w;
 		videoHeight = h;
 	}
 	
 	//Getters
 	InputStream getVideoInputStream(String filename) throws IOException {
-		return fm.getInputStream(pathPrefix + filename);
+		return fs.newInputStream(filename);
 	}
 	
 	@Override
 	protected boolean isValidFilename(String filename) {
 		if (filename == null) return false;
 
-		return fm.getFileExists(pathPrefix + filename);
+		return fs.getFileExists(filename);
 	}
 
 	@Override
-	protected Collection<String> getFiles(String folder) {
+	protected List<String> getFiles(String folder) {
+		List<String> out = new ArrayList<String>();
 		try {
-			return fm.getFolderContents(pathPrefix, true);
+			fs.getFiles(out, folder, true);
 		} catch (IOException e) {
 			notifier.d("Folder doesn't exist or can't be read: " + folder, e);
 		}
-		return Collections.emptyList();
+		return out;
 	}
 	
 	//Setters
@@ -109,9 +110,9 @@ public class VideoFactory extends BaseVideoFactory implements Serializable {
 			folder += "/";
 		}
 		
-		if (!pathPrefix.equals(folder) || videoWidth != w || videoHeight != h) {
-			pathPrefix = folder;
-			onVideoFolderChanged(pathPrefix, w, h);
+		if (!fs.getPrefix().equals(folder) || videoWidth != w || videoHeight != h) {
+			fs = new FileSystemView(rootFS, folder, true);
+			onVideoFolderChanged(w, h);
 		}
 	}
 

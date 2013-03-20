@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.text.GlyphManager;
@@ -213,13 +213,14 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	}
 
 	@Override
-	protected Collection<String> getFiles(String folder) {
+	protected List<String> getFiles(String folder) {
+		List<String> out = new ArrayList<String>();
 		try {
-			return texCache.getImageFiles(folder, true);
+			texCache.getImageFiles(out, folder, true);
 		} catch (IOException e) {
 			notifier.d("Folder doesn't exist or can't be read: " + folder, e);
 		}
-		return Collections.emptyList();
+		return out;
 	}
 	
 	public double getImageScale() {

@@ -1,6 +1,7 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.*;
+import static nl.weeaboo.game.BaseGameConfig.LEGACY_GPU_EMULATION;
+
 import java.awt.event.ActionEvent;
 
 import javax.swing.JCheckBoxMenuItem;

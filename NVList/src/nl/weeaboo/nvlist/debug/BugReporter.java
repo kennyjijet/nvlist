@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import nl.weeaboo.common.StringUtil;
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.IFileSystem;
 
 public class BugReporter {
 
@@ -21,8 +21,8 @@ public class BugReporter {
 	
 	private final OutputStream out;
 	
-	public BugReporter(FileManager fm) throws IOException {
-		this(fm.getOutputStream(OUTPUT_FILENAME, true));
+	public BugReporter(IFileSystem fs) throws IOException {
+		this(fs.newOutputStream(OUTPUT_FILENAME, true));
 	}
 	public BugReporter(OutputStream out) {
 		this.out = out;

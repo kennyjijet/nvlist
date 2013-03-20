@@ -10,7 +10,7 @@ import nl.weeaboo.lua2.lib.LuaLibrary;
 import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.IImageFxLib;
 import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.math.Vec2;
+import nl.weeaboo.vn.TextureCompositeInfo;
 
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
@@ -180,37 +180,53 @@ public class LuaImageFxLib extends LuaLibrary implements Serializable {
 	
 	/**
 	 * Expects a single argument of the form:
-	 * <pre>{
+	 * 
+	 * <pre>
+	 * {
 	 *     {tex=myTexture1},
-	 *     {tex=myTexture2, pos={10, 10}}
+	 *     {tex=myTexture2, pos={10, 10}, overwrite=true},
 	 *     {tex=myTexture3}
-	 * }</pre>
-	 * The <code>pos</code> field is optional and assumed <code>{0, 0}</code> when omitted.
+	 * }
+	 * </pre>
+	 * 
+	 * The <code>pos</code> field is optional and assumed <code>{0, 0}</code>
+	 * when omitted.
+	 * <br/>
+	 * The <code>overwrite</code> field is also optional. Setting it to
+	 * <code>true</code> makes the texture overwrite whatever's underneath it
+	 * rather than doing proper (and much slower) alpha blending.
 	 */
 	protected Varargs composite(Varargs args) {
 		LuaTable table = args.opttable(1, new LuaTable());
 		double w = args.optdouble(2, -1);
 		double h = args.optdouble(3, -1);
 		
-		List<ITexture> itexs = new ArrayList<ITexture>();
-		List<Vec2> offsets = new ArrayList<Vec2>();
+		List<TextureCompositeInfo> infos = new ArrayList<TextureCompositeInfo>();
 		
 		final LuaValue S_TEX = valueOf("tex");
 		final LuaValue S_POS = valueOf("pos");
+		final LuaValue S_OVERWRITE = valueOf("overwrite");
+		
 		LuaValue v;
 		for (int n = 1; (v = table.get(n)) != NIL; n++) {
+			//tex
 			ITexture tex = CoerceLuaToJava.coerceArg(v.get(S_TEX), ITexture.class);
+			TextureCompositeInfo tci = new TextureCompositeInfo(tex);
 			
-			LuaTable posT = v.get(S_POS).opttable(new LuaTable());
-			Vec2 offset = new Vec2(posT.get(1).todouble(), posT.get(2).todouble());
+			//pos
+			LuaTable posT = v.get(S_POS).opttable(null);
+			if (posT != null) {
+				tci.setOffset(posT.get(1).todouble(), posT.get(2).todouble());
+			}
+
+			//overwrite
+			tci.setOverwrite(v.get(S_OVERWRITE).toboolean());
 			
-			itexs.add(tex);
-			offsets.add(offset);
+			//Add to list
+			infos.add(tci);			
 		}
 		
-		ITexture newTex = imageFxFactory.composite(w, h,
-				itexs.toArray(new ITexture[itexs.size()]),
-				offsets.toArray(new Vec2[offsets.size()]));
+		ITexture newTex = imageFxFactory.composite(w, h, infos);
 				
 		return LuajavaLib.toUserdata(newTex, newTex.getClass());
 	}

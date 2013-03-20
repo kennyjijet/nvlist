@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IDistortGrid;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
@@ -40,7 +41,7 @@ public abstract class DistortQuadHelper {
 	
 	//Functions
 	public void renderDistortQuad(ITexture tex, Matrix transform, int argb,
-			double x, double y, double w, double h, IPixelShader ps,
+			Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds)
 	{
 		if (RENDER_TEST) {
@@ -49,10 +50,10 @@ public abstract class DistortQuadHelper {
 
 		preRender(tex, transform);
 		try {
-			Area2D uv = (tex != null ? tex.getUV() : new Area2D(0, 0, 1, 1));
+			uv = BaseRenderer.combineUV(uv, tex != null ? tex.getUV() : IDrawBuffer.DEFAULT_UV);
 			for (int row = 0; row < grid.getHeight(); row++) {
 				int count = setupTriangleStrip(grid, row, premultiplyAlpha(argb),
-						(float)x, (float)y, (float)w, (float)h, uv, clampBounds);
+						bounds, uv, clampBounds);
 				renderStrip(vs, ts, cs, count);
 			}
 		} finally {
@@ -65,28 +66,28 @@ public abstract class DistortQuadHelper {
 	protected abstract void postRender();
 
     protected int setupTriangleStrip(IDistortGrid grid, int row, int argb,
-    		float x, float y, float w, float h, Area2D uv, Rect2D clampBounds)
+    		Area2D bounds, Area2D uv, Rect2D clampBounds)
     {
 		float clx0, clx1, cly0, cly1;
 		if (clampBounds != null) {
-			clx0 = (float)(x + clampBounds.x);
-			clx1 = (float)(x + clampBounds.x + clampBounds.w);
-			cly0 = (float)(y + clampBounds.y);
-			cly1 = (float)(y + clampBounds.y + clampBounds.h);
+			clx0 = (float)(bounds.x + clampBounds.x);
+			clx1 = (float)(bounds.x + clampBounds.x + clampBounds.w);
+			cly0 = (float)(bounds.y + clampBounds.y);
+			cly1 = (float)(bounds.y + clampBounds.y + clampBounds.h);
 		} else {
-			clx0 = x;
-			clx1 = x + w;
-			cly0 = y;
-			cly1 = y + h;
+			clx0 = (float)(bounds.x);
+			clx1 = (float)(bounds.x+bounds.w);
+			cly0 = (float)(bounds.y);
+			cly1 = (float)(bounds.y+bounds.h);
 		}
 	
     	float g0 = 1f * (row    ) / grid.getHeight();
     	float g1 = 1f * (row + 1) / grid.getHeight();
     	
-		float x0 = x;
-		float x1 = x + w;	    		
-		float y0 = mix(y, y+h, g0);
-		float y1 = mix(y, y+h, g1);
+		float x0 = (float)(bounds.x);
+		float x1 = (float)(bounds.x+bounds.w);
+		float y0 = mix((float)(bounds.y), (float)(bounds.y+bounds.h), g0);
+		float y1 = mix((float)(bounds.y), (float)(bounds.y+bounds.h), g1);
 		
     	float u0 = (float)(uv.x);
     	float u1 = (float)(uv.x+uv.w);

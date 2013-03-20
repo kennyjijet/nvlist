@@ -154,31 +154,34 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	@Override
-	public void renderQuad(ITexture itex, Matrix t,
-			double x, double y, double w, double h,
-			IPixelShader ps, double u, double v, double uw, double vh)
-	{
+	public void renderQuad(ITexture itex, Matrix t, Area2D bounds, Area2D uv, IPixelShader ps) {
 		renderSetTexture(itex);
+		
+		double u = uv.x;
+		double v = uv.y;
+		double uw = uv.w;
+		double vh = uv.h;
 		if (itex != null) {
 			TextureAdapter ta = (TextureAdapter)itex;
 			if (ta.getTexId() != 0) {
-				Area2D uv = ta.getUV();
-				u  = uv.x + u * uv.w;
-				v  = uv.y + v * uv.h;
-				uw = uv.w * uw;
-				vh = uv.h * vh;
+				Area2D texUV = ta.getUV();
+				u  = texUV.x + u * texUV.w;
+				v  = texUV.y + v * texUV.h;
+				uw = texUV.w * uw;
+				vh = texUV.h * vh;
 			}
 		}
 
-		if (ps != null) {
-			flushQuadBatch();			
-
-			ps.preDraw(this);
-			renderQuad(false, t, x, y, w, h, u, v, uw, vh);
-			ps.postDraw(this);
-		} else {
-			renderQuad(true, t, x, y, w, h, u, v, uw, vh);			
+		boolean allowBuffer = (ps == null);
+		if (!allowBuffer) {
+			flushQuadBatch();
 		}
+		
+		if (ps != null) ps.preDraw(this);
+		
+		renderQuad(allowBuffer, t, bounds.x, bounds.y, bounds.w, bounds.h, u, v, uw, vh);
+			
+		if (ps != null) ps.postDraw(this);
 	}
 	
 	private void renderQuad(boolean allowBuffer, Matrix t, double x, double y, double w, double h,
@@ -290,22 +293,24 @@ public class Renderer extends BaseRenderer {
 
 	@Override
 	public void renderFadeQuad(ITexture tex, Matrix transform, int color0, int color1,
-			double x, double y, double w, double h, IPixelShader ps,
+			Area2D bounds, Area2D uv, IPixelShader ps,
 			int dir, boolean fadeIn, double span, double frac)
 	{
 		flushQuadBatch();
 
-		fadeQuadRenderer.renderFadeQuad(tex, transform, color0, color1, x, y, w, h, ps, dir, fadeIn, span, frac);
+		fadeQuadRenderer.renderFadeQuad(tex, transform, color0, color1, bounds, uv,
+				ps, dir, fadeIn, span, frac);
 	}
 	
 	@Override
 	public void renderDistortQuad(ITexture tex, Matrix transform, int argb,
-			double x, double y, double w, double h, IPixelShader ps,
+			Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds)
 	{
 		flushQuadBatch();
 
-		distortQuadRenderer.renderDistortQuad(tex, transform, argb, x, y, w, h, ps, grid, clampBounds);
+		distortQuadRenderer.renderDistortQuad(tex, transform, argb, bounds, uv,
+				ps, grid, clampBounds);
 	}
 	
 	@Override

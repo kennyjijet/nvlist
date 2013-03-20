@@ -12,18 +12,21 @@ while true do
     if selected == 1 then
         --Rain test
         startRain()
-        text("Click to stop the effect")
+        text("Click to stop the effect.")
         stopRain()
     elseif selected == 2 then
         --Snow test
         startSnow()
-        text("Click to stop the effect")
+        text("Click to stop the effect.")
         stopSnow()
     elseif selected == 3 then
         --Fog test
         startFog()
-        text("Click to stop the effect")
+        text("Click to stop the effect.")
         stopFog()
+        startSimpleFog()
+        text("Simpler fog using a single tiled image. Click to stop the effect.")
+        stopSimpleFog()
     elseif selected == 4 then
         --Fire test
         firebgf("bg/bg1")

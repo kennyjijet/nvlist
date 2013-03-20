@@ -10,9 +10,10 @@
 -- ----------------------------------------------------------------------------
 
 local fog = nil
+local simpleFog = nil
 
 -- ----------------------------------------------------------------------------
--- Classes
+-- Functions
 -- ----------------------------------------------------------------------------
 
 local Fog = {
@@ -131,5 +132,135 @@ function startFog(fadeSpeed, overrides)
     fog:start()
     fadeTo(fog, alpha, fadeSpeed)
     return fog
+end
+
+-- ----------------------------------------------------------------------------
+
+local SimpleFog = {
+    thread=nil,
+    image=nil,
+    tw=1,
+    th=1,
+    alpha=1,
+    dx=.50,
+    dy=.15
+}
+
+function SimpleFog.new(self)
+	self = extend(SimpleFog, self)
+
+    local tile = tex(self.tex or "effect/fog/fog")
+    local tw = tile:getWidth()
+    local th = tile:getHeight()
+    self.tw = tw
+    self.th = th
+    
+    if self.image == nil then
+        local i = img(tile)
+        i:setSize(screenWidth, screenHeight)
+        i:setZ(self.z or 0)
+        self.image = i
+    end
+    
+    return self
+end
+
+function SimpleFog:destroy()
+    self.image:destroy()
+
+    if self.thread ~= nil then
+        self.thread:destroy()
+        self.thread = nil
+    end
+end
+
+function SimpleFog:start()
+    if self.thread ~= nil then
+        self.thread:destroy()
+    end
+    
+    self:setAlpha(self.alpha)
+    
+    local dx = self.dx
+    local dy = self.dy    
+    local tw = self.tw
+    local th = self.th
+    
+    local u = 0
+    local v = 0
+    local tilesW = screenWidth / tw
+    local tilesH = screenHeight / th
+    
+    self.thread = newThread(function()    
+        while true do
+            u = u - dx / tw
+            v = v - dy / th
+            self.image:setUV(u, v, tilesW, tilesH)
+            yield()
+        end
+    end)
+end
+
+function SimpleFog:getAlpha()
+    return self.alpha
+end
+
+function SimpleFog:setAlpha(a)
+    self.alpha = a
+    self.image:setAlpha(a)
+end
+
+-- ----------------------------------------------------------------------------
+
+function stopFog(fadeSpeed)
+    fadeSpeed = fadeSpeed or 0.01
+
+    if fog ~= nil then
+        fadeTo(fog, 0, fadeSpeed)
+        fog:destroy()
+        fog = nil
+    end
+end
+
+function startFog(fadeSpeed, overrides)
+    stopFog(fadeSpeed)
+
+    fadeSpeed = fadeSpeed or 0.01
+    local alpha = .4
+    if overrides ~= nil then
+        alpha = overrides.alpha or alpha
+    end
+    
+    fog = Fog.new(overrides)
+    fog:setAlpha(0)
+    fog:start()
+    fadeTo(fog, alpha, fadeSpeed)
+    return fog
+end
+
+function stopSimpleFog(fadeSpeed)
+    fadeSpeed = fadeSpeed or 0.01
+
+    if simpleFog ~= nil then
+        fadeTo(simpleFog, 0, fadeSpeed)
+        simpleFog:destroy()
+        simpleFog = nil
+    end
+end
+
+function startSimpleFog(fadeSpeed, overrides)
+    stopFog(fadeSpeed)
+
+    fadeSpeed = fadeSpeed or 0.01
+    local alpha = .4
+    if overrides ~= nil then
+        alpha = overrides.alpha or alpha
+    end
+    
+    simpleFog = SimpleFog.new(overrides)
+    simpleFog:setAlpha(0)
+    simpleFog:start()
+    fadeTo(simpleFog, alpha, fadeSpeed)
+    return simpleFog
 end
 

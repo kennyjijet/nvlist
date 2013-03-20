@@ -128,6 +128,7 @@ public class LVNParser {
 			if (c == '\\') {
 				n++;
 				if (n < line.length()) {
+					c = line.charAt(n);
 					sb.append(unescape(c));
 				} else {
 					sb.append('\\');

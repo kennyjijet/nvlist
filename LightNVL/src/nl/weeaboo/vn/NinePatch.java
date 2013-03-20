@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
@@ -49,26 +50,55 @@ public final class NinePatch implements Externalizable {
 	public void draw(IDrawBuffer d, short z, boolean clip, BlendMode blend, int argb, Matrix trans,
 			Rect2D r, Insets2D i, IPixelShader ps)
 	{
+		Area2D uv = IDrawBuffer.DEFAULT_UV;
+		
 		ITexture bg = getBackground();
-		if (bg != null) d.drawQuad(z, clip, blend, argb, bg, trans, r.x+i.left, r.y+i.top, r.w-i.left-i.right, r.h-i.top-i.bottom, ps);
+		if (bg != null) {
+			Area2D bounds = new Area2D(r.x+i.left, r.y+i.top, r.w-i.left-i.right, r.h-i.top-i.bottom);
+			d.drawQuad(z, clip, blend, argb, bg, trans, bounds, uv, ps);
+		}
 		
 		ITexture ctl = getCornerTopLeft();
-		if (ctl != null) d.drawQuad(z, clip, blend, argb, ctl, trans, r.x, r.y, i.left, i.top, ps);
+		if (ctl != null) {
+			Area2D bounds = new Area2D(r.x, r.y, i.left, i.top);
+			d.drawQuad(z, clip, blend, argb, ctl, trans, bounds, uv, ps);
+		}
 		ITexture ctr = getCornerTopRight();
-		if (ctr != null) d.drawQuad(z, clip, blend, argb, ctr, trans, r.x+r.w-i.right, r.y, i.right, i.top, ps);
+		if (ctr != null) {
+			Area2D bounds = new Area2D(r.x+r.w-i.right, r.y, i.right, i.top);
+			d.drawQuad(z, clip, blend, argb, ctr, trans, bounds, uv, ps);
+		}
 		ITexture cbl = getCornerBottomLeft();
-		if (cbl != null) d.drawQuad(z, clip, blend, argb, cbl, trans, r.x, r.y+r.h-i.bottom, i.left, i.bottom, ps);
+		if (cbl != null) {
+			Area2D bounds = new Area2D(r.x, r.y+r.h-i.bottom, i.left, i.bottom);
+			d.drawQuad(z, clip, blend, argb, cbl, trans, bounds, uv, ps);
+		}
 		ITexture cbr = getCornerBottomRight();
-		if (cbr != null) d.drawQuad(z, clip, blend, argb, cbr, trans, r.x+r.w-i.right, r.y+r.h-i.bottom, i.right, i.bottom, ps);
+		if (cbr != null) {
+			Area2D bounds = new Area2D(r.x+r.w-i.right, r.y+r.h-i.bottom, i.right, i.bottom);
+			d.drawQuad(z, clip, blend, argb, cbr, trans, bounds, uv, ps);
+		}
 
 		ITexture top = getSideTop();
-		if (top != null) d.drawQuad(z, clip, blend, argb, top, trans, r.x+i.left, r.y, r.w-i.left-i.right, i.top, ps);
+		if (top != null) {
+			Area2D bounds = new Area2D(r.x+i.left, r.y, r.w-i.left-i.right, i.top);
+			d.drawQuad(z, clip, blend, argb, top, trans, bounds, uv, ps);
+		}
 		ITexture bottom = getSideBottom();
-		if (bottom != null) d.drawQuad(z, clip, blend, argb, bottom, trans, r.x+i.left, r.y+r.h-i.bottom, r.w-i.left-i.right, i.bottom, ps);
+		if (bottom != null) {
+			Area2D bounds = new Area2D(r.x+i.left, r.y+r.h-i.bottom, r.w-i.left-i.right, i.bottom);
+			d.drawQuad(z, clip, blend, argb, bottom, trans, bounds, uv, ps);
+		}
 		ITexture left = getSideLeft();		
-		if (left != null) d.drawQuad(z, clip, blend, argb, left, trans, r.x, r.y+i.top, i.left, r.h-i.top-i.bottom, ps);
+		if (left != null) {
+			Area2D bounds = new Area2D(r.x, r.y+i.top, i.left, r.h-i.top-i.bottom);
+			d.drawQuad(z, clip, blend, argb, left, trans, bounds, uv, ps);
+		}
 		ITexture right = getSideRight();
-		if (right != null) d.drawQuad(z, clip, blend, argb, right, trans, r.x+r.w-i.right, r.y+i.top, i.right, r.h-i.top-i.bottom, ps);		
+		if (right != null) {
+			Area2D bounds = new Area2D(r.x+r.w-i.right, r.y+i.top, i.right, r.h-i.top-i.bottom);
+			d.drawQuad(z, clip, blend, argb, right, trans, bounds, uv, ps);		
+		}
 	}
 	
 	private static double maxWidth(ITexture a, ITexture b, ITexture c) {

@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
@@ -39,14 +40,16 @@ public class ShutterGS extends BaseShader implements IGeometryShader {
 		int argb = image.getColorARGB();
 		Matrix trans = image.getTransform();
 		double w = image.getUnscaledWidth();
-		double h = image.getUnscaledHeight();		
+		double h = image.getUnscaledHeight();
+		Area2D imageUV = image.getUV();
 		double frac = getTime();
 		
 		Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);			
 		
 		if (frac <= 0 || frac >= 1) {
 			if ((frac >= 1 && fadeIn) || (frac <= 0 && !fadeIn)) {
-				d.drawQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps);
+				Area2D bounds = new Area2D(offset.x, offset.y, w, h);
+				d.drawQuad(z, clip, blend, argb, tex, trans, bounds, imageUV, ps);
 			}
 		} else {
 			double t = 1.0 / steps;
@@ -70,19 +73,18 @@ public class ShutterGS extends BaseShader implements IGeometryShader {
 					}
 				}
 
+				Area2D bounds;
+				Area2D uv;
 				if (dir == 4 || dir == 6) {
-					d.drawQuad(z, clip, blend, argb, tex, trans,
-							offset.x+(u+a)*w, offset.y, w*(b-a), h,
-							u+a, 0, (b-a), 1.0, ps);
-						
+					bounds = new Area2D(offset.x+(u+a)*w, offset.y, w*(b-a), h);
+					uv = BaseRenderer.combineUV(new Area2D(u+a, 0, (b-a), 1.0), imageUV);
 					u += t;										
 				} else {
-					d.drawQuad(z, clip, blend, argb, tex, trans,
-							offset.x, offset.y+(v+a)*h, w, h*(b-a),
-							0, v+a, 1.0, (b-a), ps);
-						
+					bounds = new Area2D(offset.x, offset.y+(v+a)*h, w, h*(b-a));
+					uv = BaseRenderer.combineUV(new Area2D(0, v+a, 1.0, (b-a)), imageUV);						
 					v += t;										
-				}				
+				}
+				d.drawQuad(z, clip, blend, argb, tex, trans, bounds, uv, ps);
 			}
 		}
 	}

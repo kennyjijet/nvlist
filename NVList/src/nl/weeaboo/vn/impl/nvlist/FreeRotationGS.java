@@ -1,18 +1,6 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.IDrawBuffer;
-import nl.weeaboo.vn.IGeometryShader;
-import nl.weeaboo.vn.IImageDrawable;
-import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
-import nl.weeaboo.vn.impl.base.BaseShader;
-import nl.weeaboo.vn.layout.LayoutUtil;
-import nl.weeaboo.vn.math.Matrix;
-import nl.weeaboo.vn.math.Vec2;
-
+/*
 @LuaSerializable
 public class FreeRotationGS extends BaseShader implements IGeometryShader {
 
@@ -57,3 +45,4 @@ public class FreeRotationGS extends BaseShader implements IGeometryShader {
 	}
 	
 }
+*/

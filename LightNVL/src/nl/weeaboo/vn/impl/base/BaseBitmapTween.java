@@ -1,5 +1,7 @@
 package nl.weeaboo.vn.impl.base;
 
+import static nl.weeaboo.vn.IDrawBuffer.DEFAULT_UV;
+
 import java.util.Arrays;
 
 import nl.weeaboo.common.Area2D;
@@ -88,13 +90,15 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		prepareRemapTexture(remapTexSize.w, remapTexSize.h);
 		
 		//Create geometry
+		Area2D drawableUV = drawable.getUV();
+		
 		ITexture tex0 = getStartTexture();
 		Rect2D bounds0 = LayoutUtil.getBounds(tex0, getStartAlignX(), getStartAlignY());
-		Area2D texBounds0 = (tex0 != null ? tex0.getUV() : new Area2D(0, 0, 1, 1));
+		Area2D texBounds0 = BaseRenderer.combineUV(drawableUV, tex0 != null ? tex0.getUV() : DEFAULT_UV);
 		TextureWrap wrap0 = TextureWrap.CLAMP;
 		ITexture tex1 = getEndTexture();
 		Rect2D bounds1 = LayoutUtil.getBounds(tex1, getEndAlignX(), getEndAlignY());
-		Area2D texBounds1 = (tex1 != null ? tex1.getUV() : new Area2D(0, 0, 1, 1));
+		Area2D texBounds1 = BaseRenderer.combineUV(drawableUV, tex1 != null ? tex1.getUV() : DEFAULT_UV);
 		TextureWrap wrap1 = TextureWrap.CLAMP;
 		Rect2D bounds2 = (fadeTexTile ? LayoutUtil.getBounds(fadeTex, 0, 0) : Rect2D.combine(bounds0, bounds1));
 		Area2D texBounds2 = new Area2D(0, 0, 1, 1);

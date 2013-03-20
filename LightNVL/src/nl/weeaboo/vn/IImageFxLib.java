@@ -1,6 +1,7 @@
 package nl.weeaboo.vn;
 
-import nl.weeaboo.vn.math.Vec2;
+import java.util.List;
+
 
 
 public interface IImageFxLib {
@@ -98,15 +99,16 @@ public interface IImageFxLib {
 	
 	/**
 	 * Renders the a number of textures on top of each other (using slow
-	 * software rendering), resulting in a single new texture containing the result.
+	 * software rendering), resulting in a single new texture containing the
+	 * result.
 	 * 
 	 * @param w The width for the output texture
 	 * @param h The height for the output texture
-	 * @param itexs An array of textures to combine. The first texture will be
-	 *        rendered first, the second one on top of that, etc.
-	 * @param offsets An array of offsets to render the textures at.
+	 * @param args Contains the textures to combine with optional extra
+	 *        arguments for each texture. The first texture will be rendered
+	 *        first, the second one on top of that, etc.
 	 * @return A new texture containing the result.
 	 */
-	public ITexture composite(double w, double h, ITexture[] itexs, Vec2[] offsets);
+	public ITexture composite(double w, double h, List<? extends TextureCompositeInfo> args);
 	
 }

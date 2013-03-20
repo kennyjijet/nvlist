@@ -4,6 +4,25 @@
 -- Defines the standard user interface screens.
 -------------------------------------------------------------------------------
 
+local function tex2(path, suppressErrors, ...)
+	return tex(path, true, ...) or tex("_std/" .. path, suppressErrors, ...)
+end
+local function img2(path, ...)
+	return img(tex2(path), ...)
+end
+local function button2(path, ...)
+	local t = tex(path .. "#normal", true)
+	if t == nil then
+		t = tex(path .. "normal", true)
+		if t == nil then
+			path = "_std/" .. path
+		end
+	end
+	return button(path, ...)
+end
+
+-------------------------------------------------------------------------------
+
 ---Adds a visible scroll bar to an existing viewport
 -- @param viewport The viewport to change the scrollbar of.
 -- @param horizontal A boolean <code>true/false</code> whether to change the
@@ -25,20 +44,17 @@ function setViewportScrollBar(viewport, horizontal, pad, images)
 		func = viewport.setScrollBarX
 		sfx = "-h"
 	end
-	
+		
 	local pfx = "gui/components#"
-	if android then
-		pfx = "android/components#"
-	end
 	
-	local scrollBgTex = tex(images.scrollBG or pfx .. "scroll-bg" .. sfx, true)
-	local scrollThumbTex = tex(images.scrollThumb or pfx .. "scroll-thumb" .. sfx, true)
+	local scrollBgTex = tex2(images.scrollBG or pfx .. "scroll-bg" .. sfx, true)
+	local scrollThumbTex = tex2(images.scrollThumb or pfx .. "scroll-thumb" .. sfx, true)
 		
 	func(viewport, sz, scrollBgTex, scrollThumbTex, pad.top, pad.right, pad.bottom, pad.left)
 		
 	if not horizontal then
-		local fadeUpTex = tex(images.fadeDown or pfx .. "fade-down", true)
-		local fadeDownTex = tex(images.fadeUp or pfx .. "fade-up", true)
+		local fadeUpTex = tex2(images.fadeDown or pfx .. "fade-down", true)
+		local fadeDownTex = tex2(images.fadeUp or pfx .. "fade-up", true)
 		viewport:setFadingEdges(screenHeight * .02, 0x000000, fadeUpTex, fadeDownTex)		
 	end
 end
@@ -71,7 +87,7 @@ function SaveSlot.new(self)
 		buttonImagePath = "gui/savescreen#quicksave-"
 	end
 	
-	local b = button(buttonImagePath)
+	local b = button2(buttonImagePath)
 	b:setToggle(true)
 	b:setEnabled(self.isSave or not self.empty)
 	
@@ -88,14 +104,14 @@ function SaveSlot.new(self)
 		if self.screenshot ~= nil then
 			i = img(self.screenshot)
 		elseif not self.empty then
-			i = img("gui/savescreen#noImage")
+			i = img2("gui/savescreen#noImage")
 		end
 		if i ~= nil then
 			i:setZ(b:getZ() - b:getWidth()/2)	
 		end
 		
 		if self.new and not self.empty then
-			newI = img("gui/savescreen#newSave")
+			newI = img2("gui/savescreen#newSave")
 			newI:setZ(i:getZ() - 1)
 		end
 	end
@@ -124,32 +140,29 @@ function SaveSlot:setBounds(x, y, w, h)
 	local scale = math.min(w / b:getUnscaledWidth(), h / b:getUnscaledHeight())
 	b:setScale(scale)
 
-	l:extendDefaultStyle(createStyle{fontName="SansSerif", anchor=2, fontSize=scale * 16, shadowDx=1, shadowDy=1})
-
 	if i ~= nil then
-		local maxW = 224
-		local maxH = 126
+		local maxW = b:getWidth() * 224 / 254
+		local maxH = b:getHeight() * 126 / 190
+		local pad = (b:getWidth() - maxW) / 2
 		local iw = i:getUnscaledWidth()
 		local ih = i:getUnscaledHeight()
-		if maxW <= b:getWidth() and maxH <= .8*b:getHeight() and iw >= 1 and ih >= 1 then
-			i:setScale(scale * math.min(maxW / iw, maxH / ih))
+		if iw >= 1 and ih >= 1 then
+			i:setScale(math.min(maxW / iw, maxH / ih))
 			i:setVisible(true)
-			l:setSize(b:getWidth(), b:getHeight()-i:getHeight())
 		else
 			i:setVisible(false)
-			l:setSize(b:getWidth(), b:getHeight())
-		end		
-	else	
+		end
+		i:setPos(x + pad + (maxW - i:getWidth())/2, y + pad + (maxH - i:getHeight())/2)
+		l:setSize(b:getWidth(), b:getHeight()-i:getHeight())
+	else
 		l:setSize(b:getWidth(), b:getHeight())
 	end	
+
+	local fontSize = b:getWidth() * .06
+	l:extendDefaultStyle(createStyle{fontName="SansSerif", anchor=2, fontSize=fontSize, shadowDx=1, shadowDy=1})
 	
 	b:setPos(x, y)
 	l:setPos(x, y + b:getHeight() - l:getHeight())
-
-	if i ~= nil then	
-		local pad = (b:getWidth() - i:getWidth())/2
-		i:setPos(x + pad, y + pad)
-	end		
 	
 	local newI = self.newImage
 	if newI ~= nil then
@@ -219,15 +232,7 @@ function SaveLoadScreen.new(self)
 				
 	self.saves = {}
 	self.qsaves = {}		
-	
-	self.pageButtons = {}		
-	for p=1,self.pages do
-		local tb = button("gui/savescreen#pageButton-")
-		tb:setText(p)
-		tb:setToggle(true)
-		self.pageButtons[p] = tb
-	end
-	
+		
 	local okText = "Load"
 	if self.isSave then
 		okText = "Save"
@@ -235,28 +240,47 @@ function SaveLoadScreen.new(self)
 	
 	local cancelText = "Cancel"
 	
-	self.okButton = button("gui/savescreen#button-")
-	self.okButton:setText(okText)
+	local okB = button2("gui/savescreen#button-")
+	okB:setText(okText)
 	
-	self.cancelButton = button("gui/savescreen#button-")
-	self.cancelButton:setText(cancelText)
+	cancelB = button2("gui/savescreen#button-")
+	cancelB:setText(cancelText)
 	
-	local topFadeTex = tex("gui/savescreen#fade-top", true)
+    local bscale = math.min(2, .10 * screenHeight / okB:getHeight())
+    if not android then
+    	bscale = math.min(1, bscale)
+    end
+
+    okB:setScale(bscale)
+    cancelB:setScale(bscale)		
+    
+	local sz = okB:getHeight() / 2.5	
+	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
+    
+	okB:extendDefaultStyle(buttonStyle)
+	cancelB:extendDefaultStyle(buttonStyle)
+		
+	self.pageButtons = {}		
+	for p=1,self.pages do
+		local tb = button2("gui/savescreen#pageButton-")
+		tb:setScale(bscale)
+		tb:extendDefaultStyle(buttonStyle)
+		tb:setText(p)
+		tb:setToggle(true)
+		self.pageButtons[p] = tb
+	end
+	
+	self.okButton = okB
+	self.cancelButton = cancelB
+		
+	local topFadeTex = tex2("gui/savescreen#fade-top", true)
 	if topFadeTex ~= nil then
 		self.topFade = img(topFadeTex, {z=10})
 	end
 
-	local bottomFadeTex = tex("gui/savescreen#fade-bottom", true)
+	local bottomFadeTex = tex2("gui/savescreen#fade-bottom", true)
 	if bottomFadeTex ~= nil then
-		self.bottomFade = img("gui/savescreen#fade-bottom", {z=10})
-	end
-	
-	local sz = self.okButton:getHeight() / 2.5	
-	local buttonStyle = createStyle{fontName="SansSerif", fontStyle="bold", fontSize=sz, shadowColor=0}
-	self.okButton:extendDefaultStyle(buttonStyle)
-	self.cancelButton:extendDefaultStyle(buttonStyle)
-	for _,tb in pairs(self.pageButtons) do
-		tb:extendDefaultStyle(buttonStyle)
+		self.bottomFade = img(bottomFadeTex, {z=10})
 	end
 		
 	self:setPage(self.page, true)
@@ -484,17 +508,15 @@ function TextLogScreen:run()
     local y = 0
     local w = screenWidth
     local h = screenHeight
-    local pathPrefix = "gui/textlog#"
     local clipEnabled = true
     
     if android then
-        pathPrefix = "android/textlog#"
         clipEnabled = false; --Android textlog draws outside its allotted screen bounds
     end
             
 	local sz = math.min(w, h)
 	local vpad  = 0.03 * sz
-	local bh    = 0.15 * sz
+	local bh    = 0.12 * sz
 	local tl = textState:getTextLog()
 	local pages = tl:getPageCount()
 	if System.isLowEnd() then
@@ -505,19 +527,19 @@ function TextLogScreen:run()
     --Create edge images
     local topEdge = nil
     if not android then
-    	local topTex = tex(pathPrefix .. "edge-top", true)
+    	local topTex = tex2("gui/textlog#edge-top", true)
     	if topTex ~= nil then
 			topEdge = img(topTex, {z=10, clipEnabled=clipEnabled})
 		end
 	end	
 	local bottomEdge = nil
-	local bottomTex = tex(pathPrefix .. "edge-bottom", true)
+	local bottomTex = tex2("gui/textlog#edge-bottom", true)
 	if bottomTex ~= nil then
 		bottomEdge = img(bottomTex, {z=10, clipEnabled=clipEnabled})
 	end
     
 	--Create controls
-	local returnButton = button(pathPrefix .. "return-")
+	local returnButton = button2("gui/textlog#return-")
     returnButton:setClipEnabled(clipEnabled)
     local scale = math.min(2, (.90 * bh) / returnButton:getHeight())
     if not android then
@@ -643,7 +665,7 @@ function ChoiceScreen.new(choiceId, ...)
 	self.buttons = {}
 	self.components = {}
 	for i,opt in ipairs(self.options) do
-		local b = button("gui/choice-button")
+		local b = button2("gui/choice-button")
 		b:setText(opt or "???")		
 		b:setAlpha(0)
 		

@@ -22,14 +22,14 @@ public final class Layer extends BaseDrawable implements ILayer {
 	public static final Comparator<IDrawable> zFrontToBackComparator = new Comparator<IDrawable>() {
 		public int compare(IDrawable d1, IDrawable d2) {
 			int d = (int)d1.getZ() - (int)d2.getZ();
-			if (d == 0) d = (d1.getX() > d2.getX() ? -1 : 1);
+			if (d == 0) d = Double.compare(d2.getX(), d1.getX());
 			return d;
 		}
 	};
 	public static final Comparator<IDrawable> zBackToFrontComparator = new Comparator<IDrawable>() {
 		public int compare(IDrawable d1, IDrawable d2) {
 			int d = (int)d2.getZ() - (int)d1.getZ();
-			if (d == 0) d = (d1.getX() <= d2.getX() ? -1 : 1);
+			if (d == 0) d = Double.compare(d1.getX(), d2.getX());
 			return d;
 		}
 	};
@@ -39,7 +39,9 @@ public final class Layer extends BaseDrawable implements ILayer {
 	private List<LayerContents> sstack;
 	private ScreenshotBuffer screenshotBuffer;
 	private double width, height;
+
 	private transient IDrawable[] tempArray;
+	private transient Rect2D _bounds;
 
 	public Layer(DrawableRegistry registry) {
 		this.registry = registry;
@@ -50,7 +52,18 @@ public final class Layer extends BaseDrawable implements ILayer {
 		screenshotBuffer = new ScreenshotBuffer();		
 	}
 	
-	//Functions	
+	//Functions
+	protected void invalidateBounds() {
+		_bounds = null;
+	}
+	
+	@Override
+	protected void invalidateTransform() {
+		super.invalidateTransform();
+		
+		invalidateBounds();
+	}	
+	
 	@Override
 	public void add(IDrawable d) {
 		if (isDestroyed() || d.isDestroyed()) return;
@@ -287,6 +300,14 @@ public final class Layer extends BaseDrawable implements ILayer {
 	}
 	
 	//Getters
+	@Override
+	public Rect2D getBounds() {
+		if (_bounds == null) {
+			_bounds = super.getBounds();
+		}
+		return _bounds;
+	}
+	
 	protected LayerContents getState() {
 		if (isDestroyed()) return null;
 
@@ -350,7 +371,9 @@ public final class Layer extends BaseDrawable implements ILayer {
 		if (width != w || height != h) {
 			width = w;
 			height = h;
+			
 			markChanged();
+			invalidateBounds();
 		}
 	}
 

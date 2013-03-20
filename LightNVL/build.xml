@@ -17,7 +17,8 @@
 <!-- Targets -->
 
   <target name="clean-jar">
-    <delete file="${project-name}.jar" quiet="true"/>
+    <delete file="${project-name}*.jar" quiet="true"/>
+    <delete file="vnds.jar" quiet="true"/>
   </target>
 
   <target name="clean" depends="clean-jar">
@@ -57,11 +58,14 @@
 
   <target name="jar" depends="compile">
     <jar destfile="${project-name}.jar" basedir="bin" includes="**"
-    		excludes="nl/weeaboo/vn/test/**">
+    		excludes="script/builtin/vnds/**, nl/weeaboo/vn/vnds/**, nl/weeaboo/vn/test/**">
       <manifest>
         <attribute name="Class-Path" value="${jar-classpath}"/>
       </manifest>
     </jar>    
+    <zip destfile="vnds.jar" basedir="bin" includes="script/builtin/vnds/**, nl/weeaboo/vn/vnds/**">
+      <fileset dir="res-vnds" />
+    </zip>
   </target>
   	
   <target name="doc">

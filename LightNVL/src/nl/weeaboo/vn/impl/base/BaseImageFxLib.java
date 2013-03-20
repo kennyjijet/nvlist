@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,7 @@ import nl.weeaboo.imagefx.ImageResize;
 import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageFxLib;
 import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.math.Vec2;
+import nl.weeaboo.vn.TextureCompositeInfo;
 
 public abstract class BaseImageFxLib implements IImageFxLib, Serializable {
 
@@ -348,43 +349,40 @@ public abstract class BaseImageFxLib implements IImageFxLib, Serializable {
 	}
 	
 	@Override
-	public ITexture composite(double w, double h, ITexture[] itexs, Vec2[] offsets) {
-		if (itexs == null || itexs.length == 0) {
+	public ITexture composite(double w, double h, List<? extends TextureCompositeInfo> infos) {
+		if (infos.isEmpty()) {
 			return null;
 		}
 		
-		ITexture base = itexs[0];
-		if (w < 0) w = base.getWidth();
-		if (h < 0) h = base.getHeight();
-		double sx = base.getScaleX();
-		double sy = base.getScaleY();
+		TextureCompositeInfo baseInfo = infos.get(0);
+		ITexture baseTex = baseInfo.getTexture();
+		if (w < 0) w = baseTex.getWidth();
+		if (h < 0) h = baseTex.getHeight();
+		double sx = baseTex.getScaleX();
+		double sy = baseTex.getScaleY();
 		double isx = 1.0 / sx;
 		double isy = 1.0 / sy;
 		
 		int baseW = (int)Math.round(w * isx);
 		int baseH = (int)Math.round(h * isy);
 		
-		Bitmap baseBitmap = null;		
-		int t = 0;
-
-		//If the base image is the same size as the output and positioned
-		if (new Dim(baseW, baseH).equals(getBitmapSize(itexs[0]))
-				&& offsets != null && offsets.length >= 1 && offsets[0].lengthSquared() <= .0001)
-		{
-			baseBitmap = tryGetBitmap(itexs[0], false, null);
-			t++;
-		}
+		Iterator<? extends TextureCompositeInfo> itr = infos.iterator();
 		
+		Bitmap baseBitmap = null;		
+		if (new Dim(baseW, baseH).equals(getBitmapSize(baseTex)) && baseInfo.hasOffset()) {
+			//If the base image is the same size as the output and positioned
+			baseBitmap = tryGetBitmap(baseTex, false, null);
+			itr.next(); //Use first texture as the base
+		}		
 		if (baseBitmap == null) {
 			baseBitmap = new Bitmap(new int[baseW*baseH], baseW, baseH);
 		}		
-		while (t < itexs.length) {
-			ITexture tex = itexs[t];
-			double dx = 0, dy = 0;
-			if (offsets != null && offsets.length > t) {
-				dx = offsets[t].x;
-				dy = offsets[t].y;
-			}
+		
+		while (itr.hasNext()) {
+			TextureCompositeInfo info = itr.next();
+			ITexture tex = info.getTexture();
+			double dx = info.getOffsetX();
+			double dy = info.getOffsetY();
 			
 			Bitmap bm = tryGetBitmap(tex, true, null);
 			if (bm != null) {
@@ -400,16 +398,43 @@ public abstract class BaseImageFxLib implements IImageFxLib, Serializable {
 				int diy = (int)Math.round(dy * isy);
 				
 				//Composite
-				composite(baseBitmap, bm, dix, diy);
+				if (info.getOverwrite()) {
+					overwriteComposite(baseBitmap, bm, dix, diy);
+				} else {
+					alphaComposite(baseBitmap, bm, dix, diy);
+				}
 			}
-			
-			t++;
 		}
 		
 		return imgfac.createTexture(baseBitmap.argb, baseBitmap.w, baseBitmap.h, sx, sy);
 	}
 	
-	protected void composite(Bitmap dstBitmap, Bitmap srcBitmap, int x, int y) {				
+	protected void overwriteComposite(Bitmap dstBitmap, Bitmap srcBitmap, int x, int y) {		
+		//Benchmark.tick();
+		
+		int srcOffset = Math.max(-y, 0) * srcBitmap.w + Math.max(-x, 0);
+		int w = srcBitmap.w;
+		int h = srcBitmap.h;
+		if (x < 0) {
+			w += x;
+			x = 0;
+		}
+		if (y < 0) {
+			h += y;
+			y = 0;
+		}
+		w = Math.max(0, Math.min(dstBitmap.w-x, w));
+		h = Math.max(0, Math.min(dstBitmap.h-y, h));
+		
+		ImageFxUtil.copyDataIntoImage(
+				srcBitmap.argb, srcOffset, srcBitmap.w,
+				dstBitmap.argb, 0, dstBitmap.w,
+				x, y, w, h);
+		
+		//Benchmark.tock("Overwrite blending took: %s");
+	}
+	
+	protected void alphaComposite(Bitmap dstBitmap, Bitmap srcBitmap, int x, int y) {				
 		final int minX = Math.max(x, 0);
 		final int minY = Math.max(y, 0);
 		final int maxX = Math.min(dstBitmap.w, x+srcBitmap.w);
@@ -435,6 +460,7 @@ public abstract class BaseImageFxLib implements IImageFxLib, Serializable {
 			list.add(executor.submit(task));
 		}
 		waitFor(list);
+		
 		//Benchmark.tock("Alpha blending took: %s :: sliceHeight=" + sliceHeight);
 	}
 	

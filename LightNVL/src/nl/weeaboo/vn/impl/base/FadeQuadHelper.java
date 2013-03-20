@@ -43,8 +43,8 @@ public abstract class FadeQuadHelper {
 	
 	//Functions
 	public void renderFadeQuad(ITexture tex, Matrix transform, int color0, int color1,
-			double x, double y, double w, double h,
-			IPixelShader ps, int dir, boolean fadeIn, double span, double frac)
+			Area2D bounds, Area2D uv, IPixelShader ps,
+			int dir, boolean fadeIn, double span, double frac)
 	{
 		double a, b;
 		frac = frac * (1.0 + span) - span; //Stretch frac to (-span, 1)
@@ -61,18 +61,16 @@ public abstract class FadeQuadHelper {
 			color1 = temp;
 		}
 		
-		Area2D uv;
 		if (RENDER_TEST) {
 			tex = null;
 			uv = new Area2D(0, 0, 1, 1);
 		} else {
-			uv = tex.getUV();
+			uv = BaseRenderer.combineUV(uv, tex.getUV());
 		}
 
 		boolean horizontal = (dir == 4 || dir == 6);
-		setupTriangleStrip(uv, horizontal,
+		setupTriangleStrip(bounds, uv, horizontal,
 				(float)a, (float)b,
-				(float)x, (float)y, (float)w, (float)h,
 				premultiplyAlpha(color0), premultiplyAlpha(color1),
 				interpolator);
 		
@@ -82,9 +80,8 @@ public abstract class FadeQuadHelper {
 	protected abstract void renderTriangleStrip(ITexture tex, Matrix transform, FloatBuffer vertices,
 			FloatBuffer texcoords, IntBuffer colors, int count);
 	
-    protected void setupTriangleStrip(Area2D uv, boolean horizontal, float start, float end,
-    		float x, float y, float w, float h, int premultColor0, int premultColor1,
-    		IInterpolator interpolator)
+    protected void setupTriangleStrip(Area2D bounds, Area2D uv, boolean horizontal, float start, float end,
+    		int premultColor0, int premultColor1, IInterpolator interpolator)
     {
     	if (RENDER_TEST) {
     		premultColor0 = 0xFFFFFF00;
@@ -101,10 +98,10 @@ public abstract class FadeQuadHelper {
     	start = Math.max(0f, Math.min(1f, start));
     	end = Math.max(0f, Math.min(1f, end));
     	
-		float x0 = x;
-		float x1 = x + w;	    		
-		float y0 = y;
-		float y1 = y + h;
+		float x0 = (float)(bounds.x);
+		float x1 = (float)(bounds.x+bounds.w);	    		
+		float y0 = (float)(bounds.y);
+		float y1 = (float)(bounds.y+bounds.h);	    		
 
     	float u0 = (float)(uv.x);
     	float v0 = (float)(uv.y);
@@ -115,13 +112,13 @@ public abstract class FadeQuadHelper {
     	if (horizontal) {
     		uva = (float)(uv.x + start * uv.w);
     		uvb = (float)(uv.x + end * uv.w);
-    		posa = x + start * w;
-    		posb = x + end * w;
+    		posa = (float)(bounds.x + start * bounds.w);
+    		posb = (float)(bounds.x + end * bounds.w);
     	} else {
     		uva = (float)(uv.y + start * uv.h);
     		uvb = (float)(uv.y + end * uv.h);
-    		posa = y + start * h;
-    		posb = y + end * h;
+    		posa = (float)(bounds.y + start * bounds.h);
+    		posb = (float)(bounds.y + end * bounds.h);
     	}
     		    	
     	//Colors must be in ABGR for OpenGL

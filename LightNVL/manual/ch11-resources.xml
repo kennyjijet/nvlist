@@ -41,6 +41,10 @@
     <subrect id="pressed" rect="1,129,766,62" />
     <subrect id="disabled" rect="1,193,766,62" />
   </image>
+  
+  <image filename="tile.png" width="256" height="256"
+      tile="true">
+  </image>
 </images>]]></sourcecode>
 
       <p>The above XML snippet is an example img.xml with one image entry. The image is <code>choice-button.png</code> in the same folder, the image is <code>768x256</code> and contains 4 images of buttons. These four logically separate images are packed into a single PNG file to save disk space and speed up load time. The <code>subrect</code> elements define the name/position/size of the subimages. In scripts, you can use the subimages as if they were separate image files -- just add <code>#normal</code>, <code>#rollover</code>, etc. to the end of the image filename.</p>
@@ -72,6 +76,13 @@
           </tr>
         </table>
       </section>
+      
+      <p>Images can also be marked as tiling by adding the attribute <code>tile=&quot;true&quot;</code>. Tiling images must have dimensions that are a power of two (<code>2,4,8,16,32,...</code>) and can't contain any subrects. A tiling image repeats when its texture coordinates fall outside the normal <code>(0.0, 1.0)</code> range instead of the default behavior which is to just repeat the edge pixel.</p>
+      
+      <sourcecode lang="lvn"><![CDATA[@local i = img("tile")
+#Make the image repeat 3 times horizontally, 1 time vertically.
+#Only works if "tile" is marked as tiling in img.xml
+@i:setUV(3, 1)]]></sourcecode>
     </section>
     
   </section>
@@ -95,7 +106,7 @@
 </sounds>]]></sourcecode>
 
       <p>The <code>name</code> attribute defines a human readable name for the audio file. If you define a name here and the audio file is used as music, a &quot;Now Playing:&quot; message will pop up with the name.</p>
-      <p>The <code>start</code> and <code>end</code> attributes are also optional. These are used to define loop points; instead of looping the entire song, only the part between <code>start</code> and <code>end</code> is looped. The part until <code>start</code> is played once, then <code>start → end</code> is looped a number of times, followed by the part after <code>end</code>.</p>
+      <p>The <code>start</code> and <code>end</code> attributes are also optional. These are used to define loop points; instead of looping the entire song, only the part between <code>start</code> and <code>end</code> is looped. The part until <code>start</code> is played once, then <code>start → end</code> is looped a number of times, followed by the part after <code>end</code>. If the end tag is omitted, it just repeats from <code>start</code> to the end of the track.</p>
     </section>
     
   </section>

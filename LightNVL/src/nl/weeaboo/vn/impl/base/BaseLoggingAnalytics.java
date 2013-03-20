@@ -268,8 +268,6 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 	
 	protected abstract InputStream openInputStream(String filename) throws IOException;	
 	protected abstract OutputStream openOutputStream(String filename, boolean append) throws IOException;	
-	protected abstract boolean rename(String oldFilename, String newFilename);	
-	protected abstract boolean delete(String filename);
 	protected abstract long getFileSize(String filename);
 	
 	protected void logEvent(Event event) {

@@ -3,8 +3,8 @@ package nl.weeaboo.vn.impl.nvlist;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
@@ -97,13 +97,14 @@ public class SoundFactory extends BaseSoundFactory implements Serializable {
 	}
 	
 	@Override
-	protected Collection<String> getFiles(String folder) {
+	protected List<String> getFiles(String folder) {
+		List<String> out = new ArrayList<String>();
 		try {
-			return sm.getSoundFiles(folder, true);
+			sm.getSoundFiles(out, folder, true);
 		} catch (IOException e) {
 			notifier.d("Folder doesn't exist or can't be read: " + folder, e);
 		}
-		return Collections.emptyList();
+		return out;
 	}
 	
 	//Setters

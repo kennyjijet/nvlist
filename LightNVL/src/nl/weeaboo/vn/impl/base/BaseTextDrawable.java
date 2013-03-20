@@ -3,6 +3,7 @@ package nl.weeaboo.vn.impl.base;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
@@ -116,9 +117,9 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			}
 			if (bgAlpha > 0) {
 				int c = (bgAlpha<<24)|(bgColor&0xFFFFFF);
+				Area2D bounds = new Area2D(0, 0, getWidth(), getHeight());
 				d.drawQuad((short)(z+1), clip, blend, c, null,
-						transform, 0, 0, getWidth(), getHeight(),
-						getPixelShader());
+						transform, bounds, IDrawBuffer.DEFAULT_UV, getPixelShader());
 			}
 		}
 		

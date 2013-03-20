@@ -6,18 +6,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
 
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.game.input.IKeyConfig;
 import nl.weeaboo.game.input.Keys;
 import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.LuaRunState;
-import nl.weeaboo.lua2.LuaUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IAnalytics;
 import nl.weeaboo.vn.IImageState;
 import nl.weeaboo.vn.IInput;
+import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.INovelConfig;
 import nl.weeaboo.vn.IPersistentStorage;
+import nl.weeaboo.vn.IScriptLib;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.ISoundState;
 import nl.weeaboo.vn.IStorage;
@@ -27,13 +28,14 @@ import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.impl.lua.AbstractKeyCodeMetaFunction;
 import nl.weeaboo.vn.impl.lua.LuaMediaPreloader;
 import nl.weeaboo.vn.impl.lua.LuaNovel;
+import nl.weeaboo.vn.vnds.VNDSLib;
 
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
 public class Novel extends LuaNovel {
 
-	private transient FileManager fm;
+	private transient IFileSystem fs;
 	private transient IKeyConfig keyConfig;
 	private transient boolean isVNDS;
 	
@@ -44,12 +46,12 @@ public class Novel extends LuaNovel {
 			ITextState ts, NovelNotifier n, IInput in, ShaderFactory shfac, SystemLib syslib, SaveHandler sh,
 			ScriptLib scrlib, TweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
 			ISeenLog seenLog, IAnalytics analytics, ITimer tmr,
-			FileManager fm, IKeyConfig kc, boolean isVNDS)
+			IFileSystem fs, IKeyConfig kc, boolean isVNDS)
 	{
 		super(nc, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib, tl,
 				sharedGlobals, globals, seenLog, analytics, tmr);
 		
-		this.fm = fm;
+		this.fs = fs;
 		this.keyConfig = kc;
 		this.isVNDS = isVNDS;
 	}
@@ -60,7 +62,7 @@ public class Novel extends LuaNovel {
 		preloader.clear();
 		try {
 			try {
-				InputStream in = new BufferedInputStream(fm.getInputStream("preloader-default.bin"), 4096);
+				InputStream in = new BufferedInputStream(fs.newInputStream("preloader-default.bin"), 4096);
 				try {
 					preloader.load(in);
 				} finally {
@@ -71,15 +73,17 @@ public class Novel extends LuaNovel {
 			}
 			
 			try {
-				InputStream in = new BufferedInputStream(fm.getInputStream("preloader.bin"), 4096);
+				InputStream in = new BufferedInputStream(fs.newInputStream("preloader.bin"), 4096);
 				try {
 					preloader.load(in);
 				} finally {
 					in.close();
 				}
 			} catch (InvalidClassException ice) {
-				fm.copy("preloader.bin", "preloader.bin.old");
-				if (!fm.delete("preloader.bin")) {
+				fs.copy("preloader.bin", "preloader.bin.old");
+				try {
+					fs.delete("preloader.bin");
+				} catch (IOException ioe) {
 					//Oh well, nothing we can do about it then
 				}
 				throw ice;
@@ -97,11 +101,13 @@ public class Novel extends LuaNovel {
 		LuaValue globals = lrs.getGlobalEnvironment();
 		try {
 			//Register types
-			LuaUtil.registerClass(globals, FreeRotationGS.class);
+			//LuaUtil.registerClass(globals, FreeRotationGS.class);
 
 			//Register libraries
+			IScriptLib scrlib = getScriptLib();
+			INotifier ntf = getNotifier();
 			if (isVNDS) {
-				registerVNDSLib();
+				VNDSLib.register(globals, scrlib, ntf);
 			}
 		} catch (LuaException e) {
 			onScriptError(e);

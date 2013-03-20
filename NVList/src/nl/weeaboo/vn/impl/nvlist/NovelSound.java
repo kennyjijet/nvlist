@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+
+import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.sound.ISound;
 import nl.weeaboo.sound.SoundDesc;
@@ -59,6 +62,7 @@ public final class NovelSound extends BaseSound {
 	protected void _stop() {
 		if (sound != null) {
 			sound.stop(soundFactory.getFadeTimeMillis(getSoundType(), false));
+			checkSoundException();
 		}
 	}
 
@@ -105,10 +109,20 @@ public final class NovelSound extends BaseSound {
 		}
 	}	
 	
+	private void checkSoundException() {
+		if (sound == null) return;
+		
+		Exception ex = sound.getException();
+		if (ex instanceof UnsupportedAudioFileException) {
+			soundFactory.addInvalidExt(StringUtil.getExtension(getFilename()));
+		}
+	}
+	
 	//Getters
 	@Override
 	public boolean isStopped() {
 		if (sound != null) {
+			checkSoundException();
 			return sound.isStopping() || sound.isStopped();
 		}
 		return super.isStopped();

@@ -109,7 +109,7 @@ abstract class BaseMediaFactory implements Serializable {
 		return filtered;
 	}
 	
-	protected abstract Collection<String> getFiles(String folder);
+	protected abstract List<String> getFiles(String folder);
 	
 	public boolean getCheckForWrongFileExt() {
 		return checkFileExt;

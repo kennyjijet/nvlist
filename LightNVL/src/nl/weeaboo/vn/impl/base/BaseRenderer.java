@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
@@ -156,9 +157,7 @@ public abstract class BaseRenderer implements IRenderer {
 			} break;
 			case QuadRenderCommand.id: {
 				QuadRenderCommand qrc = (QuadRenderCommand)cmd;
-				renderQuad(qrc.tex, qrc.transform,
-						qrc.x, qrc.y, qrc.width, qrc.height, qrc.ps,
-						qrc.u, qrc.v, qrc.uw, qrc.vh);
+				renderQuad(qrc.tex, qrc.transform, qrc.bounds, qrc.uv, qrc.ps);
 			} break;
 			case BlendQuadCommand.id: {
 				BlendQuadCommand bqc = (BlendQuadCommand)cmd;
@@ -169,14 +168,12 @@ public abstract class BaseRenderer implements IRenderer {
 			case FadeQuadCommand.id: {
 				FadeQuadCommand fqc = (FadeQuadCommand)cmd;
 				renderFadeQuad(fqc.tex, fqc.transform, fqc.argb, fqc.argb&0xFFFFFF,
-						fqc.x, fqc.y, fqc.w, fqc.h,
-						fqc.ps, fqc.dir, fqc.fadeIn, fqc.span, fqc.frac);
+						fqc.bounds, fqc.uv, fqc.ps, fqc.dir, fqc.fadeIn, fqc.span, fqc.frac);
 			} break;
 			case DistortQuadCommand.id: {
 				DistortQuadCommand dqc = (DistortQuadCommand)cmd;
 				renderDistortQuad(dqc.tex, dqc.transform, dqc.argb,
-						dqc.x, dqc.y, dqc.w, dqc.h, dqc.ps,
-						dqc.grid, dqc.clampBounds);
+						dqc.bounds, dqc.uv, dqc.ps, dqc.grid, dqc.clampBounds);
 			} break;
 			case CustomRenderCommand.id: {
 				CustomRenderCommand crc = (CustomRenderCommand)cmd;
@@ -211,8 +208,7 @@ public abstract class BaseRenderer implements IRenderer {
 	}
 	
 	public abstract void renderQuad(ITexture itex, Matrix transform,
-			double x, double y, double w, double h, IPixelShader ps,
-			double u, double v, double uw, double vh);
+			Area2D bounds, Area2D uv, IPixelShader ps);
 	
 	public abstract void renderBlendQuad(
 			ITexture tex0, double alignX0, double alignY0,
@@ -220,11 +216,11 @@ public abstract class BaseRenderer implements IRenderer {
 			double frac, Matrix transform, IPixelShader ps);
 	
 	public abstract void renderFadeQuad(ITexture tex, Matrix transform, int color0, int color1,
-			double x, double y, double w, double h, IPixelShader ps,
+			Area2D bounds, Area2D uv, IPixelShader ps,
 			int dir, boolean fadeIn, double span, double frac);
 	
 	public abstract void renderDistortQuad(ITexture tex, Matrix transform, int argb,
-			double x, double y, double w, double h, IPixelShader ps,
+			Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds);
 	
 	public abstract void renderTriangleGrid(TriangleGrid grid);
@@ -254,6 +250,10 @@ public abstract class BaseRenderer implements IRenderer {
 		int y1 = (int)Math.floor(clip2D.y+clip2D.h);
 		
 		return new Rect(x0, y0, Math.max(0, x1-x0), Math.max(0, y1-y0));
+	}
+	
+	public static Area2D combineUV(Area2D uv, Area2D texUV) {
+		return new Area2D(texUV.x + uv.x * texUV.w, texUV.y + uv.y * texUV.h, texUV.w * uv.w, texUV.h * uv.h);
 	}
 	
 	//Getters

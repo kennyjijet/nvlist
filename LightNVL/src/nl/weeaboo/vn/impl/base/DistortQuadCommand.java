@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDistortGrid;
@@ -13,23 +14,22 @@ public class DistortQuadCommand extends BaseRenderCommand {
 
 	public final ITexture tex;
 	public final Matrix transform;
-	public final double x, y, w, h;
+	public final Area2D bounds;
+	public final Area2D uv;
 	public final IPixelShader ps;
 	public final IDistortGrid grid;
 	public final Rect2D clampBounds;
 	
 	public DistortQuadCommand(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps,
+			ITexture tex, Matrix trans, Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds)
 	{
 		super(id, z, clipEnabled, blendMode, argb, tex != null ? (byte)tex.hashCode() : 0);
 		
 		this.tex = tex;
 		this.transform = trans;
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
+		this.bounds = bounds;
+		this.uv = uv;
 		this.ps = ps;
 		
 		this.grid = grid;

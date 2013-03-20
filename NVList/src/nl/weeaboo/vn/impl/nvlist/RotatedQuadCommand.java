@@ -1,16 +1,7 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import javax.media.opengl.GL2ES1;
 
-import nl.weeaboo.gl.GLManager;
-import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.IPixelShader;
-import nl.weeaboo.vn.IRenderer;
-import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.impl.base.CustomRenderCommand;
-import nl.weeaboo.vn.math.Matrix;
-import nl.weeaboo.vn.math.MutableMatrix;
-
+/*
 public class RotatedQuadCommand extends CustomRenderCommand {
 
 	private final ITexture itex;
@@ -74,3 +65,4 @@ public class RotatedQuadCommand extends CustomRenderCommand {
 	//Setters
 	
 }
+*/

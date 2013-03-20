@@ -9,13 +9,13 @@ enhancements:
   vn.saveScreenshotWidth/vn.saveScreenshotHeight preferences.
 - Added a chapter to the manual with the differences when running on Android.
 - Large cleanup/restructuring of bundled tutorial scripts.
+- Added setExitFunction() which allows you to override the default behavior
+  of the exit confirmation dialog (whether activated by the window close
+  button, exit menu item or the Lua exit function).
 
 bugfixes:
 - Playing video in an upscaled window while an FBO is used for rendering caused
   the video to be clipped (only lower-left rect visible).
-- Added setExitFunction() which allows you to override the default behavior
-  of the exit confirmation dialog (whether activated by the window close
-  button, exit menu item or the Lua exit function).
 - Screen didn't redraw when changing a textless TextDrawable.
 - Improved error handling for the edit button in the build command panel.
 - Image gallery script was broken.

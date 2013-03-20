@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.impl.base;
 
 import static org.luaj.vm2.LuaValue.valueOf;
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
@@ -52,11 +53,13 @@ public class DistortGS extends BaseShader implements IGeometryShader {
 		Matrix trans = image.getTransform();
 		double w = image.getUnscaledWidth();
 		double h = image.getUnscaledHeight();		
+		Area2D uv = image.getUV();
 
 		Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
+		Area2D bounds = new Area2D(offset.x, offset.y, w, h);
 		
 		d.drawDistortQuad(z, clip, blend, argb, tex, 
-				trans, offset.x, offset.y, w, h, ps,
+				trans, bounds, uv, ps,
 				grid, clampBounds);
 	}
 	

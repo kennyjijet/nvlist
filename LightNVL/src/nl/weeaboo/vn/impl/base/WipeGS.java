@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
@@ -40,15 +41,18 @@ public class WipeGS extends BaseShader implements IGeometryShader {
 		Matrix trans = image.getTransform();
 		double w = image.getUnscaledWidth();
 		double h = image.getUnscaledHeight();
+		Area2D uv = image.getUV();
 		double frac = getTime();
 		
 		Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
 		if (frac <= 0 || frac >= 1) {
 			if ((frac >= 1 && fadeIn) || (frac <= 0 && !fadeIn)) {
-				d.drawQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps);
+				Area2D bounds = new Area2D(offset.x, offset.y, w, h);
+				d.drawQuad(z, clip, blend, argb, tex, trans, bounds, uv, ps);
 			}
 		} else {
-			d.drawFadeQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps,
+			Area2D bounds = new Area2D(offset.x, offset.y, w, h);
+			d.drawFadeQuad(z, clip, blend, argb, tex, trans, bounds, uv, ps,
 					dir, fadeIn, span, getTime());
 		}
 	}

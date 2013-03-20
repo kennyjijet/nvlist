@@ -3,6 +3,7 @@ package nl.weeaboo.vn.impl.base;
 import java.util.Arrays;
 
 import nl.weeaboo.collections.MergeSort;
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDistortGrid;
@@ -98,9 +99,9 @@ public class BaseDrawBuffer implements IDrawBuffer {
 	{		
 		if (gs == null) {
 			Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
+			Area2D bounds = new Area2D(offset.x, offset.y, id.getUnscaledWidth(), id.getUnscaledHeight());
 			drawQuad(id.getZ(), id.isClipEnabled(), id.getBlendMode(), id.getColorARGB(),
-					tex, id.getTransform(), offset.x, offset.y,
-					id.getUnscaledWidth(), id.getUnscaledHeight(), ps);
+					tex, id.getTransform(), bounds, id.getUV(), ps);
 		} else {
 			gs.draw(this, id, tex, alignX, alignY, ps);
 		}
@@ -108,51 +109,44 @@ public class BaseDrawBuffer implements IDrawBuffer {
 	
 	@Override
 	public void drawQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps)
-	{
-		drawQuad(z, clipEnabled, blendMode, argb, tex, trans, x, y, w, h, 0, 0, 1, 1, ps);
-	}
-	
-	@Override
-	public void drawQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h,
-			double u, double v, double uw, double vh, IPixelShader ps)
+			ITexture tex, Matrix trans, Area2D bounds, Area2D uv, IPixelShader ps)
 	{	
-		draw(new QuadRenderCommand(z, clipEnabled, blendMode, argb, tex,
-				trans, x, y, w, h, u, v, uw, vh, ps));
+		if (uv == null) {
+			uv = DEFAULT_UV;
+		}
+		draw(new QuadRenderCommand(z, clipEnabled, blendMode, argb, tex, trans, bounds, uv, ps));
 	}
 
 	@Override
 	public void drawFadeQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps,
+			ITexture tex, Matrix trans, Area2D bounds, Area2D uv, IPixelShader ps,
 			int dir, boolean fadeIn, double span, double time)
 	{
 		draw(new FadeQuadCommand(z, clipEnabled, blendMode, argb, tex,
-				trans, x, y, w, h, ps, dir, fadeIn, span, time));
+				trans, bounds, uv, ps, dir, fadeIn, span, time));
 	}
 	
 	@Override
 	public void drawBlendQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
 			ITexture tex0, double alignX0, double alignY0,
 			ITexture tex1, double alignX1, double alignY1,
-			Matrix trans, IPixelShader ps,
+			Matrix trans, Area2D uv, IPixelShader ps,
 			double frac)
 	{
 		draw(new BlendQuadCommand(z, clipEnabled, blendMode, argb,
 				tex0, alignX0, alignY0,
 				tex1, alignX1, alignY1,
-				trans, ps,
+				trans, uv, ps,
 				frac));
 	}
 	
 	@Override
 	public void drawDistortQuad(short z, boolean clipEnabled, BlendMode blendMode, int argb,
-			ITexture tex, Matrix trans, double x, double y, double w, double h, IPixelShader ps,
+			ITexture tex, Matrix trans, Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid distortGrid, Rect2D clampBounds)
 	{
 		draw(new DistortQuadCommand(z, clipEnabled, blendMode, argb,
-				tex, trans, x, y, w, h, ps,
-				distortGrid, clampBounds));
+				tex, trans, bounds, uv, ps, distortGrid, clampBounds));
 	}
 	
 	public void draw(BaseRenderCommand cmd) {
@@ -163,8 +157,10 @@ public class BaseDrawBuffer implements IDrawBuffer {
 	public BaseRenderCommand[] sortCommands(int start, int end) {
 		int diff = end - start;
 		if (diff > 100) {
+			//Java default sort, makes a copy of the entire input array for Java < 7			
 			Arrays.sort(commands, start, end);
 		} else {
+			//In-place merge sort
 			MergeSort.sort(commands, start, end);
 		}
 		return commands;

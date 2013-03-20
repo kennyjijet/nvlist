@@ -10,6 +10,7 @@ import static nl.weeaboo.vn.vnds.VNDSUtil.VNDS;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
@@ -17,12 +18,14 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.xml.parsers.ParserConfigurationException;
 
 import nl.weeaboo.awt.AwtUtil;
 import nl.weeaboo.common.Benchmark;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.StringUtil;
-import nl.weeaboo.filemanager.FileManager;
+import nl.weeaboo.filesystem.IFileSystem;
+import nl.weeaboo.filesystem.SecureFileWriter;
 import nl.weeaboo.game.BaseGame;
 import nl.weeaboo.game.BaseGameConfig;
 import nl.weeaboo.game.DebugPanel;
@@ -57,7 +60,6 @@ import nl.weeaboo.vn.IImageState;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.INovelConfig;
-import nl.weeaboo.vn.IPersistentStorage;
 import nl.weeaboo.vn.ISaveHandler;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.IStorage;
@@ -96,11 +98,14 @@ import nl.weeaboo.vn.impl.nvlist.TextState;
 import nl.weeaboo.vn.impl.nvlist.TweenLib;
 import nl.weeaboo.vn.impl.nvlist.VideoFactory;
 import nl.weeaboo.vn.impl.nvlist.VideoState;
+import nl.weeaboo.vn.vnds.VNDSUtil;
+
+import org.xml.sax.SAXException;
 
 public class Game extends BaseGame {
 
 	public static final int VERSION_MAJOR = 3;
-	public static final int VERSION_MINOR = 2;
+	public static final int VERSION_MINOR = 3;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
 	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
 	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support
@@ -115,12 +120,12 @@ public class Game extends BaseGame {
 	private RenderStats renderStats = null; //new RenderStats();
 	private Movie movie;
 	
-	public Game(IConfig cfg, ExecutorService e, GameDisplay gd, GameUpdater gu, FileManager fm,
+	public Game(IConfig cfg, ExecutorService e, GameDisplay gd, GameUpdater gu, IFileSystem fs,
 			FontManager fontman, TextureCache tc, ShaderCache sc, GLResourceCache rc,
 			GlyphManager trs, SoundManager sm, UserInput in, IKeyConfig kc,
 			String imageF, String videoF)
 	{
-		super(cfg, e, gd, gu, fm, fontman, tc, sc, rc, trs, sm, in, kc, imageF, videoF);
+		super(cfg, e, gd, gu, fs, fontman, tc, sc, rc, trs, sm, in, kc, imageF, videoF);
 		
 		gd.setJMenuBar(GameMenuFactory.createPlaceholderJMenuBar(gd)); //Forces GameDisplay to use a JFrame
 		gd.setRenderMode(RenderMode.MANUAL);
@@ -189,6 +194,8 @@ public class Game extends BaseGame {
 		config.set(BaseGameConfig.MUSIC_VOLUME, 1.0);
 		config.set(BaseGameConfig.SOUND_VOLUME, 1.0);
 		config.set(BaseGameConfig.VOICE_VOLUME, 1.0);		
+
+		IFileSystem fs = getFileSystem();
 		
 		if (bugReporter != null) {
 			bugReporter.dispose();
@@ -196,7 +203,7 @@ public class Game extends BaseGame {
 		}
 		if (config.get(ENABLE_PROOFREADER_TOOLS)) {
 			try {
-				bugReporter = new BugReporter(getFileManager());
+				bugReporter = new BugReporter(fs);
 			} catch (IOException ioe) {
 				GameLog.w("Error creating bug reporter", ioe);
 			}
@@ -208,7 +215,7 @@ public class Game extends BaseGame {
 		gmf = new GameMenuFactory(this);		
 		getDisplay().setJMenuBar(gmf.createJMenuBar());
 		
-		FileManager fm = getFileManager();
+		SecureFileWriter sfw = new SecureFileWriter(fs);
 		TextureCache texCache = getTextureCache();
 		GLResourceCache resCache = getGLResourceCache();
 		ShaderCache shCache = getShaderCache();		
@@ -218,10 +225,11 @@ public class Game extends BaseGame {
 		Dim nvlSize = new Dim(novelConfig.getWidth(), novelConfig.getHeight());
 				
 		NovelNotifier notifier = new NovelNotifier(getNotifier());
-		SaveHandler saveHandler = new SaveHandler(fm, notifier);
+		SaveHandler saveHandler = new SaveHandler(fs, notifier);
 		
-		IPersistentStorage sharedGlobals = new SharedGlobals(fm, "save-shared.bin", notifier);
+		SharedGlobals sharedGlobals = new SharedGlobals(sfw, "save-shared.bin", notifier);
 		try {
+			if (isVNDS()) readVNDSGlobalSav(sharedGlobals, fs);
 			sharedGlobals.load();
 		} catch (IOException ioe) {
 			notifier.d("Error loading shared globals", ioe);
@@ -236,7 +244,7 @@ public class Game extends BaseGame {
 			try { timer.save(sharedGlobals); } catch (IOException e) { }
 		}
 		
-		ISeenLog seenLog = new SeenLog(fm, "seen.bin");
+		ISeenLog seenLog = new SeenLog(sfw, "seen.bin");
 		try {
 			seenLog.load();
 		} catch (IOException ioe) {
@@ -248,7 +256,7 @@ public class Game extends BaseGame {
 		if (!isDebug()) {
 			an = new NullAnalytics();
 		} else {
-			an = new Analytics(fm, "analytics.bin", notifier);
+			an = new Analytics(sfw, "analytics.bin", notifier);
 			try {
 				an.load();
 			} catch (IOException ioe) {
@@ -264,9 +272,9 @@ public class Game extends BaseGame {
 				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
-		VideoFactory vidfac = new VideoFactory(fm, texCache, shCache, resCache, seenLog, notifier);
+		VideoFactory vidfac = new VideoFactory(fs, texCache, shCache, resCache, seenLog, notifier);
 		GUIFactory guifac = new GUIFactory(imgfac, notifier);
-		ScriptLib scrlib = new ScriptLib(fm, notifier);
+		ScriptLib scrlib = new ScriptLib(fs, notifier);
 		TweenLib tweenLib = new TweenLib(notifier, imgfac, shfac);
 		
 		if (isDebug() && !isVNDS()) {
@@ -285,7 +293,7 @@ public class Game extends BaseGame {
 		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
 				notifier, in, shfac, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
 				seenLog, an, timer,
-				fm, getKeyConfig(), isVNDS());
+				fs, getKeyConfig(), isVNDS());
 		if (isVNDS()) {
 			novel.setBootstrapScripts("builtin/vnds/main.lua");
 		}
@@ -306,6 +314,35 @@ public class Game extends BaseGame {
 		novel.restart(luaSerializer, getConfig(), mainFunc);
 
 		onConfigPropertiesChanged();
+	}
+	
+	private static void readVNDSGlobalSav(SharedGlobals out, IFileSystem fs) {
+		try {
+			InputStream in = null;
+			if (fs.getFileExists("save/global.sav")) {
+				in = fs.newInputStream("save/global.sav");					
+			} else if (fs.getFileExists("save/GLOBAL.sav")) {
+				in = fs.newInputStream("save/GLOBAL.sav");					
+			}
+			
+			if (in != null) {
+				boolean wasAutoSave = out.getAutoSave();
+				try {
+					out.setAutoSave(false);
+					VNDSUtil.readDSGlobalSav(out, in);
+				} catch (ParserConfigurationException e) {
+					GameLog.w("Error reading global.sav", e);
+				} catch (SAXException e) {
+					GameLog.w("Error reading global.sav", e);
+				} finally {
+					out.setAutoSave(wasAutoSave);
+					in.close();
+				}
+			}
+		} catch (IOException ioe) {
+			GameLog.v("Error reading global.sav", ioe);
+		}
+		
 	}
 	
 	@Override
@@ -379,7 +416,8 @@ public class Game extends BaseGame {
 					int slot = sh.getQuickSaveSlot(1);
 					String filename = String.format("save-%03d.sav", slot);
 					sh.save(slot, null, null, null, null);
-					long bytes = (getFileManager().getFileExists(filename) ? getFileManager().getFileSize(filename) : 0);
+					IFileSystem fs = getFileSystem();
+					long bytes = (fs.getFileExists(filename) ? fs.getFileSize(filename) : 0);
 					ntf.addMessage(this, String.format("Quicksave took %s (%s)",
 							StringUtil.formatTime(Benchmark.tock(false), TimeUnit.NANOSECONDS),
 							StringUtil.formatMemoryAmount(bytes)));					

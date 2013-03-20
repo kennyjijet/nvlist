@@ -1,4 +1,13 @@
 ﻿
+local i = img("effect/fog/fog")
+i:setSize(screenWidth, screenHeight)
+while true do
+    for n=5,50 do
+        i:setUV(n, n)
+        yield(3)
+    end
+end
+
 --choice() --Choice without arguments test (shouldn't crash, may show one or more placeholder options)
 
 --[[ Word wrapping tests
@@ -345,6 +354,52 @@ rmf(ss)
 wait(60)
 rmbgf()
 ]]
+
+textoff(1)
+--bg("bg/bg3")
+
+local normalTex = tex("arm01l")
+local blurTex = blur(normalTex, 4)
+
+local imgs = {}
+imgs[1] = img(normalTex, {colorRGB=0xFF0000, blendMode=BlendMode.ADD})
+imgs[2] = img(normalTex, {colorRGB=0x00FF00, blendMode=BlendMode.ADD})
+imgs[3] = img(normalTex, {colorRGB=0x0000FF, blendMode=BlendMode.ADD})
+
+--local bgimgs = {}
+--for i=1,3 do
+--    bgimgs[i] = img(t, {colorRGB=0x202020, z=10})
+--end
+
+while not input:consumeTextContinue() do
+    local blur = true
+    local r = math.random(1, 3)
+    
+    for k,i in ipairs(imgs) do
+        --local bi = bgimgs[k]
+    
+        local dx = 0
+        if blur then
+            local sign = math.random(0, 1) * 2 - 1
+            dx = math.random(2, 8) * sign
+            --y = y + math.random( 0, 1) * 1
+            i:setZ(k)
+            i:setTexture(blurTex)
+        else
+            i:setTexture(normalTex)
+        end
+        local x = (screenWidth - i:getWidth())/2 + dx
+        local y = screenHeight - i:getHeight()
+        i:setPos(x, y)
+        --bi:setTexture(i:getTexture())
+        --bi:setPos(x, y)
+    end
+    yield(3)
+end
+destroyValues(bgimgs)
+destroyValues(imgs)
+rmbg()
+texton(1)
 
 yield()
 return titlescreen()

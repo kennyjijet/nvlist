@@ -1,9 +1,8 @@
 package nl.weeaboo.vn;
 
 
-
 public interface IRenderer {
-
+	
 	// === Functions ===========================================================
 	/**
 	 * Resets all properties.

@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
@@ -36,7 +37,8 @@ public class BlendGS extends BaseShader implements IGeometryShader {
 		int argb = image.getColorARGB();
 		Matrix trans = image.getTransform();
 		double w = image.getUnscaledWidth();
-		double h = image.getUnscaledHeight();		
+		double h = image.getUnscaledHeight();
+		Area2D uv = image.getUV();
 		double frac = getTime();
 		
 		double endAlignX = this.endAlignX;
@@ -51,16 +53,18 @@ public class BlendGS extends BaseShader implements IGeometryShader {
 		if (frac <= 0) {
 			if (tex != null) {
 				Vec2 offset = LayoutUtil.getImageOffset(tex, alignX, alignY);
-				d.drawQuad(z, clip, blend, argb, tex, trans, offset.x, offset.y, w, h, ps);
+				Area2D bounds = new Area2D(offset.x, offset.y, w, h);
+				d.drawQuad(z, clip, blend, argb, tex, trans, bounds, uv, ps);
 			}
 		} else if (frac >= 1) {
 			if (endTexture != null) {
 				Vec2 offset = LayoutUtil.getImageOffset(endTexture, endAlignX, endAlignY);
-				d.drawQuad(z, clip, blend, argb, endTexture, trans, offset.x, offset.y, w, h, ps);
+				Area2D bounds = new Area2D(offset.x, offset.y, w, h);
+				d.drawQuad(z, clip, blend, argb, endTexture, trans, bounds, uv, ps);
 			}
 		} else {
 			d.drawBlendQuad(z, clip, blend, argb, tex, alignX, alignY,
-					endTexture, endAlignX, endAlignY, trans, ps, frac);
+					endTexture, endAlignX, endAlignY, trans, uv, ps, frac);
 		}
 	}
 

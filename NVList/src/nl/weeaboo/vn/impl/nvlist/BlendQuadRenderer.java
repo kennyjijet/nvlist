@@ -35,6 +35,7 @@ import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BlendQuadHelper;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
@@ -62,7 +63,7 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		GLManager glm = renderer.getGLManager();
 		glm.pushColor();
 		glm.mixColor(mixColorARGB);
-		renderer.renderQuad(tex, transform, bounds.x, bounds.y, bounds.w, bounds.h, null, 0, 0, 1, 1);
+		renderer.renderQuad(tex, transform, bounds.toArea2D(), IDrawBuffer.DEFAULT_UV, null);
 		glm.popColor();	
 	}
 

@@ -11,6 +11,7 @@ import java.awt.event.HierarchyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import javax.swing.tree.TreePath;
 import nl.weeaboo.awt.AwtUtil;
 import nl.weeaboo.awt.MessageBox;
 import nl.weeaboo.common.StringUtil;
+import nl.weeaboo.filesystem.FileSystemUtil;
 import nl.weeaboo.game.GameLog;
 import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.vn.impl.lua.BaseScriptLib;
@@ -216,11 +218,12 @@ public class DebugScriptPanel extends JPanel {
 	}
 	
 	protected void timerUpdate() {
-		Collection<String> scriptFiles;
+		List<String> scriptFiles;
 		synchronized (lock) {
 			BaseScriptLib scriptLib = novel.getScriptLib();
 			scriptFiles = scriptLib.getScriptFiles("", false);
 		}
+		Collections.sort(scriptFiles, FileSystemUtil.getFilenameComparator());
 		
 		ScriptNode rootNode = createFolderNode("/", "script");
 		

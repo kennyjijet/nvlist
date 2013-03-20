@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScriptLib;
@@ -67,8 +68,8 @@ public abstract class BaseScriptLib implements IScriptLib, Serializable {
 	protected abstract long getExternalScriptModificationTime(String filename) throws IOException;
 	
 	@Override
-	public Collection<String> getScriptFiles(String folder, boolean includeBuiltIn) {
-		Collection<String> result = new ArrayList<String>();
+	public List<String> getScriptFiles(String folder, boolean includeBuiltIn) {
+		List<String> result = new ArrayList<String>();
 		if (includeBuiltIn) {
 			try {
 				LuaNovel.getBuiltInScripts(result, folder);

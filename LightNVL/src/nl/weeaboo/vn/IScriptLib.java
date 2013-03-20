@@ -2,7 +2,7 @@ package nl.weeaboo.vn;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
+import java.util.List;
 
 public interface IScriptLib {
 
@@ -14,7 +14,7 @@ public interface IScriptLib {
 	/**
 	 * Returns the paths for all script files in the specified folder
 	 */
-	public Collection<String> getScriptFiles(String folder, boolean includeBuiltIn);
+	public List<String> getScriptFiles(String folder, boolean includeBuiltIn);
 	
 	public long getScriptModificationTime(String filename) throws IOException;
 	

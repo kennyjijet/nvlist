@@ -5,6 +5,6 @@ final class NVListImpl {
 	private NVListImpl() {		
 	}
 	
-	static final long serialVersionUID = 54L;
+	static final long serialVersionUID = 55L;
 	
 }

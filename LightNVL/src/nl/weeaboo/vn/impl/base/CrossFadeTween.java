@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
@@ -31,21 +32,22 @@ public class CrossFadeTween extends BaseImageTween {
 		int argb = drawable.getColorARGB();
 		Matrix trans = drawable.getTransform();
 		IPixelShader ps = drawable.getPixelShader();
+		Area2D uv = drawable.getUV();
 		double frac = interpolator.remap((float)getNormalizedTime());
 		
 		if (frac <= 0 || getEndTexture() == null) {
 			Rect2D bounds = LayoutUtil.getBounds(getStartTexture(), getStartAlignX(), getStartAlignY());
 			d.drawQuad(z, clip, blend, argb, getStartTexture(), trans,
-					bounds.x, bounds.y, bounds.w, bounds.h, ps);
+					bounds.toArea2D(), uv, ps);
 		} else if (frac >= 1 || getStartTexture() == null) {
 			Rect2D bounds = LayoutUtil.getBounds(getEndTexture(), getEndAlignX(), getEndAlignY());
 			d.drawQuad(z, clip, blend, argb, getEndTexture(), trans,
-					bounds.x, bounds.y, bounds.w, bounds.h, ps);
+					bounds.toArea2D(), uv, ps);
 		} else {
 			d.drawBlendQuad(z, clip, blend, argb,
 					getStartTexture(), getStartAlignX(), getStartAlignY(),
 					getEndTexture(), getEndAlignX(), getEndAlignY(),
-					trans, ps,
+					trans, uv, ps,
 					frac);
 		}
 	}

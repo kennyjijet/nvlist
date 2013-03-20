@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
@@ -74,8 +75,9 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 			dx = Math.round(dx * s) / s;
 			dy = Math.round(dy * s) / s;
 		}
-		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(),
-				dx, dy, w, h, 0, 0, uw, vh, null);
+		Area2D bounds = new Area2D(dx, dy, w, h);
+		Area2D uv = new Area2D(0, 0, uw, vh);
+		buf.drawQuad(z, clipEnabled, blendMode, argb, texture, Matrix.identityMatrix(), bounds, uv, null);
 	}
 	
 	protected void validateCursorSize() {

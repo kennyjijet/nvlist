@@ -3,6 +3,7 @@ package nl.weeaboo.vn.impl.base;
 import java.io.Serializable;
 import java.util.LinkedList;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Insets2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.common.StringUtil;
@@ -198,15 +199,17 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 		if (fadeTop != null) {
 			double fh = Math.min(fadeSize, scrollY.pos-scrollY.min);
 			if (fh >= 1) {
+				Area2D bounds = new Area2D(0, 0, iw, fh);
 				d.drawQuad(overlayZ, clipEnabled, BlendMode.DEFAULT, fadeColorARGB, fadeTop, transform,
-						0, 0, iw, fh, null);
+						bounds, IDrawBuffer.DEFAULT_UV, null);
 			}
 		}
 		if (fadeBottom != null) {
 			double fh = Math.min(fadeSize, scrollY.max-scrollY.pos);
 			if (fh >= 1) {
+				Area2D bounds = new Area2D(0, ih-fh, iw, fh);
 				d.drawQuad(overlayZ, clipEnabled, BlendMode.DEFAULT, fadeColorARGB, fadeBottom, transform,
-						0, ih-fh, iw, fh, null);
+						bounds, IDrawBuffer.DEFAULT_UV, null);
 			}
 		}
 		
@@ -588,7 +591,9 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 				double x, double y, double w, double h, double scrollFrac)
 		{
 			if (barTex != null) {
-				d.drawQuad(z, clipEnabled, BlendMode.DEFAULT, 0xFFFFFFFF, barTex, transform, x, y, w, h, null);
+				Area2D bounds = new Area2D(x, y, w, h);
+				d.drawQuad(z, clipEnabled, BlendMode.DEFAULT, 0xFFFFFFFF, barTex, transform, bounds,
+						IDrawBuffer.DEFAULT_UV, null);
 			}
 			if (thumbTex != null && !Double.isNaN(scrollFrac)) {
 				double tx = x, ty = y, tw = w, th = h;
@@ -599,8 +604,9 @@ public abstract class BaseViewport extends BaseContainer implements IViewport {
 					th = thumbTex.getHeight() * (tw / thumbTex.getWidth());
 					ty += scrollFrac * (h - th);
 				}
+				Area2D bounds = new Area2D(tx, ty, tw, th);
 				d.drawQuad((short)(z-1), clipEnabled, BlendMode.DEFAULT, 0xFFFFFFFF, thumbTex, transform,
-						tx, ty, tw, th, null);
+						bounds, IDrawBuffer.DEFAULT_UV, null);
 			}
 		}
 		

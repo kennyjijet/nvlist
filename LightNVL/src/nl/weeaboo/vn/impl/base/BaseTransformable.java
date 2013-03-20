@@ -222,7 +222,13 @@ public abstract class BaseTransformable extends BaseDrawable implements ITransfo
 	
 	@Override
 	public void setSize(double w, double h) {
-		setScale(w / getUnscaledWidth(), h / getUnscaledHeight());
+		double uw = getUnscaledWidth();
+		double uh = getUnscaledHeight();
+		if (uw == 0 || uh == 0) {
+			setScale(1, 1);
+		} else {
+			setScale(w / uw, h / uh);
+		}
 	}
 	
 	protected void setUnscaledSize(double w, double h) {

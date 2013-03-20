@@ -91,7 +91,6 @@ import nl.weeaboo.vn.parser.LVNFile;
 import nl.weeaboo.vn.parser.LVNParser;
 import nl.weeaboo.vn.parser.ParseException;
 
-import org.luaj.vm2.LuaBoolean;
 import org.luaj.vm2.LuaClosure;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaFunction;
@@ -540,15 +539,6 @@ public abstract class LuaNovel extends BaseNovel {
 		}
 		
 		Benchmark.tock("Lua total init time=%s");
-	}
-
-	protected void registerVNDSLib() throws LuaException {
-		BaseScriptLib scrfac = getScriptLib();
-		BaseNotifier ntf = getNotifier();
-		
-		LuaValue globals = luaRunState.getGlobalEnvironment();
-		globals.set("isVNDS", LuaBoolean.TRUE);
-		globals.load(new nl.weeaboo.vn.vnds.VNDSLib(scrfac, ntf));
 	}
 	
 	protected abstract void addKeyCodeConstants(LuaTable table) throws LuaException;

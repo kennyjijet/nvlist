@@ -107,8 +107,13 @@ end
 
 ---Removes an image after first fading it out
 -- @param i The image to remove
-function rmf(i)
-	fadeTo(i, 0)
+-- @param fadeTime The duration of the fade-out effect (in frames).
+function rmf(i, fadeTime)
+    local fadeSpeed = nil
+    if fadeTime ~= nil and fadeTime > 0 then
+        fadeSpeed = 1.0 / fadeTime
+    end    
+	fadeTo(i, 0, fadeSpeed)
 	rm(i)
 end
 
@@ -142,19 +147,16 @@ end
 
 ---Changed the current background
 -- @param tex A texture object or a path to a valid image file
--- @param ... Any further arguments will be passed to <code>img</code>
+-- @param props A table of property overrides to pass to <code>img</code>
 --        internally.
 -- @return The newly created background
-function bg(tex, ...)
+function bg(tex, props)
 	local background = getBackground()
     if background ~= nil and not background:isDestroyed() then
         background:destroy()
     end
     
-    local props = {z=30000}
-    if ... ~= nil then
-    	addAll(props, ...)
-    end
+    props = extend({z=30000}, props or {})
 	background = img(tex, props)
 	
 	setImageStateAttribute("background", background)	
@@ -165,21 +167,21 @@ end
 -- @param tex A texture object or a path to a valid image file
 -- @param fadeTime The fade time (in frames) of the crossfade. Defaults to 30
 --        (0.5 seconds).
--- @param ... Any further arguments will be passed to <code>bg</code>
+-- @param props A table of property overrides to pass to <code>bg</code>
 --        internally.
 -- @return The newly created background
-function bgf(tex, fadeTime, ...)
+function bgf(tex, fadeTime, props)
 	fadeTime = fadeTime or 30
 
 	local background = getBackground()
 	if background == nil or background:isDestroyed() then	
-		background = bg(tex, ...)
+		background = bg(tex, props)
 		if fadeTime > 0 then
 			background:setAlpha(0)
 			fadeTo(background, 1, 1.0 / fadeTime)
 		end
 	else
-		local newbg = img(tex, ...)
+		local newbg = img(tex, props)
 		if fadeTime > 0 then		
 			newbg:setAlpha(0)
 			newbg:setZ(background:getZ() - 1)
