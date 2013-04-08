@@ -127,27 +127,35 @@ public abstract class BaseRenderer implements IRenderer {
 			
 			//Clipping changed
 			if (cmd.clipEnabled != clipping) {
+				flushQuadBatch();
 				clipping = cmd.clipEnabled;
 				setClip(clipping);
 			}
 			
 			//Blend mode changed
 			if (cmd.blendMode != blendMode) {
+				flushQuadBatch();
 				blendMode = cmd.blendMode;
 				setBlendMode(blendMode);
 			}
 			
 			//Foreground color changed
 			if (cmd.argb != foreground) {
+				flushQuadBatch();
 				foreground = cmd.argb;
 				setColor(foreground);
+			}
+
+			//Flush quad batch if needed
+			if (cmd.id != QuadRenderCommand.id) {
+				flushQuadBatch();				
 			}
 			
 			//Perform command-specific rendering
 			if (renderStats != null) {
 				renderStatsTimestamp = System.nanoTime();
 			}
-			
+						
 			preRenderCommand(cmd);
 			
 			switch (cmd.id) {
@@ -163,7 +171,7 @@ public abstract class BaseRenderer implements IRenderer {
 				BlendQuadCommand bqc = (BlendQuadCommand)cmd;
 				renderBlendQuad(bqc.tex0, bqc.alignX0, bqc.alignY0,
 						bqc.tex1, bqc.alignX1, bqc.alignY1,
-						bqc.frac, bqc.transform, bqc.ps);
+						bqc.frac, bqc.uv, bqc.transform, bqc.ps);
 			} break;
 			case FadeQuadCommand.id: {
 				FadeQuadCommand fqc = (FadeQuadCommand)cmd;
@@ -197,6 +205,8 @@ public abstract class BaseRenderer implements IRenderer {
 			}
 		}
 		
+		flushQuadBatch();
+		
 		translate(-bounds.x, -bounds.y);
 		setClipRect(parentClip);
 	}
@@ -213,7 +223,7 @@ public abstract class BaseRenderer implements IRenderer {
 	public abstract void renderBlendQuad(
 			ITexture tex0, double alignX0, double alignY0,
 			ITexture tex1, double alignX1, double alignY1,
-			double frac, Matrix transform, IPixelShader ps);
+			double frac, Area2D uv, Matrix transform, IPixelShader ps);
 	
 	public abstract void renderFadeQuad(ITexture tex, Matrix transform, int color0, int color1,
 			Area2D bounds, Area2D uv, IPixelShader ps,
@@ -254,6 +264,9 @@ public abstract class BaseRenderer implements IRenderer {
 	
 	public static Area2D combineUV(Area2D uv, Area2D texUV) {
 		return new Area2D(texUV.x + uv.x * texUV.w, texUV.y + uv.y * texUV.h, texUV.w * uv.w, texUV.h * uv.h);
+	}
+	
+	protected void flushQuadBatch() {		
 	}
 	
 	//Getters

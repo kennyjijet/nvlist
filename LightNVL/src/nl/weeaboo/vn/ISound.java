@@ -20,9 +20,16 @@ public interface ISound extends Serializable {
 	public void start(int loops) throws IOException;
 	
 	/**
-	 * Stops playing the sound.
+	 * @see #stop(int)
 	 */
 	public void stop();
+	
+	/**
+	 * Stops playing the sound.
+	 * @param fadeOutMillis Instead of stopping the sound immediately, fade it
+	 *        out slowly over the course of <code>fadeOutMillis</code>.
+	 */
+	public void stop(int fadeOutMillis);
 	
 	/**
 	 * Temporarily pauses playback. Use {@link #resume()} to resume playback.

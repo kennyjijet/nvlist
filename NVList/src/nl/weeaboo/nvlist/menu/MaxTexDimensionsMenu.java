@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.MAX_TEX_SIZE;
+import static nl.weeaboo.game.GameConfig.MAX_TEX_SIZE;
 
 public class MaxTexDimensionsMenu extends PrefRangeMenu<Integer> {
 

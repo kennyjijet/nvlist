@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.IMAGE_CACHE_SIZE;
+import static nl.weeaboo.game.GameConfig.IMAGE_CACHE_SIZE;
 
 import java.awt.event.ActionEvent;
 

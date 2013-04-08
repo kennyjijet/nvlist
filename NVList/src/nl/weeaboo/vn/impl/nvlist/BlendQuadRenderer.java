@@ -33,10 +33,13 @@ import javax.media.opengl.GL2ES1;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.impl.base.BaseRenderer;
 import nl.weeaboo.vn.impl.base.BlendQuadHelper;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.impl.base.TriangleGrid.TextureWrap;
@@ -59,26 +62,29 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 
 	//Functions
 	@Override
-	protected void renderQuad(ITexture tex, Matrix transform, int mixColorARGB, Rect2D bounds) {
+	protected void renderQuad(ITexture tex, Area2D uv, Matrix transform, int mixColorARGB, Rect2D bounds) {
 		GLManager glm = renderer.getGLManager();
-		glm.pushColor();
-		glm.mixColor(mixColorARGB);
-		renderer.renderQuad(tex, transform, bounds.toArea2D(), IDrawBuffer.DEFAULT_UV, null);
-		glm.popColor();	
+		GLDraw glDraw = glm.getGLDraw();
+		glDraw.pushColor();
+		glDraw.mixColor(mixColorARGB);
+		uv = BaseRenderer.combineUV(uv, (tex != null ? tex.getUV() : IDrawBuffer.DEFAULT_UV));
+		renderer.renderQuad(tex, transform, bounds.toArea2D(), uv, null);
+		glDraw.popColor();	
 	}
 
 	@Override
 	protected void renderMultitextured(ITexture tex0, Rect2D bounds0, ITexture tex1, Rect2D bounds1,
-			Matrix transform, float tex0Factor)
+			Area2D uv, Matrix transform, float tex0Factor)
 	{
 		GLManager glm = renderer.getGLManager();
-		GL2ES1 gl = glm.getGL();
+		GLDraw glDraw = glm.getGLDraw();
+		GL2ES1 gl = JoglGLManager.getGL(glm);
 		
 		float f = tex0Factor;
 		int texId0 = getTexId(tex0);
 		int texId1 = getTexId(tex1);
-		Area2D uv0 = tex0.getUV();
-		Area2D uv1 = tex1.getUV();
+		Area2D uv0 = BaseRenderer.combineUV(uv, tex0.getUV());
+		Area2D uv1 = BaseRenderer.combineUV(uv, tex1.getUV());
 		
 		//Set texture 0		
 		gl.glActiveTexture(GL_TEXTURE0);
@@ -139,7 +145,7 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		gl.glDisable(GL_TEXTURE_2D);
 		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glm.setTexture(glm.getTexture(), true); //Make sure OpenGL and GLManager agree on which texture is current
+		glDraw.setTexture(glDraw.getTexture(), true); //Make sure OpenGL and GLManager agree on which texture is current
 	}
 	
 	//Getters
@@ -147,8 +153,8 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		GLManager glm = renderer.getGLManager();
 		
 		TextureAdapter ta = (TextureAdapter)tex;
-		ta.forceLoad(glm);
-		return ta.getTexId();
+		ta.glTryLoad(glm);
+		return ta.glId();
 	}
 	
 	@Override

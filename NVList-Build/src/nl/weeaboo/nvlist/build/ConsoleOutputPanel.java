@@ -34,6 +34,15 @@ public class ConsoleOutputPanel extends JPanel implements Runnable {
 	public void process(final Process p, final ProcessCallback postBuildCallback) {
 		process = p;
 		
+		if (p == null) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					postBuildCallback.run(-1);
+				}							
+			});			
+		}
+		
 		outputPane.setText("Waiting for process to start...\n");
 		
 		Thread readerThread = new Thread(new Runnable() {

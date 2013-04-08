@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.tex.TextureException;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
 @LuaSerializable
@@ -18,14 +19,24 @@ public class ImageTextureAdapter extends TextureAdapter {
 
 	//Functions
 	@Override
-	public void forceLoad(GLManager glm) {
-		if (tr == null || tr.isDisposed()) {
+	public void glLoad(GLManager glm) throws TextureException {
+		if (tr == null) {
 			tr = imgfac.getTexRect(filename, null);
 		}
 		if (tr != null) {
-			tr = tr.forceLoad(glm);
+			tr = tr.glLoad(glm);
 		}
-		
+		double scale = imgfac.getImageScale();
+		setTexRect(tr, scale, scale);
+	}
+	
+	public void glTryLoad(GLManager glm) {
+		if (tr == null) {
+			tr = imgfac.getTexRect(filename, null);
+		}
+		if (tr != null) {
+			tr = tr.glTryLoad(glm);
+		}
 		double scale = imgfac.getImageScale();
 		setTexRect(tr, scale, scale);
 	}

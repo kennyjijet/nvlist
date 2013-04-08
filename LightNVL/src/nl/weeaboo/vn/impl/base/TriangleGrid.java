@@ -24,9 +24,10 @@ public final class TriangleGrid implements Serializable {
 		REPEAT_BOTH;
 	}
 	
-	private int rows, cols;
-	private float[] pos;
-	private float[][] tex;
+	private final int verticesPerRow;
+	private final int rows, cols;	
+	private final float[] pos;
+	private final float[][] tex;
 	
 	private TriangleGrid(int rows, int cols, FloatBuffer pos, FloatBuffer[] tex) {
 		this.rows = rows;
@@ -36,6 +37,8 @@ public final class TriangleGrid implements Serializable {
 		for (int n = 0; n < tex.length; n++) {
 			this.tex[n] = BufferUtil.toArray(tex[n]);
 		}
+		
+		verticesPerRow = cols * 2;
 	}
 
 	//Functions
@@ -153,19 +156,19 @@ public final class TriangleGrid implements Serializable {
 	}
 
 	//Getters
-	private FloatBuffer getBufferSlice(float[] data, int row) {
-		int vertices = getVertexCount(row);
-		return FloatBuffer.wrap(data, row * vertices * 2, vertices * 2).asReadOnlyBuffer();
+	public void getVertices(FloatBuffer out, int row) {
+		int offset = row * verticesPerRow * 2;
+		for (int n = 0; n < verticesPerRow; n++) {
+			out.put(pos[offset++]);
+			out.put(pos[offset++]);
+		}
 	}
-	
-	public FloatBuffer getPos(int row) {
-		return getBufferSlice(pos, row);
-	}
-	public FloatBuffer getTex(int texIndex, int row) {
-		return getBufferSlice(tex[texIndex], row);
-	}
-	public int getVertexCount(int row) {
-		return cols * 2;
+	public void getTexCoords(FloatBuffer out, int texIndex, int row) {
+		int offset = row * verticesPerRow * 2;
+		for (int n = 0; n < verticesPerRow; n++) {
+			out.put(tex[texIndex][offset++]);
+			out.put(tex[texIndex][offset++]);
+		}
 	}
 	public int getRows() {
 		return rows;			

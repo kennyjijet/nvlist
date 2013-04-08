@@ -176,7 +176,7 @@ public abstract class BaseImageDrawable extends BaseTransformable implements IIm
 	
 	@Override
 	public final void setUV(double x, double y, double w, double h) {
-		setUV(new Area2D(x, y, h, h));
+		setUV(new Area2D(x, y, w, h));
 	}
 	
 	@Override

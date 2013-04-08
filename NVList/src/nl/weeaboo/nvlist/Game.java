@@ -1,8 +1,8 @@
 package nl.weeaboo.nvlist;
 
-import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
-import static nl.weeaboo.game.BaseGameConfig.TITLE;
-import static nl.weeaboo.game.BaseGameConfig.WIDTH;
+import static nl.weeaboo.game.GameConfig.HEIGHT;
+import static nl.weeaboo.game.GameConfig.TITLE;
+import static nl.weeaboo.game.GameConfig.WIDTH;
 import static nl.weeaboo.vn.NovelPrefs.ENABLE_PROOFREADER_TOOLS;
 import static nl.weeaboo.vn.NovelPrefs.ENGINE_MIN_VERSION;
 import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
@@ -23,27 +22,25 @@ import javax.xml.parsers.ParserConfigurationException;
 import nl.weeaboo.awt.AwtUtil;
 import nl.weeaboo.common.Benchmark;
 import nl.weeaboo.common.Dim;
+import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.filesystem.SecureFileWriter;
-import nl.weeaboo.game.BaseGame;
-import nl.weeaboo.game.BaseGameConfig;
-import nl.weeaboo.game.DebugPanel;
-import nl.weeaboo.game.GameDisplay;
+import nl.weeaboo.game.GameConfig;
 import nl.weeaboo.game.GameLog;
-import nl.weeaboo.game.GameUpdater;
-import nl.weeaboo.game.IGameDisplay;
 import nl.weeaboo.game.Notifier;
 import nl.weeaboo.game.RenderMode;
-import nl.weeaboo.game.input.IKeyConfig;
-import nl.weeaboo.game.input.UserInput;
+import nl.weeaboo.game.desktop.AWTGame;
+import nl.weeaboo.game.desktop.AWTGameBuilder;
+import nl.weeaboo.game.desktop.AWTGameDisplay;
+import nl.weeaboo.game.desktop.DebugPanel;
+import nl.weeaboo.game.input.IUserInput;
 import nl.weeaboo.gl.GLManager;
-import nl.weeaboo.gl.GLResourceCache;
-import nl.weeaboo.gl.shader.ShaderCache;
-import nl.weeaboo.gl.text.FontManager;
+import nl.weeaboo.gl.GLResCache;
+import nl.weeaboo.gl.jogl.JoglTextureStore;
+import nl.weeaboo.gl.shader.IShaderStore;
 import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.gl.text.ParagraphRenderer;
-import nl.weeaboo.gl.texture.TextureCache;
 import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.io.LuaSerializer;
 import nl.weeaboo.nvlist.debug.BugReporter;
@@ -102,7 +99,7 @@ import nl.weeaboo.vn.vnds.VNDSUtil;
 
 import org.xml.sax.SAXException;
 
-public class Game extends BaseGame {
+public class Game extends AWTGame {
 
 	public static final int VERSION_MAJOR = 3;
 	public static final int VERSION_MINOR = 3;
@@ -120,17 +117,15 @@ public class Game extends BaseGame {
 	private RenderStats renderStats = null; //new RenderStats();
 	private Movie movie;
 	
-	public Game(IConfig cfg, ExecutorService e, GameDisplay gd, GameUpdater gu, IFileSystem fs,
-			FontManager fontman, TextureCache tc, ShaderCache sc, GLResourceCache rc,
-			GlyphManager trs, SoundManager sm, UserInput in, IKeyConfig kc,
-			String imageF, String videoF)
-	{
-		super(cfg, e, gd, gu, fs, fontman, tc, sc, rc, trs, sm, in, kc, imageF, videoF);
+	public Game(AWTGameBuilder b) {
+		super(b);
 		
+		AWTGameDisplay gd = b.getDisplay();
 		gd.setJMenuBar(GameMenuFactory.createPlaceholderJMenuBar(gd)); //Forces GameDisplay to use a JFrame
 		gd.setRenderMode(RenderMode.MANUAL);
 
-		pr = trs.createParagraphRenderer();
+		GlyphManager gman = b.getGlyphManager();
+		pr = gman.createParagraphRenderer();
 	}
 
 	//Functions
@@ -191,9 +186,9 @@ public class Game extends BaseGame {
 		}
 		
 		//We're using the volume settings from NovelPrefs instead...
-		config.set(BaseGameConfig.MUSIC_VOLUME, 1.0);
-		config.set(BaseGameConfig.SOUND_VOLUME, 1.0);
-		config.set(BaseGameConfig.VOICE_VOLUME, 1.0);		
+		config.set(GameConfig.MUSIC_VOLUME, 1.0);
+		config.set(GameConfig.SOUND_VOLUME, 1.0);
+		config.set(GameConfig.VOICE_VOLUME, 1.0);		
 
 		IFileSystem fs = getFileSystem();
 		
@@ -216,9 +211,9 @@ public class Game extends BaseGame {
 		getDisplay().setJMenuBar(gmf.createJMenuBar());
 		
 		SecureFileWriter sfw = new SecureFileWriter(fs);
-		TextureCache texCache = getTextureCache();
-		GLResourceCache resCache = getGLResourceCache();
-		ShaderCache shCache = getShaderCache();		
+		JoglTextureStore texStore = getTextureStore();
+		GLResCache resCache = getGLResCache();
+		IShaderStore shStore = getShaderStore();		
 		GlyphManager glyphManager = getGlyphManager();
 		SoundManager sm = getSoundManager();
 		INovelConfig novelConfig = new BaseNovelConfig(config.get(TITLE), config.get(WIDTH), config.get(HEIGHT));
@@ -261,18 +256,22 @@ public class Game extends BaseGame {
 				an.load();
 			} catch (IOException ioe) {
 				notifier.d("Error loading analytics", ioe);
-				try { an.save(); } catch (IOException e) { }
+				try {
+					an.save();
+				} catch (IOException e) {
+					notifier.d("Error saving analytics", e);
+				}
 			}
 		}
 				
 		SystemLib syslib = new SystemLib(this, notifier);
 		boolean renderTextToTexture = false; //isVNDS();
-		ShaderFactory shfac = new ShaderFactory(notifier, shCache);
-		ImageFactory imgfac = new ImageFactory(texCache, glyphManager,
+		ShaderFactory shfac = new ShaderFactory(notifier, shStore);
+		ImageFactory imgfac = new ImageFactory(texStore, glyphManager,
 				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
-		VideoFactory vidfac = new VideoFactory(fs, texCache, shCache, resCache, seenLog, notifier);
+		VideoFactory vidfac = new VideoFactory(fs, texStore, shStore, resCache, seenLog, notifier);
 		GUIFactory guifac = new GUIFactory(imgfac, notifier);
 		ScriptLib scrlib = new ScriptLib(fs, notifier);
 		TweenLib tweenLib = new TweenLib(notifier, imgfac, shfac);
@@ -293,14 +292,14 @@ public class Game extends BaseGame {
 		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
 				notifier, in, shfac, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
 				seenLog, an, timer,
-				fs, getKeyConfig(), isVNDS());
+				fs, getInput().getKeyConfig(), isVNDS());
 		if (isVNDS()) {
 			novel.setBootstrapScripts("builtin/vnds/main.lua");
 		}
         luaSerializer = new EnvLuaSerializer();
         saveHandler.setNovel(novel, luaSerializer);
 		onNovelCreated(novel);
-		onConfigPropertiesChanged();
+		onConfigChanged();
    		
 		restart("main");
 		
@@ -313,7 +312,7 @@ public class Game extends BaseGame {
 	protected void restart(final String mainFunc) {		
 		novel.restart(luaSerializer, getConfig(), mainFunc);
 
-		onConfigPropertiesChanged();
+		onConfigChanged();
 	}
 	
 	private static void readVNDSGlobalSav(SharedGlobals out, IFileSystem fs) {
@@ -346,10 +345,10 @@ public class Game extends BaseGame {
 	}
 	
 	@Override
-	public boolean update(UserInput input, float dt) {
+	public boolean update(IUserInput input, float dt) {
 		boolean changed = super.update(input, dt);
 
-		final IGameDisplay display = getDisplay();
+		final AWTGameDisplay display = getDisplay();
 		boolean allowMenuBarToggle = display.isEmbedded() || display.isFullscreen();
 		
 		IInput ninput = novel.getInput();
@@ -462,18 +461,21 @@ public class Game extends BaseGame {
 		IImageState is = novel.getImageState();
 		IVideoState vs = novel.getVideoState();
 		
+		Dim vsize = getVirtualSize();
 		if (vs.isBlocking()) {
 			Movie movie = (Movie)vs.getBlocking();
-			movie.draw(glm, getWidth(), getHeight());
+			movie.draw(glm, vsize.w, vsize.h);
 		} else {
 			ILayer root = is.getRootLayer();
 			
 			if (renderer == null) {
 				ImageFactory imgfac = (ImageFactory)novel.getImageFactory();
 				ISystemLib syslib = novel.getSystemLib();
-				RenderEnv env = new RenderEnv(getWidth(), getHeight(),
-						getRealX(), getRealY(), getRealW(), getRealH(),
-						getScreenW(), getScreenH(), syslib.isTouchScreen());
+				Rect realBounds = getRealBounds();
+				Dim realScreenSize = getRealScreenSize();
+				RenderEnv env = new RenderEnv(vsize.w, vsize.h,
+						realBounds.x, realBounds.y, realBounds.w, realBounds.h,
+						realScreenSize.w, realScreenSize.h, syslib.isTouchScreen());
 			
 				is.setRenderEnv(env);
 				
@@ -498,14 +500,13 @@ public class Game extends BaseGame {
 	}
 	
 	@Override
-	public void onConfigPropertiesChanged() {
-		super.onConfigPropertiesChanged();
+	public void onConfigChanged() {
+		super.onConfigChanged();
 
-		IConfig config = getConfig();
-		
+		IConfig config = getConfig();		
 		if (novel != null) {
 			config.set(NovelPrefs.SCRIPT_DEBUG, isDebug()); //Use debug flag from Game
-			config.set(BaseGameConfig.DEFAULT_TEXT_STYLE, config.get(NovelPrefs.TEXT_STYLE)); //Use text style from NovelPrefs
+			config.set(GameConfig.DEFAULT_TEXT_STYLE, config.get(NovelPrefs.TEXT_STYLE)); //Use text style from NovelPrefs
 			novel.onPrefsChanged(config);
 		}
 		
@@ -513,8 +514,8 @@ public class Game extends BaseGame {
 	}
 	
 	@Override
-	protected DebugPanel createDebugPanel() {
-		DebugPanel debugPanel = super.createDebugPanel();
+	protected DebugPanel newDebugPanel() {
+		DebugPanel debugPanel = super.newDebugPanel();
 		debugPanel.addTab("Lua", new DebugLuaPanel(this, getNovel()));
 		debugPanel.addTab("Image", new DebugImagePanel(this, getNovel()));
 		debugPanel.addTab("Script", new DebugScriptPanel(this, getNovel()));
@@ -585,33 +586,29 @@ public class Game extends BaseGame {
 	
 	//Setters
 	@Override
-	public void setScreenBounds(int rx, int ry, int rw, int rh, int sw, int sh) {
-		if (rx != getRealX()   || ry != getRealY() || rw != getRealW()   || rh != getRealH()
-				|| sw != getScreenW() || sh != getScreenH())
-		{
-			super.setScreenBounds(rx, ry, rw, rh, sw, sh);
-						
-			renderer = null;
-		}
+	protected void onSizeChanged() {
+		super.onSizeChanged();
+		
+		renderer = null;
 	}
 	
 	@Override
-	public void setImageFolder(String folder, int w, int h) throws IOException {
-		super.setImageFolder(folder, w, h);
+	public void setImageFolder(String imgF, Dim size) throws IOException {
+		super.setImageFolder(imgF, size);
 		
 		if (novel != null) {
 			ImageFactory imgfac = (ImageFactory)novel.getImageFactory();
-			imgfac.setImageSize(w, h);
+			imgfac.setImageSize(size.w, size.h);
 		}		
 	}
 	
 	@Override
-	public void setVideoFolder(String folder, int w, int h) throws IOException {
-		super.setVideoFolder(folder, w, h);
+	public void setVideoFolder(String videoF, Dim size) throws IOException {
+		super.setVideoFolder(videoF, size);
 		
 		if (novel != null) {
 			VideoFactory vfac = (VideoFactory)novel.getVideoFactory();
-			vfac.setVideoFolder(folder, w, h);
+			vfac.setVideoFolder(videoF, size.w, size.h);
 		}
 	}
 	

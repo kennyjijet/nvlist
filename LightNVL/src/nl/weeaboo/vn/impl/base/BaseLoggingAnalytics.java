@@ -80,7 +80,7 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 	protected BaseLoggingAnalytics(String filename) {
 		this.filename = filename;
 		
-		filenamePool = new LRUSet<String>(64);
+		filenamePool = new LRUSet<String>(256);
 		maxStoredEvents = 8192;
 		optimizeLogTriggerSize = 512<<10; //512KiB
 		
@@ -135,6 +135,7 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 					}
 					
 					int count = oin.readInt();
+					//System.err.println(" >>> " + count);
 					for (int n = 0; n < count; n++) {
 						results.add((Event)oin.readObject());
 					}
@@ -203,6 +204,7 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 			out.close();
 		}
 		
+		bout.close();		
 		return getFileSize(filename);
 	}
 	
@@ -405,12 +407,16 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 			int[] lineHistogram = new int[1024];
 			BitSet linesSeen = new BitSet();
 			
+			//System.out.println("[[" + script + "]]");
+			
+			int runId = 0;
 			Iterator<Event> events = entry.getValue().iterator();
 			while (events.hasNext()) {
 				final int MAX_LINE = 9999;
 				linesSeen.clear();
 				//System.out.println("RUN");
 				
+				runId++;
 				while (events.hasNext()) {
 					Event e = events.next();
 					if (e == null) break; //End of run reached
@@ -425,7 +431,7 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 					if (sl > 0 && sl <= MAX_LINE && el > 0 && el <= MAX_LINE) {
 						linesSeen.set(sl, el+1);
 					}
-					histogram.add(e);
+					histogram.add(runId, e);
 				}
 				
 				if (linesSeen.length() >= lineHistogram.length) {
@@ -439,7 +445,6 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 			}
 			
 			//Analyze histogram
-			//System.out.println("[[" + script + "]]");
 			
 			final float THRESHOLD_PROBABILITY = .1f;
 			Map<MediaType, List<LoadHistogramEntry>> hm = new EnumMap<MediaType, List<LoadHistogramEntry>>(MediaType.class);
@@ -495,7 +500,11 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 			sounds = new ArrayList<LoadHistogramEntry>();
 		}
 		
-		public void add(Event e) {
+		/**
+		 * Adds an event to the histogram, only counts events (filename/line)
+		 * once per run (runId must be monotonically increasing).
+		 */
+		public void add(int runId, Event e) {
 			final int line = e.getStartLine();
 
 			final String filename;
@@ -526,7 +535,10 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 				entry = new LoadHistogramEntry(filename, line);
 				hes.add(entry);
 			}
-			entry.count++;
+			if (entry.lastRunId != runId) {
+				entry.count++;			
+				entry.lastRunId = runId;
+			}
 		}
 		
 	}
@@ -535,6 +547,8 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 		
 		public final String filename;
 		public final int line;
+		
+		int lastRunId = -1;
 		public int count;
 		
 		public LoadHistogramEntry(String fn, int l) {

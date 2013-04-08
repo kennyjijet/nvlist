@@ -42,10 +42,14 @@ public class SaveHandler extends LuaSaveHandler implements Serializable {
 		es = new EnvironmentSerializable(this);
 
 		addAllowedPackages(
+			"nl.weeaboo.image",			//For ImageDesc (used by TexLoadParam)
+			"nl.weeaboo.game.resmgr",	//For DataHolder
 			"nl.weeaboo.gl",
-			"nl.weeaboo.gl.capture",
 			"nl.weeaboo.gl.shader",
-			"nl.weeaboo.gl.texture");
+			"nl.weeaboo.gl.tex",
+			"nl.weeaboo.gl.tex.loader",	//For TexLoadParam
+			"nl.weeaboo.gl.jogl"		//For JoglTextureData
+		);
 	}
 
 	//Functions

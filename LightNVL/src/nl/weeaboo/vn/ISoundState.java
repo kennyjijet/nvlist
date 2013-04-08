@@ -17,9 +17,18 @@ public interface ISoundState extends Serializable {
 	public void stopAll();
 	
 	/**
-	 * Stops the sound playing in the specified channel.
+	 * @see #stop(int, int) 
 	 */
 	public void stop(int channel);
+	
+	/**
+	 * Stops the sound playing in the specified channel.
+	 * 
+	 * @param channel The sound channel to stop.
+	 * @param fadeOutMillis Instead of stopping the sound immediately, fade it
+	 *        out slowly over the course of <code>fadeOutMillis</code>.
+	 */
+	public void stop(int channel, int fadeOutMillis);
 	
 	// === Getters =============================================================
 	

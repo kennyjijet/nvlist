@@ -209,20 +209,20 @@ public class Build {
 	
 	public List<Preference<?>> getBuildDefs() {
 		List<Preference<?>> result = new ArrayList<Preference<?>>();
-		getPropertyDefinitions(result, "nl.weeaboo.game.BuildConfig");
+		getPropertyDefinitions(result, "nl.weeaboo.game.desktop.BuildConfig");
 		return result;
 	}
 	public List<Preference<?>> getGameDefs() {
 		List<Preference<?>> result = new ArrayList<Preference<?>>();
-		getPropertyDefinitions(result, "nl.weeaboo.game.BaseGameConfig");
-		getPropertyDefinitions(result, "nl.weeaboo.game.GameUpdater");
+		getPropertyDefinitions(result, "nl.weeaboo.game.GameConfig");
+		getPropertyDefinitions(result, "nl.weeaboo.game.GameUpdaterPrefs");
 		getPropertyDefinitions(result, "nl.weeaboo.vn.NovelPrefs");
 		return result;
 	}
 	public List<Preference<?>> getPrefsDefaultDefs() {
 		List<Preference<?>> result = new ArrayList<Preference<?>>();
-		getPropertyDefinitions(result, "nl.weeaboo.game.BaseGameConfig");
-		getPropertyDefinitions(result, "nl.weeaboo.game.GameUpdater");
+		getPropertyDefinitions(result, "nl.weeaboo.game.GameConfig");
+		getPropertyDefinitions(result, "nl.weeaboo.game.GameUpdaterPrefs");
 		getPropertyDefinitions(result, "nl.weeaboo.vn.NovelPrefs");
 		return result;
 	}

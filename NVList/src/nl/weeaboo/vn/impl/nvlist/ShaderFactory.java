@@ -4,7 +4,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 import nl.weeaboo.gl.shader.GLShader;
-import nl.weeaboo.gl.shader.ShaderCache;
+import nl.weeaboo.gl.shader.IShaderStore;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IHardwarePS;
@@ -14,13 +14,13 @@ import nl.weeaboo.vn.impl.base.BaseShaderFactory;
 @LuaSerializable
 public class ShaderFactory extends BaseShaderFactory implements Serializable {
 	
-	private final ShaderCache shCache;
+	private final IShaderStore shStore;
 	private final EnvironmentSerializable es;
 	
-	public ShaderFactory(BaseNotifier ntf, ShaderCache sc) {
+	public ShaderFactory(BaseNotifier ntf, IShaderStore ss) {
 		super(ntf);
 		
-		shCache = sc;		
+		shStore = ss;		
 		es = new EnvironmentSerializable(this);
 	}
 	
@@ -42,12 +42,12 @@ public class ShaderFactory extends BaseShaderFactory implements Serializable {
 	
 	//Getters
 	public GLShader getGLShader(String filename) {
-		return shCache.get(filename);
+		return shStore.getShader(filename);
 	}
 
 	@Override
 	public String getGLSLVersion() {
-		return shCache.getGLSLVersion();
+		return shStore.getGLInfo().getGLSLVersion();
 	}
 	
 	//Setters

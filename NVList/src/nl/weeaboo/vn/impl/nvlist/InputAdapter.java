@@ -2,7 +2,7 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import java.awt.event.MouseEvent;
 
-import nl.weeaboo.game.input.UserInput;
+import nl.weeaboo.game.desktop.AWTUserInput;
 import nl.weeaboo.game.input.VKey;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
@@ -11,9 +11,9 @@ import nl.weeaboo.vn.IInput;
 @LuaSerializable
 public class InputAdapter extends EnvironmentSerializable implements IInput {
 
-	private final UserInput input;
+	private final AWTUserInput input;
 	
-	public InputAdapter(UserInput i) {
+	public InputAdapter(AWTUserInput i) {
 		input = i;
 	}
 	

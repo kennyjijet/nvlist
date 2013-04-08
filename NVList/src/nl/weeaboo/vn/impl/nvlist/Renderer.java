@@ -6,6 +6,9 @@ import static javax.media.opengl.GL.GL_TRIANGLE_STRIP;
 import static javax.media.opengl.fixedfunc.GLPointerFunc.GL_TEXTURE_COORD_ARRAY;
 import static javax.media.opengl.fixedfunc.GLPointerFunc.GL_VERTEX_ARRAY;
 
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 
@@ -13,13 +16,16 @@ import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.gl.GLBlendMode;
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.GLUtil;
 import nl.weeaboo.gl.SpriteBatch;
-import nl.weeaboo.gl.capture.GLScreenshot;
+import nl.weeaboo.gl.jogl.GLScreenshot;
+import nl.weeaboo.gl.jogl.JoglGLManager;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.GLTexture;
+import nl.weeaboo.gl.tex.GLWritableTexture;
 import nl.weeaboo.gl.text.ParagraphRenderer;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.GLTexture;
 import nl.weeaboo.io.BufferUtil;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
@@ -31,12 +37,9 @@ import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderCommand;
 import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseRenderer;
-import nl.weeaboo.vn.impl.base.CustomRenderCommand;
 import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
-
-import com.jogamp.common.nio.Buffers;
 
 public class Renderer extends BaseRenderer {
 
@@ -50,10 +53,13 @@ public class Renderer extends BaseRenderer {
 	private final DrawBuffer drawBuffer;
 	
 	//--- Properties only valid between renderBegin() and renderEnd() beneath this line ---
+	private GL2ES1 gl;
+	private GLDraw glDraw;
 	private int buffered;
 	private TextureAdapter quadTexture;
 	private SpriteBatch quadBatch;
 	private float[] tempFloat = new float[8]; //Temporary var
+	private volatile ByteBuffer triangleGridTemp;
 	//-------------------------------------------------------------------------------------
 	
 	public Renderer(GLManager glm, ParagraphRenderer pr, ImageFactory imgfac, RenderEnv env, RenderStats stats) {
@@ -80,16 +86,17 @@ public class Renderer extends BaseRenderer {
 	
 	@Override
 	protected void renderBegin() {
-		GL2ES1 gl = glm.getGL();
+		gl = JoglGLManager.getGL(glm);
+		glDraw = glm.getGLDraw();
 		
 		gl.glPushMatrix();
-		glm.pushBlendMode();
-		glm.pushColor();
+		glDraw.pushBlendMode();
+		glDraw.pushColor();
 		
 		gl.glEnable(GL2ES1.GL_SCISSOR_TEST);
-		glm.setTexture(null);
-		glm.setBlendMode(GLBlendMode.DEFAULT);
-		glm.setColor(0xFFFFFFFF);
+		glDraw.setTexture(null);
+		glDraw.setBlendMode(GLBlendMode.DEFAULT);
+		glDraw.setColor(0xFFFFFFFF);
 		
 		quadBatch.init(glm);
 		
@@ -99,22 +106,17 @@ public class Renderer extends BaseRenderer {
 	
 	@Override
 	protected void renderEnd() {
-		flushQuadBatch();
 		quadTexture = null;
 		
-		GL2ES1 gl = glm.getGL();
 		gl.glDisable(GL2ES1.GL_SCISSOR_TEST);
-		glm.setTexture(null, true);
-		glm.popBlendMode();
-		glm.popColor();
+		glDraw.setTexture(null, true);
+		glDraw.popBlendMode();
+		glDraw.popColor();
 		gl.glPopMatrix();		
 	}
 		
 	@Override
 	protected void setClip(boolean c) {
-		flushQuadBatch();
-
-		GL2ES1 gl = glm.getGL();
 		if (c) {
 			gl.glEnable(GL2ES1.GL_SCISSOR_TEST);
 		} else {
@@ -124,32 +126,30 @@ public class Renderer extends BaseRenderer {
 	
 	@Override
 	protected void setColor(int argb) {
-		glm.setColor(argb);
+		glDraw.setColor(argb);
 	}
 
 	@Override
 	protected void setBlendMode(BlendMode bm) {
-		flushQuadBatch();
-		
 		switch (bm) {
-		case DEFAULT: glm.setBlendMode(GLBlendMode.DEFAULT); break;
-		case ADD:     glm.setBlendMode(GLBlendMode.ADD); break;
-		case OPAQUE:  glm.setBlendMode(null); break;
+		case DEFAULT: glDraw.setBlendMode(GLBlendMode.DEFAULT); break;
+		case ADD:     glDraw.setBlendMode(GLBlendMode.ADD); break;
+		case OPAQUE:  glDraw.setBlendMode(null); break;
 		}
 	}	
 	
 	protected void renderSetTexture(ITexture tex) {
 		TextureAdapter ta = (TextureAdapter)tex;		
-		if (quadTexture != tex && (quadTexture == null || ta == null || quadTexture.getTexId() != ta.getTexId())) {
+		if (quadTexture != tex && (quadTexture == null || ta == null || quadTexture.glId() != ta.glId())) {
 			flushQuadBatch();
 		}
 		
 		quadTexture = ta;		
 		if (ta != null) {
-			ta.forceLoad(glm);
-			glm.setTexture(ta.getTexture());
+			ta.glTryLoad(glm);
+			glDraw.setTexture(ta.getTexture());
 		} else {
-			glm.setTexture(null);
+			glDraw.setTexture(null);
 		}		
 	}
 	
@@ -163,7 +163,7 @@ public class Renderer extends BaseRenderer {
 		double vh = uv.h;
 		if (itex != null) {
 			TextureAdapter ta = (TextureAdapter)itex;
-			if (ta.getTexId() != 0) {
+			if (ta.glId() != 0) {
 				Area2D texUV = ta.getUV();
 				u  = texUV.x + u * texUV.w;
 				v  = texUV.y + v * texUV.h;
@@ -187,10 +187,9 @@ public class Renderer extends BaseRenderer {
 	private void renderQuad(boolean allowBuffer, Matrix t, double x, double y, double w, double h,
 			double u, double v, double uw, double vh)
 	{
-		GL2ES1 gl = glm.getGL();		
 		if (t.hasShear()) {
 			if (allowBuffer) {
-				quadBatch.setColor(glm.getColor());
+				quadBatch.setColor(glDraw.getColor());
 
 				tempFloat[0] = tempFloat[6] = (float)(x  );
 				tempFloat[2] = tempFloat[4] = (float)(x+w);
@@ -206,7 +205,7 @@ public class Renderer extends BaseRenderer {
 			} else {
 				gl.glPushMatrix();		
 				gl.glMultMatrixf(t.toGLMatrix(), 0);
-				glm.fillRect(x, y, w, h, u, v, uw, vh);
+				glDraw.fillRect(x, y, w, h, u, v, uw, vh);
 				gl.glPopMatrix();
 			}
 		} else {
@@ -218,7 +217,7 @@ public class Renderer extends BaseRenderer {
 			h = h * sy;
 			
 			if (allowBuffer) {
-				quadBatch.setColor(glm.getColor());
+				quadBatch.setColor(glDraw.getColor());
 				quadBatch.draw((float)x, (float)y, (float)w, (float)h, (float)u, (float)v, (float)uw, (float)vh);
 
 				buffered++;				
@@ -226,7 +225,7 @@ public class Renderer extends BaseRenderer {
 					flushQuadBatch();
 				}
 			} else {			
-				glm.fillRect(x, y, w, h, u, v, uw, vh);
+				glDraw.fillRect(x, y, w, h, u, v, uw, vh);
 			}
 			
 			//System.out.printf("%.2f, %.2f, %.2f, %.2f\n", x, y, w, h);
@@ -236,20 +235,18 @@ public class Renderer extends BaseRenderer {
 	void renderText(GLManager glm, TextLayout layout, double x, double y,
 			int startLine, int endLine, double visibleChars, IPixelShader ps)
 	{
-		flushQuadBatch();
-		
 		if (ps != null) ps.preDraw(this);
 		
 		//GL2ES1 gl = glm.getGL();		
 		//gl.glPushMatrix();
 
-		glm.pushBlendMode();
-		glm.setBlendMode(GLBlendMode.DEFAULT);
+		glDraw.pushBlendMode();
+		glDraw.setBlendMode(GLBlendMode.DEFAULT);
 		pr.setLineOffset(startLine);
 		pr.setVisibleLines(endLine - startLine);
 		pr.setVisibleChars((float)visibleChars);
 		pr.drawLayout(glm, layout, Math.round((float)x), Math.round((float)y));
-		glm.popBlendMode();
+		glDraw.popBlendMode();
 		
 		//gl.glPopMatrix();
 		
@@ -258,18 +255,16 @@ public class Renderer extends BaseRenderer {
 	
 	@Override
 	public void renderScreenshot(IScreenshot out, Rect glScreenRect) {
-		flushQuadBatch();
-		
 		Screenshot ss = (Screenshot)out;
 		
 		if (ss.isVolatile()) {
-			GL gl = glm.getGL();
-			GLGeneratedTexture glTex = imgfac.createGLTexture(null, glScreenRect.w, glScreenRect.h, 0, 0, 0);
-			glTex.forceLoad(glm);
-			GLTexRect glTexRect = glTex.getTexRect(GLTexture.TEXRECT_FLIPPED) ;
+			GLWritableTexture glTex = imgfac.createGLTexture(glScreenRect.w, glScreenRect.h, 0, 0, 0, 0);
+			glTex = glTex.glTryLoad(glm);
+			GLTexRect glTexRect = glTex.getSubRect(GLUtil.TEXRECT_FLIPPED) ;
 
+			glDraw.setTexture(glTex);
 			gl.glCopyTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, glScreenRect.x, glScreenRect.y,
-					glTex.getCropWidth(), glTex.getCropHeight());
+					glScreenRect.w, glScreenRect.h);
 			
 			ITexture tex = imgfac.createTexture(glTexRect, env.vw / (double)env.rw, env.vh / (double)env.rh);
 			
@@ -284,11 +279,9 @@ public class Renderer extends BaseRenderer {
 	
 	@Override
 	public void renderBlendQuad(ITexture tex0, double alignX0, double alignY0, ITexture tex1, double alignX1,
-			double alignY1, double frac, Matrix transform, IPixelShader ps)
+			double alignY1, double frac, Area2D uv, Matrix transform, IPixelShader ps)
 	{
-		flushQuadBatch();
-		
-		blendQuadRenderer.renderBlendQuad(tex0, alignX0, alignY0, tex1, alignX1, alignY1, frac, transform, ps);
+		blendQuadRenderer.renderBlendQuad(tex0, alignX0, alignY0, tex1, alignX1, alignY1, frac, uv, transform, ps);
 	}
 
 	@Override
@@ -296,8 +289,6 @@ public class Renderer extends BaseRenderer {
 			Area2D bounds, Area2D uv, IPixelShader ps,
 			int dir, boolean fadeIn, double span, double frac)
 	{
-		flushQuadBatch();
-
 		fadeQuadRenderer.renderFadeQuad(tex, transform, color0, color1, bounds, uv,
 				ps, dir, fadeIn, span, frac);
 	}
@@ -307,31 +298,51 @@ public class Renderer extends BaseRenderer {
 			Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds)
 	{
-		flushQuadBatch();
-
 		distortQuadRenderer.renderDistortQuad(tex, transform, argb, bounds, uv,
 				ps, grid, clampBounds);
 	}
 	
 	@Override
 	public void renderTriangleGrid(TriangleGrid grid) {
-		flushQuadBatch();
-
-		GL2ES1 gl = glm.getGL();
+		final int rows = grid.getRows();
+		final int cols = grid.getCols();
+		final int texCount = grid.getTextures();
+		final int verticesPerRow = cols * 2;
+		
+		//Reuse a single buffer, garbage collecting them is very, very slow.
+		int vertBytes = verticesPerRow * 2 * 4;
+		int texcoordBytes = verticesPerRow * 2 * 4;
+		int requiredBytes = vertBytes + texCount * texcoordBytes;
+		if (triangleGridTemp == null || triangleGridTemp.limit() < requiredBytes) {
+			triangleGridTemp = GLUtil.newDirectByteBuffer(requiredBytes);
+		}
+				
+		//Make sure the buffers can't be garbage collected while OpenGL is using it.
+		final ByteBuffer raw = triangleGridTemp;
+		FloatBuffer posBuffer = GLUtil.sliceBuffer(raw, 0, vertBytes).asFloatBuffer();
+		FloatBuffer[] texBuffers = new FloatBuffer[texCount];
+		for (int n = 0; n < texBuffers.length; n++) {
+			texBuffers[n] = GLUtil.sliceBuffer(raw, vertBytes + n * texcoordBytes, texcoordBytes).asFloatBuffer();
+		}
+		
 		gl.glEnableClientState(GL_VERTEX_ARRAY);
-		for (int n = 0; n < grid.getTextures(); n++) {
-			gl.glClientActiveTexture(GL_TEXTURE0 + n);
+		for (int t = 0; t < texCount; t++) {
+			gl.glClientActiveTexture(GL_TEXTURE0 + t);
 			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-		for (int row = 0; row < grid.getRows(); row++) {
-			gl.glVertexPointer(2, GL_FLOAT, 0, Buffers.copyFloatBuffer(grid.getPos(row)));
-			for (int n = 0; n < grid.getTextures(); n++) {
-				gl.glClientActiveTexture(GL_TEXTURE0 + n);
-			    gl.glTexCoordPointer(2, GL_FLOAT, 0, Buffers.copyFloatBuffer(grid.getTex(n, row)));
+		}		
+		for (int row = 0; row < rows; row++) {
+			grid.getVertices(posBuffer, row);
+			posBuffer.rewind();
+			gl.glVertexPointer(2, GL_FLOAT, 0, posBuffer);
+			for (int t = 0; t < texCount; t++) {
+				grid.getTexCoords(texBuffers[t], t, row);
+				texBuffers[t].rewind();
+				gl.glClientActiveTexture(GL_TEXTURE0 + t);
+			    gl.glTexCoordPointer(2, GL_FLOAT, 0, texBuffers[t]);
 			}
-		    gl.glDrawArrays(GL_TRIANGLE_STRIP, 0, grid.getVertexCount(row));
+		    gl.glDrawArrays(GL_TRIANGLE_STRIP, 0, verticesPerRow);
 		}
-		for (int n = grid.getTextures()-1; n >= 0; n--) {
+		for (int n = texCount-1; n >= 0; n--) {
 			gl.glClientActiveTexture(GL_TEXTURE0 + n);
 			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
@@ -339,16 +350,7 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	@Override
-	protected void renderCustom(CustomRenderCommand cmd) {		
-		flushQuadBatch();
-		
-		super.renderCustom(cmd);
-	}
-	
-	@Override
 	protected boolean renderUnknownCommand(RenderCommand cmd) {
-		flushQuadBatch();
-
 		if (cmd.id == RenderTextCommand.id) {
 			RenderTextCommand rtc = (RenderTextCommand)cmd;
 			renderText(glm, rtc.textLayout, rtc.x, rtc.y,
@@ -358,16 +360,18 @@ public class Renderer extends BaseRenderer {
 		return false;
 	}
 	
-	private void flushQuadBatch() {
+	@Override
+	protected void flushQuadBatch() {
 		if (buffered > 0) {
 			GLTexture qtex = (quadTexture != null ? ((TextureAdapter)quadTexture).getTexture() : null);
-			GLTexture cur = glm.getTexture();
+			GLTexture cur = glDraw.getTexture();
 			if (qtex != cur) {
-				glm.setTexture(qtex);
-				quadBatch.flush(glm.getGL());
-				glm.setTexture(cur);			
+				qtex = qtex.glTryLoad(glm);
+				glDraw.setTexture(qtex);
+				quadBatch.flush(glm);
+				glDraw.setTexture(cur);			
 			} else {
-				quadBatch.flush(glm.getGL());
+				quadBatch.flush(glm);
 			}
 			
 			if (renderStats != null) {
@@ -377,20 +381,15 @@ public class Renderer extends BaseRenderer {
 		}		
 		quadTexture = null;
 	}
-	
+		
 	@Override
 	protected void setClipRect(Rect glRect) {
-		flushQuadBatch();
-
-		GL2ES1 gl = glm.getGL();
 		gl.glScissor(glRect.x, glRect.y, glRect.w, glRect.h);
 	}
 	
 	@Override
 	protected void translate(double dx, double dy) {
-		flushQuadBatch();
-
-		glm.translate(dx, dy);
+		glDraw.translate(dx, dy);
 	}
 	
 	//Getters	

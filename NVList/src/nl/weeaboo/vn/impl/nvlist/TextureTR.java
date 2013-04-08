@@ -7,11 +7,12 @@ import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
 
 import nl.weeaboo.awt.ImageUtil;
-import nl.weeaboo.gl.text.AWTParagraphRenderer;
+import nl.weeaboo.game.desktop.AWTParagraphRenderer;
+import nl.weeaboo.gl.tex.GLWritableTexture;
 import nl.weeaboo.gl.text.GlyphManager;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.textlayout.LineElement;
+import nl.weeaboo.textlayout.ParagraphLayouter;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.TextureTextRenderer;
@@ -43,7 +44,7 @@ public class TextureTR extends TextureTextRenderer<TextLayout> {
 
 	@Override
 	protected ITexture createTexture(int w, int h, float sx, float sy) {
-		GLGeneratedTexture inner = imgfac.createGLTexture(null, w, h, 0, 0, 0);
+		GLWritableTexture inner = imgfac.createGLTexture(w, h, 0, 0, 0, 0);
 		return imgfac.createTexture(inner, sx, sy);
 	}
 	
@@ -80,7 +81,7 @@ public class TextureTR extends TextureTextRenderer<TextLayout> {
 		final double visibleChars = getVisibleChars();
 		
 		TextureAdapter ta = (TextureAdapter)tex;
-		GLGeneratedTexture inner = (GLGeneratedTexture)ta.getTexture();
+		GLWritableTexture inner = (GLWritableTexture)ta.getTexture();
 		final int tw = inner.getTexWidth();
 		final int th = inner.getTexHeight();
 
@@ -93,7 +94,7 @@ public class TextureTR extends TextureTextRenderer<TextLayout> {
 		
 		double offsetX = (isRightToLeft() ? -getLayoutTrailing(sl, el) : -getLayoutLeading(sl, el));
 		
-		AWTParagraphRenderer pr = glyphManager.createAWTParagraphRenderer();
+		AWTParagraphRenderer pr = newAWTParagraphRenderer();
 		pr.setBounds(offsetX, 0, getLayoutMaxWidth(), getLayoutMaxHeight());
 		pr.setLineOffset(sl);
 		pr.setVisibleLines(el - sl);
@@ -106,15 +107,19 @@ public class TextureTR extends TextureTextRenderer<TextLayout> {
 		
 		IntBuffer pixels = getTempPixels(tw * th);
 		ImageUtil.getPixelsPre(image, pixels, 0, tw);
-		inner.setARGB(pixels);
+		inner.setPixels(imgfac.newARGB8TextureData(pixels, tw, th));
 	}
 
 	@Override
 	protected TextLayout createLayout(float width, float height) {
-		AWTParagraphRenderer pr = glyphManager.createAWTParagraphRenderer();
+		AWTParagraphRenderer pr = newAWTParagraphRenderer();
 		pr.setRightToLeft(isRightToLeft());
 		pr.setDefaultStyle(pr.getDefaultStyle().extend(getDefaultStyle()));
 		return pr.getLayout(getText(), (float)width);
+	}
+	
+	protected AWTParagraphRenderer newAWTParagraphRenderer() {
+		return new AWTParagraphRenderer(glyphManager, new ParagraphLayouter());
 	}
 			
 	@Override

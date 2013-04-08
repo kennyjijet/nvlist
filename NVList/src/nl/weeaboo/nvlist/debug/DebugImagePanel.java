@@ -37,8 +37,9 @@ import javax.swing.tree.TreePath;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.ScaleUtil;
 import nl.weeaboo.game.GameLog;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.TextureException;
+import nl.weeaboo.gl.jogl.JoglTextureData;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.TextureException;
 import nl.weeaboo.vn.IButtonDrawable;
 import nl.weeaboo.vn.IDrawable;
 import nl.weeaboo.vn.IImageDrawable;
@@ -356,7 +357,7 @@ public class DebugImagePanel extends JPanel {
 				if (tr != null) {
 					synchronized (lock) {
 						try {
-							icon = tr.toBufferedImage();
+							icon = JoglTextureData.toBufferedImage(tr);
 						} catch (TextureException e) {
 							GameLog.w("Error getting pixels from texture", e);
 						} catch (RuntimeException e) {

@@ -61,7 +61,7 @@ public class DebugOutputPanel extends JPanel {
 	//Functions
 	private void addLoggerHandler() {
 		try {
-			Logger logger = GameLog.getLogger();
+			Logger logger = GameLog.getInstance();
 			logger.addHandler(logHandler);
 		} catch (SecurityException se) {
 			//Ignore
@@ -70,7 +70,7 @@ public class DebugOutputPanel extends JPanel {
 	
 	private void removeLoggerHandler() {
 		try {
-			Logger logger = GameLog.getLogger();
+			Logger logger = GameLog.getInstance();
 			logger.removeHandler(logHandler);
 		} catch (SecurityException se) {
 			//Ignore

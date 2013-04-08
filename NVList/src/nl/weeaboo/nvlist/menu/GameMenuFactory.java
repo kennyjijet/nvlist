@@ -20,7 +20,7 @@ import javax.swing.KeyStroke;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 import nl.weeaboo.game.GameLog;
-import nl.weeaboo.game.GameUpdater;
+import nl.weeaboo.game.GameUpdaterPrefs;
 import nl.weeaboo.game.IGameDisplay;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.nvlist.debug.BugReportPanel;
@@ -90,7 +90,7 @@ public class GameMenuFactory {
 					synchronized (game) {						
 						Novel novel = game.getNovel();
 						IConfig config = game.getConfig();
-						int versionCode = config.get(GameUpdater.UPDATE_VERSION_CODE);
+						int versionCode = config.get(GameUpdaterPrefs.UPDATE_VERSION_CODE);
 						
 						BugReportPanel panel = new BugReportPanel();
 						panel.setFilename(novel.getCurrentCallSite());

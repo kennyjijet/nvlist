@@ -59,8 +59,9 @@ public final class LuaMediaPreloader extends EnvironmentSerializable implements 
 			int nextLine = ParserUtil.getSrclocLine(callSite) + 1;
 			
 			List<MediaFile> future = new ArrayList<MediaFile>(8);
-			getBranchingFutureMedia(future, script, nextLine, nextLine + lookAhead, 0f,
-					10 * maxItemsPerLine); 
+			getBranchingFutureMedia(future, script, nextLine, nextLine + lookAhead, 0f, 10 * maxItemsPerLine);
+			
+			//System.out.println("--- " + script + ":" + nextLine + "-" + (nextLine+lookAhead) + " (" + maxItemsPerLine + ")");
 			
 			int t = 0;
 			for (MediaFile mf : future) {
@@ -144,6 +145,7 @@ public final class LuaMediaPreloader extends EnvironmentSerializable implements 
 		//System.out.println("-branch: " + filename + ":" + startLine + "-" + endLine + " off=" + baseDistance);
 		for (MediaFile mf : getFutureMedia(filename, startLine, endLine, minProbability)) {
 			out.add(new RelativeMediaFile(mf.getLine() - startLine + baseDistance, mf));
+			//System.out.println(mf);
 		}
 	}
 	

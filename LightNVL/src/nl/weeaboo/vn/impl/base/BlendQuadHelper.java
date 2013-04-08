@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl.base;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IRenderer;
@@ -19,7 +20,7 @@ public abstract class BlendQuadHelper {
 	public void renderBlendQuad(
 			ITexture tex0, double alignX0, double alignY0,
 			ITexture tex1, double alignX1, double alignY1,
-			double frac, Matrix transform, IPixelShader ps)
+			double frac, Area2D uv, Matrix transform, IPixelShader ps)
 	{
 		float f = 1f - (float)frac;
 
@@ -35,16 +36,16 @@ public abstract class BlendQuadHelper {
 			if (drawTex0) {
 				if (drawTex1) {
 					//renderQuad(tex0, transform, toARGB(1, 1, 1, f), bounds0);
-					renderQuad(tex0, transform, toARGB(1, 1, 1, 1), bounds0); //This will draw the old image fully opaque under the new one, but prevents the background from showing through mid-blend.
-					renderQuad(tex1, transform, toARGB(1, 1, 1, 1-f), bounds1);
+					renderQuad(tex0, uv, transform, toARGB(1, 1, 1, 1), bounds0); //This will draw the old image fully opaque under the new one, but prevents the background from showing through mid-blend.
+					renderQuad(tex1, uv, transform, toARGB(1, 1, 1, 1-f), bounds1);
 				} else {
-					renderQuad(tex0, transform, toARGB(1, 1, 1, f), bounds0);
+					renderQuad(tex0, uv, transform, toARGB(1, 1, 1, f), bounds0);
 				}
 			} else if (drawTex1) {
-				renderQuad(tex1, transform, toARGB(1, 1, 1, 1-f), bounds1);
+				renderQuad(tex1, uv, transform, toARGB(1, 1, 1, 1-f), bounds1);
 			}
 		} else {
-			renderMultitextured(tex0, bounds0, tex1, bounds1, transform, f);
+			renderMultitextured(tex0, bounds0, tex1, bounds1, uv, transform, f);
 		}
 	
 		if (ps != null) ps.postDraw(renderer);
@@ -59,10 +60,10 @@ public abstract class BlendQuadHelper {
 		return ai | ri | gi | bi;
 	}
 	
-	protected abstract void renderQuad(ITexture tex, Matrix transform, int mixColorARGB, Rect2D bounds);
+	protected abstract void renderQuad(ITexture tex, Area2D uv, Matrix transform, int mixColorARGB, Rect2D bounds);
 	
 	protected abstract void renderMultitextured(ITexture tex0, Rect2D bounds0,
-			ITexture tex1, Rect2D bounds1, Matrix transform, float tex0Factor);
+			ITexture tex1, Rect2D bounds1, Area2D uv, Matrix transform, float tex0Factor);
 	
 	//Getters
 	protected abstract boolean isFallbackRequired();

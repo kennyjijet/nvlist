@@ -534,7 +534,11 @@ public abstract class LuaNovel extends BaseNovel {
 			if (loadResult.arg1() == LuaValue.NIL) {
 				onScriptError(new LuaException("Error loading script: " + loadResult.arg(2)));
 			} else {
-				loadResult.arg1().invoke();
+				try {
+					loadResult.arg1().invoke();
+				} catch (LuaError le) {
+					onScriptError(le);
+				}
 			}
 		}
 		

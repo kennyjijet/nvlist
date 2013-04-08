@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.PRELOAD_GL_TEXTURES;
+import static nl.weeaboo.game.GameConfig.PRELOAD_GL_TEXTURES;
 
 import java.awt.event.ActionEvent;
 

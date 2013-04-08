@@ -14,13 +14,13 @@ import javax.jnlp.FileContents;
 import javax.jnlp.FileSaveService;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import nl.weeaboo.awt.ImageUtil;
 import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.game.GameLog;
+import nl.weeaboo.game.IGame;
 import nl.weeaboo.io.ByteChunkOutputStream;
 import nl.weeaboo.io.FileUtil;
 import nl.weeaboo.jnlp.JnlpUtil;
@@ -79,7 +79,7 @@ public class ScreenshotItem extends GameMenuAction {
 	public void actionPerformed(JMenuItem item, ActionEvent e, final Game game, Novel nvl) {
 		final IScreenshot ss = nvl.getImageFactory().screenshot(Short.MIN_VALUE, false);
 		nvl.getImageState().getRootLayer().getScreenshotBuffer().add(ss, false);
-		waitForScreenshot(game.getExecutor(), ss);
+		waitForScreenshot(game.getExecutor(), game, ss);
 	}
 
 	private static byte[] serializeImage(IScreenshot ss, Format format) throws IOException {
@@ -106,13 +106,13 @@ public class ScreenshotItem extends GameMenuAction {
 	 * Called on the event-dispatch thread
 	 * @param ss A valid screenshot 
 	 */
-	protected void onScreenshotTaken(final IScreenshot ss) {
+	protected void onScreenshotTaken(final IGame game, final IScreenshot ss) {
 		final String folder = "";
 		final String filename = "screenshot.png";
 		
-		FileSaveService fss = JnlpUtil.getFileSaveService();
+		final FileSaveService fss = JnlpUtil.getFileSaveService();
 		if (fss != null) {
-			Format fmt = Format.PNG;
+			final Format fmt = Format.PNG;
 			
 			byte[] bytes = null;
 			try {
@@ -121,22 +121,23 @@ public class ScreenshotItem extends GameMenuAction {
 				GameLog.e("Error saving screenshot", ioe);
 				return;
 			}
+			final byte[] finalBytes = bytes;
 			
-			FileContents fc = null;
-			try {
-				fc = fss.saveFileDialog(folder, new String[] {fmt.fext}, new ByteArrayInputStream(bytes), filename);
-			} catch (IOException ioe) {
-				GameLog.w("Error saving screenshot", ioe);
-				return;
-			}
-			
-			if (fc == null) {
-				return;
-			}
-
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					showSuccessDialog();
+					FileContents fc = null;
+					try {
+						fc = fss.saveFileDialog(folder, new String[] {fmt.fext}, new ByteArrayInputStream(finalBytes), filename);
+					} catch (IOException ioe) {
+						GameLog.w("Error saving screenshot", ioe);
+						return;
+					}
+					
+					if (fc == null) {
+						return;
+					}
+					
+					showSuccessDialog(game);
 				}
 			});
 		} else {
@@ -170,7 +171,7 @@ public class ScreenshotItem extends GameMenuAction {
 						//System.out.println(format);
 						byte[] bytes = serializeImage(ss, format);
 						FileUtil.writeBytes(file, new ByteArrayInputStream(bytes));
-						showSuccessDialog();
+						showSuccessDialog(game);
 					} catch (IOException ioe) {
 						GameLog.w("Error saving screenshot", ioe);
 					}
@@ -179,12 +180,14 @@ public class ScreenshotItem extends GameMenuAction {
 		}
 	}
 	
-	protected void showSuccessDialog() {
-		JOptionPane.showMessageDialog(null, "Image saved successfully",
-				"Screenshot Saved", JOptionPane.PLAIN_MESSAGE);		
+	protected void showSuccessDialog(IGame game) {
+		synchronized (game) {
+			game.getNotifier().addMessage(this, "Screenshot saved successfully");
+		}
+		//JOptionPane.showMessageDialog(null, "Image saved successfully", "Screenshot Saved", JOptionPane.PLAIN_MESSAGE);		
 	}
 	
-	protected void waitForScreenshot(ExecutorService exec, final IScreenshot ss) {
+	protected void waitForScreenshot(ExecutorService exec, final IGame game, final IScreenshot ss) {
 		exec.execute(new Runnable() {
 			public void run() {
 				//Wait for screenshot
@@ -196,8 +199,10 @@ public class ScreenshotItem extends GameMenuAction {
 					}
 				}
 				
-				if (ss.isAvailable()) {
-					onScreenshotTaken(ss);
+				synchronized (game) {
+					if (ss.isAvailable()) {
+						onScreenshotTaken(game, ss);
+					}
 				}
 			}
 		});		

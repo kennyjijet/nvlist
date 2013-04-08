@@ -6,7 +6,9 @@ import java.nio.IntBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.DistortQuadHelper;
 import nl.weeaboo.vn.math.Matrix;
@@ -25,14 +27,15 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 	@Override
 	protected void preRender(ITexture tex, Matrix transform) {
 		GLManager glm = renderer.getGLManager();
-		GL2ES1 gl = glm.getGL();
+		GLDraw glDraw = glm.getGLDraw();
+		GL2ES1 gl = JoglGLManager.getGL(glm);
 
 		if (tex != null) {
 			TextureAdapter ta = (TextureAdapter)tex;
-			ta.forceLoad(glm);
-			glm.setTexture(ta.getTexture());
+			ta.glTryLoad(glm);
+			glDraw.setTexture(ta.getTexture());
 		} else {
-			glm.setTexture(null);
+			glDraw.setTexture(null);
 		}
 		
 		gl.glPushMatrix();		
@@ -46,7 +49,7 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 	@Override
 	protected void renderStrip(FloatBuffer vertices, FloatBuffer texcoords, IntBuffer colors, int count) {        
 		GLManager glm = renderer.getGLManager();
-		GL2ES1 gl = glm.getGL();
+		GL2ES1 gl = JoglGLManager.getGL(glm);
 
 		gl.glVertexPointer(2, GL.GL_FLOAT, 0, vertices);
         gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, texcoords);
@@ -57,7 +60,7 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 	@Override
 	protected void postRender() {
 		GLManager glm = renderer.getGLManager();
-		GL2ES1 gl = glm.getGL();
+		GL2ES1 gl = JoglGLManager.getGL(glm);
 
 		gl.glDisableClientState(GL2ES1.GL_VERTEX_ARRAY);	        
         gl.glDisableClientState(GL2ES1.GL_TEXTURE_COORD_ARRAY);	        

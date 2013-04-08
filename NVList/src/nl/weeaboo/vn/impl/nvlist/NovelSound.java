@@ -59,9 +59,12 @@ public final class NovelSound extends BaseSound {
 	}
 
 	@Override
-	protected void _stop() {
+	protected void _stop(int fadeTimeMillis) {
 		if (sound != null) {
-			sound.stop(soundFactory.getFadeTimeMillis(getSoundType(), false));
+			if (fadeTimeMillis < 0) {
+				fadeTimeMillis = soundFactory.getFadeTimeMillis(getSoundType(), false);
+			}						
+			sound.stop(fadeTimeMillis);
 			checkSoundException();
 		}
 	}

@@ -8,8 +8,9 @@ import nl.weeaboo.awt.ImageUtil;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.game.GameLog;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.TextureException;
+import nl.weeaboo.gl.jogl.JoglTextureData;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.TextureException;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IImageFactory;
@@ -51,7 +52,7 @@ public class ImageFxLib extends BaseImageFxLib {
 			GLTexRect tr = adapter.getTexRect();
 			if (tr != null) {
 				try {
-					BufferedImage image = tr.toBufferedImage(r);
+					BufferedImage image = JoglTextureData.toBufferedImage(tr);
 					int[] argb = new int[image.getWidth() * image.getHeight()];
 					ImageUtil.getPixelsPre(image, IntBuffer.wrap(argb), 0, image.getWidth());
 					return new Bitmap(argb, image.getWidth(), image.getHeight());

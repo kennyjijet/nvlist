@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 
 local function tex2(path, suppressErrors, ...)
-	return tex(path, true, ...) or tex("_std/" .. path, suppressErrors, ...)
+	return tex(path, true, ...) or tex("builtin/" .. path, suppressErrors, ...)
 end
 local function img2(path, ...)
 	return img(tex2(path), ...)
@@ -15,7 +15,7 @@ local function button2(path, ...)
 	if t == nil then
 		t = tex(path .. "normal", true)
 		if t == nil then
-			path = "_std/" .. path
+			path = "builtin/" .. path
 		end
 	end
 	return button(path, ...)

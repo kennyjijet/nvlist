@@ -21,6 +21,7 @@ import javax.swing.border.EmptyBorder;
 
 import nl.weeaboo.awt.AwtUtil;
 import nl.weeaboo.awt.FileBrowseField;
+import nl.weeaboo.awt.MessageBox;
 import nl.weeaboo.awt.ProgressDialog;
 import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.io.DefaultFileCopyListener;
@@ -113,15 +114,20 @@ public class BuildGUI extends LogoPanel {
 				
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				JFrame frame = new JFrame("NVList Build Config");
+				final JFrame frame = new JFrame("NVList Build Config");
 				//frame.setResizable(false);
+				frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 				frame.setMinimumSize(new Dimension(700, 350));
-				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				frame.add(buildGui, BorderLayout.CENTER);
 				frame.pack();
 				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
 				frame.addWindowListener(new WindowAdapter() {
+					public void windowClosing(WindowEvent event) {
+						if (buildGui.askDispose()) {						
+							frame.dispose();
+						}
+					}
 					public void windowClosed(WindowEvent event) {
 						try {
 							buildGui.saveSettings();
@@ -135,6 +141,22 @@ public class BuildGUI extends LogoPanel {
 				buildGui.createBuild(buildGui.engineBrowseField.getFile(), buildGui.projectBrowseField.getFile());
 			}
 		});
+	}
+	
+	public boolean askDispose() {
+		if (buildCommandPanel.isBusy()) {
+			MessageBox mbox = new MessageBox("Confirm Exit", "A build operation is still running in the background.");
+			int leave = mbox.addOption("Exit anyway", "Keep the build operation running in the background and exit anyway.");
+			mbox.addButton("Cancel", "Cancel the close operation.");
+			int r = mbox.showMessage(this);
+			if (r == leave) {
+				//Continue
+			} else {
+				return false; //Cancel
+			}			
+		}
+		
+		return true;
 	}
 	
 	public boolean askCreateProject(File projectFolder) {

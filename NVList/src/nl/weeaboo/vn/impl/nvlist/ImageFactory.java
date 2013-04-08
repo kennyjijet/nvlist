@@ -1,21 +1,29 @@
 package nl.weeaboo.vn.impl.nvlist;
 
+import static nl.weeaboo.gl.GLConstants.GL_LUMINANCE;
+import static nl.weeaboo.gl.GLConstants.GL_LUMINANCE16;
+import static nl.weeaboo.gl.GLConstants.GL_UNSIGNED_SHORT;
+
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import nl.weeaboo.gl.GLInfo;
+import nl.weeaboo.gl.jogl.JoglTextureData;
+import nl.weeaboo.gl.jogl.JoglTextureStore;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.GLTexture;
+import nl.weeaboo.gl.tex.GLWritableTexture;
+import nl.weeaboo.gl.tex.ITextureData;
+import nl.weeaboo.gl.tex.MipmapData;
 import nl.weeaboo.gl.text.GlyphManager;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.GLTexture;
-import nl.weeaboo.gl.texture.TextureCache;
-import nl.weeaboo.gl.texture.TextureData;
-import nl.weeaboo.gl.texture.loader.ImageFormatException;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IAnalytics;
@@ -33,7 +41,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 
 	private final EnvironmentSerializable es;
 	private final IAnalytics analytics;
-	private final TextureCache texCache;
+	private final JoglTextureStore texStore;
 	private final GlyphManager glyphManager;
 	private final boolean renderTextToTexture;
 	
@@ -41,13 +49,13 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	private boolean isTextRightToLeft;
 	
-	public ImageFactory(TextureCache tc, GlyphManager gman,
+	public ImageFactory(JoglTextureStore ts, GlyphManager gman,
 			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
 	{
 		super(sl, ntf, w, h);
 		
 		this.analytics = an;
-		this.texCache = tc;
+		this.texStore = ts;
 		this.glyphManager = gman;		
 		this.imgWidth = w;
 		this.imgHeight = h;
@@ -65,7 +73,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	
 	@Override
 	protected void preloadNormalized(String filename) {
-		texCache.preload(filename, false);
+		texStore.preload(filename, false);
 	}
 		
 	@Override
@@ -99,20 +107,8 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		return new Screenshot(z, isVolatile);
 	}
 	
-	@Override
-	public ITexture createTexture(int[] argb, int w, int h, double sx, double sy) {
-		if (w <= subTexLim && h <= subTexLim) {
-			return createTexture(createGLTexRect(argb, w, h), sx, sy);
-		} else {
-			return createTexture(createGLTexture(argb, w, h, 0, 0, 0), sx, sy);
-		}
-	}
-		
 	public ITexture createTexture(GLTexture tex, double sx, double sy) {
-		if (tex == null) {
-			return null;
-		}
-		return createTexture(tex.getTexRect(null), sx, sy);
+		return createTexture(tex != null ? tex.getSubRect(null) : null, sx, sy);
 	}
 
 	public ITexture createTexture(GLTexRect tr, double sx, double sy) {
@@ -126,18 +122,35 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		return ta;
 	}
 	
-	public GLGeneratedTexture createGLTexture(int[] argb, int w, int h,
-			int glMinFilter, int glMagFilter, int glWrap)
-	{	
-		return texCache.newTexture(argb, w, h, glMinFilter, glMagFilter, glWrap);		
+	@Override
+	public ITexture createTexture(int[] argb, int w, int h, double sx, double sy) {
+		if (w <= subTexLim && h <= subTexLim) {
+			return createTexture(createGLTexRect(argb, w, h), sx, sy);
+		} else {
+			GLWritableTexture tex = createGLTexture(w, h, 0, 0, 0, 0);
+			if (argb != null) {
+				tex.setPixels(texStore.newARGB8TextureData(argb, w, h));
+			}
+			return createTexture(tex, sx, sy);
+		}
 	}
 	
+	public GLWritableTexture createGLTexture(int w, int h, int minF, int magF, int wrapS, int wrapT) {
+		return texStore.newWritableTexture(w, h, 0, 0, 0, 0);
+	}
 	public GLTexRect createGLTexRect(int[] argb, int w, int h) {
-		return texCache.newTexRect(argb, w, h, false);
-	}
+		return texStore.newTexRect(argb, w, h);
+	}	
 	
-	public TextureData createTextureData(BufferedImage image) throws ImageFormatException {
-		return texCache.newTextureData(image);
+	public ITextureData newARGB8TextureData(IntBuffer argb, int w, int h) {
+		return texStore.newARGB8TextureData(argb, true, w, h);
+	}
+	public ITextureData newGray16TextureData(Buffer buf, int w, int h) {
+		MipmapData mdata = new MipmapData(texStore, buf, w * 2);
+		int ifmt = GL_LUMINANCE16;
+		int fmt = GL_LUMINANCE;
+		int glType = GL_UNSIGNED_SHORT;
+		return new JoglTextureData(w, h, ifmt, fmt, glType, texStore, Arrays.asList(mdata));		
 	}
 	
 	//Getters
@@ -145,7 +158,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	protected boolean isValidFilename(String id) {
 		if (id == null) return false;
 		
-		return texCache.getImageExists(id);
+		return texStore.isValidTexRect(id);
 	}
 
 	public GLTexRect getTexRect(String filename, String[] luaStack) {
@@ -160,12 +173,12 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		long loadNanos = 0L;
 		
 		GLTexRect tr;
-		if (!texCache.isLoaded(normalized)) {
+		if (!texStore.isLoaded(normalized)) {
 			long t0 = System.nanoTime();			
-			tr = texCache.get(normalized);
+			tr = texStore.getTexRect(normalized);
 			loadNanos = System.nanoTime() - t0;			
 		} else {
-			tr = texCache.get(normalized);
+			tr = texStore.getTexRect(normalized);
 		}
 		
 		if (tr != null) {
@@ -188,27 +201,23 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 		//	return null;
 		//}
 		
-		ImageTextureAdapter ita = new ImageTextureAdapter(this, normalized);
+		TextureAdapter ta = new ImageTextureAdapter(this, normalized);
 		double scale = getImageScale();
-		ita.setTexRect(tr, scale, scale);
-		return ita;
+		ta.setTexRect(tr, scale, scale);
+		return ta;
 	}
 		
-	public BufferedImage getBufferedImage(String filename) throws IOException {
+	public BufferedImage readBufferedImage(String filename) throws IOException {
 		String normalized = normalizeFilename(filename);
 		if (normalized == null) {
 			throw new FileNotFoundException(filename);
 		}
 		
-		try {
-			return texCache.loadBufferedImage(normalized);
-		} catch (ImageFormatException e) {
-			throw new IOException("Unsupported image format: " + filename, e);
-		}
+		return texStore.readBufferedImage(normalized);
 	}
 		
 	public boolean isGLExtensionAvailable(String ext) {
-		GLInfo info = texCache.getGLInfo();
+		GLInfo info = texStore.getGLInfo();
 		return info != null && info.isExtensionAvailable(ext);
 	}
 
@@ -216,7 +225,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	protected List<String> getFiles(String folder) {
 		List<String> out = new ArrayList<String>();
 		try {
-			texCache.getImageFiles(out, folder, true);
+			texStore.getFiles(out, folder, true);
 		} catch (IOException e) {
 			notifier.d("Folder doesn't exist or can't be read: " + folder, e);
 		}

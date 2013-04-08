@@ -1,19 +1,25 @@
 package nl.weeaboo.vn.impl.nvlist;
 
+import static nl.weeaboo.gl.GLConstants.GL_NEAREST;
+
 import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.ScaleUtil;
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.gl.shader.GLShader;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.GLTexture;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.GLTexture;
+import nl.weeaboo.gl.tex.GLWritableTexture;
+import nl.weeaboo.gl.tex.ITextureData;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IImageDrawable;
 import nl.weeaboo.vn.IInterpolator;
@@ -25,6 +31,8 @@ import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
 import nl.weeaboo.vn.impl.base.CustomRenderCommand;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
+
+import com.jogamp.opengl.util.GLBuffers;
 
 @LuaSerializable
 public class BitmapTween extends BaseBitmapTween {
@@ -40,9 +48,10 @@ public class BitmapTween extends BaseBitmapTween {
 	private GLShader shader;
 	private GLTexRect[] texs;
 	private GLTexRect fadeTex;
-	private GLGeneratedTexture remapTex;
+	private GLWritableTexture remapTex;
 	
-	public BitmapTween(INotifier ntf, ImageFactory imgfac, ShaderFactory shfac, String fadeFilename, double duration,
+	public BitmapTween(INotifier ntf, ImageFactory imgfac, ShaderFactory shfac,
+			String fadeFilename, double duration,
 			double range, IInterpolator i, boolean fadeTexTile)
 	{	
 		super(ntf, fadeFilename, duration, range, i, fadeTexTile);
@@ -61,7 +70,7 @@ public class BitmapTween extends BaseBitmapTween {
 		texs = null;
 		fadeTex = null;
 		if (remapTex != null) {
-			remapTex.dispose();
+			remapTex.glUnload();
 			remapTex = null;
 		}
 	}
@@ -116,19 +125,26 @@ public class BitmapTween extends BaseBitmapTween {
 		int[] argb = new int[w * h];
 		Arrays.fill(argb, colorARGB);
 		
-		GLTexture tex = imgfac.createGLTexture(argb, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
-		fadeTex = tex.getTexRect(null);
+		GLWritableTexture tex = imgfac.createGLTexture(w, h, GL_NEAREST, GL_NEAREST, 0, 0);
+		ITextureData tdata = imgfac.newARGB8TextureData(IntBuffer.wrap(argb), tex.getTexWidth(), tex.getTexHeight());
+		tex.setPixels(tdata);
+		fadeTex = tex.getSubRect(null);
 		return imgfac.createTexture(fadeTex, 1, 1);
 	}
 
 	@Override
+	protected ShortBuffer initRemapPixels(ShortBuffer current, int requiredLen) {
+		return GLBuffers.newDirectShortBuffer(requiredLen);
+	}
+	
+	@Override
 	protected void prepareRemapTexture(int w, int h) {
-		remapTex = imgfac.createGLTexture(null, w, h, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE);
+		remapTex = imgfac.createGLTexture(w, h, GL_NEAREST, GL_NEAREST, 0, 0);
 	}
 
 	@Override
-	protected void updateRemapTex(int[] argb) {
-		remapTex.setARGB(IntBuffer.wrap(argb));
+	protected void updateRemapTex(Buffer pixels) {
+		remapTex.setPixels(imgfac.newGray16TextureData(pixels, remapTex.getTexWidth(), remapTex.getTexHeight()));
 	}
 
 	@Override
@@ -162,57 +178,63 @@ public class BitmapTween extends BaseBitmapTween {
 			this.remapTex = remapTex;
 			this.shader = shader;
 			this.grid = grid;
+			
+			if (shader == null || grid == null) {
+				throw new NullPointerException();
+			}
 		}
 
 		@Override
 		protected void renderGeometry(IRenderer r) {
-			Renderer rr = (Renderer)r;			
+			Renderer rr = Renderer.cast(r);
 			GLManager glm = rr.getGLManager();
-			GL2 gl2 = glm.getGL().getGL2();
+			GLDraw glDraw = glm.getGLDraw();
+			GL2 gl = JoglGLManager.getGL(glm).getGL2();
 						
-			GLTexture oldTexture = glm.getTexture();
-			glm.setTexture(null);
+			GLTexture oldTexture = glDraw.getTexture();
+			glDraw.setTexture(null);
 			
 			//Force load textures
 			for (int n = 0; n < texs.length; n++) {
 				GLTexRect tr = texs[n];
 				if (tr != null) {
-					texs[n] = tr.forceLoad(glm);
+					tr = tr.glTryLoad(glm);
 				}
 			}
-			fadeTex = fadeTex.forceLoad(glm);
-			remapTex = remapTex.forceLoad(glm);
+			fadeTex = fadeTex.glTryLoad(glm);
+			remapTex = remapTex.glTryLoad(glm);
 			
 			//Force load shader
-			shader.forceLoad(glm);
-			GLShader oldShader = glm.getShader();
-			glm.setShader(shader);
+			shader.glTryLoad(glm);
+			GLShader oldShader = glDraw.getShader();
+			glDraw.setShader(shader);
 			
 			//Initialize shader
-			shader.setTextureParam(gl2, "src0",  0, texId(texs[0]));
-			shader.setTextureParam(gl2, "src1",  1, texId(texs[1]));
-			shader.setTextureParam(gl2, "fade",  2, texId(fadeTex));
-			shader.setTextureParam(gl2, "remap", 3, texId(remapTex));
+			shader.setTextureParam(glm, "src0",  0, texId(texs[0]));
+			shader.setTextureParam(glm, "src1",  1, texId(texs[1]));
+			shader.setTextureParam(glm, "fade",  2, texId(fadeTex));
+			shader.setTextureParam(glm, "remap", 3, texId(remapTex));
 			
 			//Render geometry
-			gl2.glPushMatrix();
-			gl2.glMultMatrixf(transform.toGLMatrix(), 0);
+			gl.glPushMatrix();
+			gl.glMultMatrixf(transform.toGLMatrix(), 0);
 			rr.renderTriangleGrid(grid);
-			gl2.glPopMatrix();
+			gl.glPopMatrix();
 
 			//Disable shader
-			glm.setShader(oldShader);
+			glDraw.setShader(oldShader);
 						
 			//Restore previous texture
-			glm.setTexture(oldTexture);
+			glDraw.setTexture(oldTexture);
 		}
 		
 		private static final int texId(GLTexRect tr) {
 			return texId(tr != null ? tr.getTexture() : null);
 		}
 		private static final int texId(GLTexture tex) {
-			return (tex != null ? tex.getTexId() : 0);
+			return (tex != null ? tex.glId() : 0);
 		}
 		
 	}
+
 }

@@ -43,7 +43,7 @@ public class BuildCommandPanel extends JPanel {
 	private final JButton rebuildButton, editButton, backupButton;
 	private final JButton moreButton;
 	
-	private boolean busy;
+	private volatile boolean busy;
 
 	public BuildCommandPanel(ConsoleOutputPanel output) {
 		outputPanel = output;
@@ -208,7 +208,8 @@ public class BuildCommandPanel extends JPanel {
 	public void ant(String target, final ProcessCallback... postBuildCallbacks) {
 		setBusy(true);
 		try {
-			outputPanel.process(build.ant(target), new ProcessCallback() {
+			Process process = build.ant(target);
+			outputPanel.process(process, new ProcessCallback() {
 				public void run(int exitCode) {
 					setBusy(false);
 					runPanel.update();
@@ -344,6 +345,9 @@ public class BuildCommandPanel extends JPanel {
 	}
 	
 	// Getters
+	public boolean isBusy() {
+		return busy;
+	}
 
 	// Setters
 	public void setBuild(Build b) {

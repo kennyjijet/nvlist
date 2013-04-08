@@ -81,7 +81,7 @@ public class LuaSoundLib extends LuaLibrary {
 				sound.start(loops);
 			}
 		} catch (FileNotFoundException fnfe) {
-			notifier.d("Audio file not found ("+filename+")", fnfe);
+			notifier.d("Audio file not found ("+filename+")");
 		} catch (IOException e) {
 			throw new LuaError(e);
 		}
@@ -90,7 +90,11 @@ public class LuaSoundLib extends LuaLibrary {
 	
 	protected Varargs stop(Varargs args) {		
 		int channel = args.optint(1, 0);
-		soundState.stop(channel);
+		if (args.isnumber(2)) {
+			soundState.stop(channel, (int)Math.round(args.optdouble(2, 0)*1000));
+		} else {
+			soundState.stop(channel);
+		}
 		return NONE;
 	}
 	

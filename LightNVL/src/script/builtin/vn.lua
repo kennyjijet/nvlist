@@ -171,7 +171,14 @@ local function vnTask()
 	end
 	
 	--Regular (text) mode is active
+	
+	--Update the value of quickRead
 	quickRead = input:isQuickRead() or skipMode ~= 0
+
+	--Let users disable an ongoing skipMode	
+	if skipMode ~= 0 and not input:isQuickRead() and input:consumeTextContinue() then
+		setSkipMode(0)
+	end
 
 	--Check for hotkeys
 	if input:consumeSaveScreen() then
@@ -189,7 +196,7 @@ local function vnTask()
 		linesVisible = textBox:getFinalLineFullyVisible()
 	end
 	
-	--print(charsVisible, linesVisible, waitClickTime, autoReadTime)
+	--print(charsVisible, linesVisible, waitClickTime, autoReadTime)	
 	
 	if not charsVisible then
 		autoReadTime = 0
@@ -233,6 +240,7 @@ local function vnTask()
 			end
 		end
 		
+		--Waiting for a click
 		if waitClickTime ~= 0 then
 			if not suspended then
 				if input:consumeTextLog() then
@@ -241,7 +249,7 @@ local function vnTask()
 					return edt.addEvent(viewCG)
 				end
 			end
-					
+								
 			if quickRead and not hardWaitClick and (getSkipUnread() or isLineRead()) then
 				setWaitClick(false)
 			elseif autoContinue or input:consumeTextContinue() then

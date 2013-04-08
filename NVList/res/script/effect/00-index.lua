@@ -24,7 +24,7 @@ while true do
         startFog()
         text("Click to stop the effect.")
         stopFog()
-        startSimpleFog()
+        startSimpleFog(.01, {scaleX=1, scaleY=1}) --bounds={0,0,screenWidth,screenHeight}
         text("Simpler fog using a single tiled image. Click to stop the effect.")
         stopSimpleFog()
     elseif selected == 4 then

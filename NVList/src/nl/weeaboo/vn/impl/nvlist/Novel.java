@@ -8,7 +8,7 @@ import java.io.InvalidClassException;
 
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.game.input.IKeyConfig;
-import nl.weeaboo.game.input.Keys;
+import nl.weeaboo.game.input.IKeys;
 import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.LuaRunState;
 import nl.weeaboo.lua2.io.LuaSerializable;
@@ -153,7 +153,7 @@ public class Novel extends LuaNovel {
 
 	@Override
 	protected void addKeyCodeConstants(LuaTable table) throws LuaException {
-		Keys keys = keyConfig.getKeys();
+		IKeys keys = keyConfig.getKeys();
 		//for (Entry<String, Integer> entry : keys) {
 		//	table.put(valueOf(entry.getKey()), valueOf(entry.getValue()));
 		//}
@@ -170,9 +170,9 @@ public class Novel extends LuaNovel {
 
 		private static final long serialVersionUID = 1L;
 		
-		private static Keys keys;
+		private static IKeys keys;
 		
-		public KeyCodeMetaFunction(Keys k, LuaTable t) {
+		public KeyCodeMetaFunction(IKeys k, LuaTable t) {
 			super(t);
 			
 			keys = k;

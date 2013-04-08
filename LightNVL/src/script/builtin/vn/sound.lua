@@ -68,9 +68,11 @@ end
 
 ---Stops the sound playing in the specified channel
 -- @param ch The channel of the sound that should be stopped.
+-- @param fadeTime Optional argument specifying the duration of a slow
+--        fade-out instead of stopping playback immediately.
 -- @see sound
-function soundStop(ch)
-    Sound.stop(ch)
+function soundStop(ch, fadeTime)
+    Sound.stop(ch, fadeTime)
 end
 
 ---Plays a sound effect of type <code>SoundType.VOICE</code
@@ -90,9 +92,11 @@ function music(filename, vol)
 end
 
 ---Stops music started with the <code>music</code> function.
+-- @param fadeTime Optional argument specifying the duration of a slow
+--        fade-out instead of stopping playback immediately.
 -- @see music
-function musicStop()
-    soundStop(0)
+function musicStop(fadeTime)
+    soundStop(0, fadeTime)
 end
 
 ---Changes the volume of a currently playing sound/music/voice, possibly

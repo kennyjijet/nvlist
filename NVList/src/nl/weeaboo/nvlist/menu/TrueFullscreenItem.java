@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.TRUE_FULLSCREEN;
+import static nl.weeaboo.game.GameConfig.TRUE_FULLSCREEN;
 
 import java.awt.event.ActionEvent;
 

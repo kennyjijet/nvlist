@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.VSYNC;
+import static nl.weeaboo.game.GameConfig.VSYNC;
 
 import java.awt.event.ActionEvent;
 

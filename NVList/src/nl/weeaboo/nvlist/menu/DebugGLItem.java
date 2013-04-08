@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.GL_DEBUG;
+import static nl.weeaboo.game.GameConfig.GL_DEBUG;
 
 import java.awt.event.ActionEvent;
 

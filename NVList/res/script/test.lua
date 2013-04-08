@@ -1,4 +1,5 @@
 ﻿
+--[[
 local i = img("effect/fog/fog")
 i:setSize(screenWidth, screenHeight)
 while true do
@@ -7,11 +8,14 @@ while true do
         yield(3)
     end
 end
+]]
 
 --choice() --Choice without arguments test (shouldn't crash, may show one or more placeholder options)
 
---[[ Word wrapping tests
+--[[ Word wrapping tests ]]
 setTextModeNVL()
+edt.addEvent(skipScene)
+
 text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis tincidunt, eros nec consectetur feugiat, neque nulla condimentum sapien, sed sagittis felis metus non nisi. Nullam id lobortis tortor. Duis consequat orci erat, ac pharetra lacus. Nulla auctor orci sed magna posuere eget laoreet massa posuere. In hac habitasse platea dictumst. Mauris eu velit tortor. In et urna lorem.")
 
 text("Quisque et ipsum ut sem hendrerit eleifend. Sed pulvinar commodo ante, malesuada scelerisque lectus rhoncus at. Nulla facilisi. Cras et eros in tellus congue pulvinar. Donec tincidunt, elit ut ultrices auctor, neque ligula laoreet odio, eu sollicitudin nibh arcu at ante. Duis sodales, nisl id dapibus aliquam, magna est vehicula ipsum, ut scelerisque neque purus ut nibh. Sed commodo pretium metus, vel dictum nibh sagittis ac. Sed scelerisque bibendum ipsum, sed ultricies felis bibendum in. Ut sodales, orci vitae faucibus ultrices, metus lorem varius urna, vitae dignissim velit arcu at ante. Integer nulla sapien, iaculis facilisis consequat quis, viverra sit amet dui. Fusce tortor nunc, faucibus adipiscing dictum ut, varius vel lacus. Curabitur in justo quam, id congue quam.")
@@ -21,7 +25,6 @@ text("Vestibulum arcu justo, gravida rhoncus feugiat ut, sollicitudin quis sapie
 text("Aliquam non tortor justo. Sed pulvinar sodales ligula sit amet ornare. Sed id sapien risus, ut consequat sapien. Curabitur dui felis, euismod non consequat non, ullamcorper eget arcu. Phasellus ullamcorper ullamcorper ante, eu convallis orci ornare quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras posuere accumsan vulputate. Etiam iaculis nunc nec magna lobortis ultrices. Aenean nisi nunc, adipiscing vel suscipit sed, congue in arcu.")
 
 text("Fusce auctor massa iaculis erat dignissim vel imperdiet velit interdum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam vehicula fringilla turpis. Nulla facilisi. Duis consequat accumsan placerat. Suspendisse consequat venenatis semper. Nulla fermentum fermentum nunc sit amet molestie. Aenean et dolor est. Donec fringilla ipsum a mi vestibulum nec laoreet massa dictum. Praesent ultricies accumsan nisl, eleifend consequat metus porttitor eu. Ut consectetur dignissim porttitor. Nulla porttitor pretium augue id auctor. Integer eleifend sapien at purus porttitor quis tincidunt sem elementum. Maecenas vulputate augue sit amet justo interdum aliquam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed quam sem, vel ultrices dolor.")
-]]
 
 --[[ Text rendering tests
 bgf("bg/bg1")
@@ -355,6 +358,7 @@ wait(60)
 rmbgf()
 ]]
 
+--[[ Color-separating shake
 textoff(1)
 --bg("bg/bg3")
 
@@ -400,6 +404,8 @@ destroyValues(bgimgs)
 destroyValues(imgs)
 rmbg()
 texton(1)
+
+]]
 
 yield()
 return titlescreen()

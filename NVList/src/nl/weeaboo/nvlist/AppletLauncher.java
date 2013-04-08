@@ -1,13 +1,14 @@
 package nl.weeaboo.nvlist;
 
-import nl.weeaboo.game.BaseAppletLauncher;
+import nl.weeaboo.game.desktop.AWTAppletLauncher;
+import nl.weeaboo.game.desktop.AWTLauncher;
 
 @SuppressWarnings("serial")
-public class AppletLauncher extends BaseAppletLauncher {
+public class AppletLauncher extends AWTAppletLauncher {
 
 	//Functions
 	@Override	
-	protected Launcher newLauncher() {
+	protected AWTLauncher newLauncher() {
 		return new Launcher();
 	}
 	

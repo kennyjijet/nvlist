@@ -1,6 +1,6 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.ENABLE_SHADERS;
+import static nl.weeaboo.game.GameConfig.ENABLE_SHADERS;
 
 import java.awt.event.ActionEvent;
 

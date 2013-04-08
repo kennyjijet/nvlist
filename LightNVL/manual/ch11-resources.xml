@@ -77,7 +77,7 @@
         </table>
       </section>
       
-      <p>Images can also be marked as tiling by adding the attribute <code>tile=&quot;true&quot;</code>. Tiling images must have dimensions that are a power of two (<code>2,4,8,16,32,...</code>) and can't contain any subrects. A tiling image repeats when its texture coordinates fall outside the normal <code>(0.0, 1.0)</code> range instead of the default behavior which is to just repeat the edge pixel.</p>
+      <p>Images can also be marked as tiling by adding the attribute <code>tile=&quot;true&quot;</code> (or <code>tile=&quot;true,false&quot;</code> to only tile in a single direction). Tiling images must have dimensions that are a power of two (<code>2,4,8,16,32,...</code>) and can't contain any subrects. A tiling image repeats when its texture coordinates fall outside the normal <code>(0.0, 1.0)</code> range instead of the default behavior which is to just repeat the edge pixel.</p>
       
       <sourcecode lang="lvn"><![CDATA[@local i = img("tile")
 #Make the image repeat 3 times horizontally, 1 time vertically.

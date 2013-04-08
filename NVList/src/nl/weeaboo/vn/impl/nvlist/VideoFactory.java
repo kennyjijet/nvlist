@@ -4,18 +4,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.GL2ES1;
-
 import nl.weeaboo.filesystem.FileSystemView;
 import nl.weeaboo.filesystem.IFileSystem;
-import nl.weeaboo.gl.GLResourceCache;
+import nl.weeaboo.gl.GLResCache;
 import nl.weeaboo.gl.PBO;
-import nl.weeaboo.gl.shader.ShaderCache;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
-import nl.weeaboo.gl.texture.TextureCache;
+import nl.weeaboo.gl.shader.IShaderStore;
+import nl.weeaboo.gl.tex.GLWritableTexture;
+import nl.weeaboo.gl.tex.ITextureData;
+import nl.weeaboo.gl.tex.ITextureStore;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.INotifier;
@@ -27,22 +27,22 @@ import nl.weeaboo.vn.impl.base.BaseVideoFactory;
 public class VideoFactory extends BaseVideoFactory implements Serializable {
 
 	private final IFileSystem rootFS;
-	private final TextureCache texCache;
+	private final ITextureStore texStore;
 	//private final ShaderCache shCache;
-	private final GLResourceCache resCache;
+	private final GLResCache resCache;
 	private final EnvironmentSerializable es;
 
 	private FileSystemView fs;
 	private int videoWidth, videoHeight;
 	
-	public VideoFactory(IFileSystem fs, TextureCache tc, ShaderCache sc, GLResourceCache rc,
+	public VideoFactory(IFileSystem fs, ITextureStore ts, IShaderStore ss, GLResCache rc,
 			ISeenLog sl, INotifier ntf)
 	{
 		super(sl, ntf);
 		
 		this.rootFS = fs;
 		this.fs = new FileSystemView(fs, "video/", true);
-		this.texCache = tc;
+		this.texStore = ts;
 		//this.shCache = sc;
 		this.resCache = rc;
 		
@@ -66,14 +66,18 @@ public class VideoFactory extends BaseVideoFactory implements Serializable {
 		return movie;
 	}
 		
-	public GLGeneratedTexture newTexture(int[] argb, int w, int h,
-			int glMinFilter, int glMagFilter, int glWrap)
+	public GLWritableTexture newTexture(int w, int h,
+			int glMinFilter, int glMagFilter, int glWrapS, int glWrapT)
 	{
-		return texCache.newTexture(argb, w, h, glMinFilter, glMagFilter, glWrap);
+		return texStore.newWritableTexture(w, h, glMinFilter, glMagFilter, glWrapS, glWrapT);
 	}
 	
-	public PBO createPBO(GL2ES1 gl) {
-		return resCache.createPBO(gl);
+	public ITextureData newTextureData(IntBuffer argb, int w, int h) {
+		return texStore.newARGB8TextureData(argb, true, w, h);
+	}
+	
+	public PBO newPBO() {
+		return resCache.newPBO();
 	}
 	
 	protected void onVideoFolderChanged(int w, int h) {

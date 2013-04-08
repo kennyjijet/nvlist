@@ -1,9 +1,9 @@
 package nl.weeaboo.nvlist;
 
-import static nl.weeaboo.game.BaseGameConfig.FBO;
-import static nl.weeaboo.game.BaseGameConfig.HEIGHT;
-import static nl.weeaboo.game.BaseGameConfig.TITLE;
-import static nl.weeaboo.game.BaseGameConfig.WIDTH;
+import static nl.weeaboo.game.GameConfig.FBO;
+import static nl.weeaboo.game.GameConfig.HEIGHT;
+import static nl.weeaboo.game.GameConfig.TITLE;
+import static nl.weeaboo.game.GameConfig.WIDTH;
 
 import java.awt.Container;
 import java.io.BufferedReader;
@@ -16,27 +16,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import nl.weeaboo.filesystem.IFileSystem;
-import nl.weeaboo.game.BaseLauncher;
-import nl.weeaboo.game.GameDisplay;
-import nl.weeaboo.game.GameUpdater;
 import nl.weeaboo.game.IGame;
-import nl.weeaboo.game.input.IKeyConfig;
-import nl.weeaboo.game.input.UserInput;
-import nl.weeaboo.gl.GLResourceCache;
-import nl.weeaboo.gl.shader.ShaderCache;
-import nl.weeaboo.gl.text.FontManager;
-import nl.weeaboo.gl.text.GlyphManager;
-import nl.weeaboo.gl.texture.TextureCache;
+import nl.weeaboo.game.desktop.AWTGameBuilder;
+import nl.weeaboo.game.desktop.AWTLauncher;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.settings.INIFile;
-import nl.weeaboo.sound.SoundManager;
 import nl.weeaboo.vn.impl.base.Obfuscator;
 import nl.weeaboo.vn.vnds.VNDSUtil;
 
-public class Launcher extends BaseLauncher {
+public class Launcher extends AWTLauncher {
 	
 	public Launcher() {
 		super();
@@ -46,7 +36,7 @@ public class Launcher extends BaseLauncher {
 	
 	//Functions
 	public static void main(String args[]) {		
-		//nl.weeaboo.game.GameLog.getLogger().setLevel(java.util.logging.Level.FINE);
+		//nl.weeaboo.game.GameLog.getInstance().setLevel(java.util.logging.Level.FINE);
 		
 		main(new Launcher(), args);
 	}
@@ -120,16 +110,15 @@ public class Launcher extends BaseLauncher {
 	}
 	
 	@Override
-	protected IGame newGame(IConfig config, ExecutorService executor, GameDisplay display, GameUpdater gu,
-			IFileSystem fs, FontManager fontManager, TextureCache tc, ShaderCache sc,
-			GLResourceCache rc, GlyphManager gman, SoundManager sm, UserInput in,
-			IKeyConfig kc, FolderSet folders)
-	{
-		Game g = new Game(config, executor, display, gu, fs, fontManager, tc, sc, rc, gman, sm, in, kc,
-				folders.image, folders.video);
-		return g;
+	protected AWTGameBuilder newGameBuilder() {
+		return new AWTGameBuilder() {
+			@Override
+			public Game build() throws IllegalStateException {
+				return new Game(this);
+			}
+		};
 	}
-		
+	
 	//Getters
 	@Override
 	protected Set<String> getJarArchiveSources() {

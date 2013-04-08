@@ -1,7 +1,7 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.FBO;
-import static nl.weeaboo.game.BaseGameConfig.FBO_MIPMAP;
+import static nl.weeaboo.game.GameConfig.FBO;
+import static nl.weeaboo.game.GameConfig.FBO_MIPMAP;
 
 import java.awt.event.ActionEvent;
 

@@ -5,7 +5,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
-import nl.weeaboo.game.IGameDisplay;
+import nl.weeaboo.game.desktop.AWTGameDisplay;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 
@@ -19,7 +19,7 @@ public class RestartItem extends GameMenuAction {
 
 	@Override
 	public void actionPerformed(JMenuItem item, ActionEvent e, Game game, Novel nvl) {
-		IGameDisplay display = game.getDisplay();
+		AWTGameDisplay display = game.getDisplay();
 		String message = "Warning: unsaved progress will be lost.";
 		String title = "Return to title screen?";
 		

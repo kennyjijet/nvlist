@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import nl.weeaboo.common.StringUtil;
-import nl.weeaboo.game.IGameDisplay;
+import nl.weeaboo.game.desktop.AWTGameDisplay;
 import nl.weeaboo.io.StreamUtil;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.impl.nvlist.Novel;
@@ -68,7 +68,7 @@ public class AboutItem extends GameMenuAction {
 		
 		//Show message box
 		if (maybeGame != null) {
-			IGameDisplay display = maybeGame.getDisplay();
+			AWTGameDisplay display = maybeGame.getDisplay();
 			display.showMessageDialog(panel, "About");
 		} else {
 			Runnable r = new Runnable() {

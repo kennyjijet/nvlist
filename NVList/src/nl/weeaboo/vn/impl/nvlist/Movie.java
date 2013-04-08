@@ -10,15 +10,17 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 
-import nl.weeaboo.common.Area2D;
 import nl.weeaboo.game.GameLog;
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.GLUtil;
 import nl.weeaboo.gl.PBO;
-import nl.weeaboo.gl.texture.GLGeneratedTexture;
-import nl.weeaboo.gl.texture.GLTexUtil;
-import nl.weeaboo.gl.texture.GLTexture;
+import nl.weeaboo.gl.jogl.JoglGLManager;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.GLTexture;
+import nl.weeaboo.gl.tex.GLWritableTexture;
+import nl.weeaboo.gl.tex.ITextureData;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.ogg.StreamUtil;
 import nl.weeaboo.ogg.player.Player;
@@ -38,7 +40,7 @@ public final class Movie extends BaseVideo {
 	private final VideoFactory vfac;
 	private final String filename;
 	
-	private transient GLGeneratedTexture[] textures;
+	private transient GLWritableTexture[] textures;
 	private transient int readIndex;
 	private transient PBO pbo;
 	private transient Player player;
@@ -96,14 +98,14 @@ public final class Movie extends BaseVideo {
 	
 	protected void cleanupGL() {
 		if (pbo != null) {
-			pbo.dispose();
+			pbo.glUnload();
 			pbo = null;
 		}
 		
 		if (textures != null) {
 			for (GLTexture tex : textures) {
 				if (tex != null) {
-					tex.dispose();
+					tex.glUnload();
 				}
 			}
 			textures = null;			
@@ -160,11 +162,12 @@ public final class Movie extends BaseVideo {
 			return;
 		}
 
+		GLDraw glDraw = glm.getGLDraw();
 		int w = player.getWidth();
 		int h = player.getHeight();
 		
 		if (textures == null) {
-			textures = new GLGeneratedTexture[2];
+			textures = new GLWritableTexture[2];
 		}
 		
 		IntBuffer rgbPixels = null;
@@ -180,21 +183,18 @@ public final class Movie extends BaseVideo {
 		if ((yuvPixels != null || rgbPixels != null) && w > 0 && h > 0) {
 			readIndex = (readIndex + 1) % textures.length;			
 
-			GLGeneratedTexture writeTex = textures[(readIndex + 1) % textures.length];
-			
-			if (writeTex != null && (writeTex.getCropWidth() != w || writeTex.getCropHeight() != h)) {
-				writeTex.dispose();
+			GLWritableTexture writeTex = textures[(readIndex + 1) % textures.length];
+			GLTexRect writeRect = (writeTex != null ? writeTex.getSubRect(null) : null);
+			if (writeRect != null && (writeRect.getWidth() != w || writeRect.getHeight() != h)) {
+				writeTex.glUnload();
 				writeTex = null;
 			}
 				
 			if (writeTex == null) {
-				writeTex = vfac.newTexture(null, w, h, 0, 0, 0);
+				writeTex = vfac.newTexture(w, h, 0, 0, 0, 0);
 				textures[(readIndex + 1) % textures.length] = writeTex;
 			}
-			
-			if (writeTex.isDisposed()) {
-				writeTex = writeTex.forceLoad(glm);
-			}
+			writeTex.glTryLoad(glm);
 
 			if (yuvPixels != null && rgbPixels == null) {
 				//synchronized block prevent tearing and flushes buffered updates to YUVBuffer from other threads.
@@ -209,40 +209,40 @@ public final class Movie extends BaseVideo {
 		}
 
 		GLTexture readTex = textures[readIndex];
-		if (readTex != null && !readTex.isDisposed()) {
-			glm.setTexture(readTex);
-			Area2D uv = readTex.getUV();
-			glm.fillRect(0, 0, drawW, drawH, uv.x, uv.y, uv.w, uv.h);
-			glm.setTexture(null);
+		if (readTex != null && readTex.glId() != 0) {
+			glDraw.setTexture(readTex);
+			glDraw.draw(readTex.getSubRect(null), 0, 0, drawW, drawH);
+			glDraw.setTexture(null);
 		}		
 	}
 	
 	private boolean uploadPixelsPBO(GLManager glm, IntBuffer pixels, int w, int h,
-			GLGeneratedTexture writeTex)
+			GLWritableTexture writeTex)
 	{
-		GLInfo info = glm.getGLInfo();
-		GL2ES1 gl = glm.getGL();
+		GLDraw glDraw = glm.getGLDraw();
+		GLInfo glInfo = glm.getGLInfo();
+		GL2ES1 gl = JoglGLManager.getGL(glm);
 		if (!gl.isGL2ES2()) {
 			return false;
 		}
 				
-		if (pbo == null || pbo.isDisposed()) {
+		if (pbo == null || pbo.glId() == 0) {
 			//Init PBO
-			pbo = vfac.createPBO(gl);
-			if (pbo == null || pbo.isDisposed()) {
+			pbo = vfac.newPBO();
+			if (pbo == null || pbo.glId() == 0) {
 				return false;
 			}
 		}
 				
 		//long t0 = System.nanoTime();
 		
-		pbo.bindUpload(gl);
+		pbo.bindUpload(glm);
 		try {
 			int glInternalFormat, glFormat, glType;
 			{
 				glInternalFormat = GL.GL_RGBA;
-				glFormat = info.getDefaultPixelFormatARGB();
-				glType = info.getDefaultPixelTypeARGB();
+				glFormat = glInfo.getDefaultPixelFormatARGB();
+				glType = glInfo.getDefaultPixelTypeARGB();
 
 				if (glFormat != GL2.GL_BGRA) {
 					//Should never happen, BGRA is preferred and should always be supported when PBO's are available
@@ -257,14 +257,14 @@ public final class Movie extends BaseVideo {
 				pixelData = ShortBuffer.wrap(ybuf.data);
 				System.out.println(ybuf.data + " " + (w*h) + " " + GLTexUtil.getBytesPerPixel(glFormat, glType));
 			}*/
-			pbo.setData(gl, pixels, w * h * GLTexUtil.getBytesPerPixel(glFormat, glType));				
+			pbo.setData(glm, pixels, w * h * GLUtil.getBytesPerPixel(glFormat, glType));				
 						
 			//Stream PBO data to texture
-			glm.setTexture(writeTex);
+			glDraw.setTexture(writeTex);
 			gl.glTexImage2D(GL2.GL_TEXTURE_2D, 0, glInternalFormat, w, h, 0, glFormat, glType, 0);
-			glm.setTexture(null);			
+			glDraw.setTexture(null);			
 		} finally {
-			pbo.unbind(gl);
+			pbo.unbind(glm);
 		}
 
 		//long t1 = System.nanoTime();
@@ -274,10 +274,11 @@ public final class Movie extends BaseVideo {
 	}
 	
 	protected void uploadPixels(GLManager glm, IntBuffer pixels, int w, int h,
-			GLGeneratedTexture writeTex)
+			GLWritableTexture writeTex)
 	{
-		writeTex.setARGB(pixels);
-		writeTex = writeTex.forceLoad(glm);		
+		ITextureData tdata = vfac.newTextureData(pixels, w, h);
+		writeTex.setPixels(tdata);
+		writeTex.glTryLoad(glm);
 	}
 	
 	//Getters

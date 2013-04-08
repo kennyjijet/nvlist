@@ -56,16 +56,21 @@ public class BaseSoundState implements ISoundState {
 		ISound ps[] = pausedList.toArray(new ISound[pausedList.size()]);
 		pausedList.clear();
 		for (ISound sound : ps) {
-			sound.stop();
+			sound.stop(0);
 		}
 	}
 
 	@Override
 	public void stop(int channel) {
+		stop(channel, -1);
+	}
+	
+	@Override
+	public void stop(int channel, int fadeOutMillis) {
 		ISound sound = sounds.remove(channel);
 		if (sound != null) {
 			pausedList.remove(sound);
-			sound.stop();
+			sound.stop(fadeOutMillis);
 		}
 	}
 

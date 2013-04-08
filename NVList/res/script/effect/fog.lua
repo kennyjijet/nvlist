@@ -143,7 +143,10 @@ local SimpleFog = {
     th=1,
     alpha=1,
     dx=.50,
-    dy=.15
+    dy=.15,
+    scaleX=1,
+    scaleY=1,
+    bounds=nil
 }
 
 function SimpleFog.new(self)
@@ -155,9 +158,11 @@ function SimpleFog.new(self)
     self.tw = tw
     self.th = th
     
+    local bounds = self.bounds or {0, 0, screenWidth, screenHeight}
+
     if self.image == nil then
         local i = img(tile)
-        i:setSize(screenWidth, screenHeight)
+        i:setBounds(bounds[1], bounds[2], bounds[3], bounds[4])
         i:setZ(self.z or 0)
         self.image = i
     end
@@ -188,8 +193,8 @@ function SimpleFog:start()
     
     local u = 0
     local v = 0
-    local tilesW = screenWidth / tw
-    local tilesH = screenHeight / th
+    local tilesW = self.image:getWidth() / (self.scaleX * tw)
+    local tilesH = self.image:getHeight() / (self.scaleY * th)
     
     self.thread = newThread(function()    
         while true do
@@ -249,7 +254,7 @@ function stopSimpleFog(fadeSpeed)
 end
 
 function startSimpleFog(fadeSpeed, overrides)
-    stopFog(fadeSpeed)
+    stopSimpleFog(fadeSpeed)
 
     fadeSpeed = fadeSpeed or 0.01
     local alpha = .4

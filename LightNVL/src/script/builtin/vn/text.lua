@@ -701,7 +701,7 @@ local function createTextCursor(textBox)
 	local cursor = nil
 	local cursorTex = tex("gui/cursor#waitClick", true) or tex("gui/cursor", true)
 	if cursorTex == nil then
-		cursorTex = tex("_std/gui/cursor#waitClick", true) or tex("_std/gui/cursor", true) or cursorTex
+		cursorTex = tex("builtin/gui/cursor#waitClick", true) or tex("builtin/gui/cursor", true) or cursorTex
 	end
 	
 	if cursorTex ~= nil then

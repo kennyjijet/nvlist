@@ -111,7 +111,7 @@ public class LuaSaveLib extends LuaLibrary {
 		try {
 			saveHandler.save(slot, ss, new Dim(ssw, ssh), metaData, null);
 		} catch (IOException e) {
-			throw new LuaError(e);
+			throw new LuaError(e.getMessage(), e);
 		}
 		return result;
 	}

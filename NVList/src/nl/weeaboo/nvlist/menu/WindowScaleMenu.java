@@ -4,6 +4,7 @@ import javax.swing.JMenuItem;
 
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.game.IGameDisplay;
+import nl.weeaboo.game.desktop.AWTGameDisplay;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 
@@ -63,7 +64,7 @@ public class WindowScaleMenu extends RangeMenu<Double> {
 		
 		scale = value;
 		
-		IGameDisplay display = game.getDisplay();		
+		AWTGameDisplay display = game.getDisplay();		
 		Dim size = display.getWindowedSize();
 		if (origSize == null) {
 			origSize = size;
@@ -71,7 +72,7 @@ public class WindowScaleMenu extends RangeMenu<Double> {
 		
 		int w = Math.max(1, (int)Math.round(origSize.w * scale));
 		int h = Math.max(1, (int)Math.round(origSize.h * scale));
-		display.setWindowedSize(w, h, true);
+		display.setWindowedSize(new Dim(w, h), true);
 	}
 	
 }

@@ -4,8 +4,8 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JMenuItem;
 
-import nl.weeaboo.game.GameUpdater;
-import nl.weeaboo.game.IGameDisplay;
+import nl.weeaboo.game.desktop.AWTGameDisplay;
+import nl.weeaboo.game.desktop.GameUpdater;
 import nl.weeaboo.nvlist.Game;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 
@@ -23,7 +23,7 @@ public class CheckForUpdatesItem extends GameMenuAction {
 		GameUpdater gu = game.getGameUpdater();
 		if (gu == null) return;
 		
-		IGameDisplay display = game.getDisplay();
+		AWTGameDisplay display = game.getDisplay();
 		gu.checkForUpdatesAsync();
 		display.showMessageDialog(gu.getComponent(), "Update");
 	}

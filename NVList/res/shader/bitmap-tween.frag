@@ -18,8 +18,7 @@ void main() {
 	i = 255.0 * i;
 	vec2 rv = vec2(fract(i), floor(i)) / 255.0;
 
-    vec2 aa = texture2D(remap, rv).bg;
-    float alpha = clamp((aa.y * 255.0 + aa.x) / 256.0, 0.0, 1.0);
+    float alpha = texture2D(remap, rv).r;
     vec4 c = mix(c0, c1, alpha); 
     
 	//Multiply with glColor and clamp (otherwise the result might overflow)

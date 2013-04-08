@@ -2,9 +2,11 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.gl.GLManager;
-import nl.weeaboo.gl.texture.GLTexRect;
-import nl.weeaboo.gl.texture.GLTexture;
+import nl.weeaboo.gl.tex.GLTexRect;
+import nl.weeaboo.gl.tex.GLTexture;
+import nl.weeaboo.gl.tex.TextureException;
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.vn.IDrawBuffer;
 import nl.weeaboo.vn.ITexture;
 
 @LuaSerializable
@@ -20,10 +22,15 @@ public class TextureAdapter implements ITexture {
 		this.imgfac = fac;
 	}
 	
-	public void forceLoad(GLManager glm) {
+	public void glLoad(GLManager glm) throws TextureException {
 		if (tr != null) {
-			tr = tr.forceLoad(glm);
-			setTexRect(tr, scaleX, scaleY);
+			setTexRect(tr.glLoad(glm), scaleX, scaleY);
+		}
+	}
+	
+	public void glTryLoad(GLManager glm) {
+		if (tr != null) {
+			setTexRect(tr.glTryLoad(glm), scaleX, scaleY);
 		}
 	}
 	
@@ -45,33 +52,25 @@ public class TextureAdapter implements ITexture {
 	
 	@Override
 	public String toString() {
-		String trString = "null";
-		if (tr != null) {
-			if (tr.getPath() != null) {
-				trString = tr.getPath();
-			} else {
-				trString = tr.getWidth() + "x" + tr.getHeight();
-			}
-		}
-		return String.format("TextureAdapter(%s)", trString);
+		return "TextureAdapter(" + tr + ")";
 	}
 	
-	public int getTexId() {
-		GLTexture tex = getTexture();
-		return (tex != null ? tex.getTexId() : 0);
+	public int glId() {
+		return (tr != null ? tr.glId() : 0);
 	}
 	
 	public GLTexture getTexture() {
 		if (tr == null) return null;
 		return tr.getTexture();
 	}
+	
 	public GLTexRect getTexRect() {
 		return tr;
 	}	
 	
 	@Override
 	public Area2D getUV() {
-		if (tr == null) return new Area2D(0, 0, 1, 1);
+		if (tr == null) return IDrawBuffer.DEFAULT_UV;
 		return tr.getUV();
 	}
 	
@@ -87,10 +86,12 @@ public class TextureAdapter implements ITexture {
 		return tr.getHeight() * scaleY;
 	}
 	
+	@Override
 	public double getScaleX() {
 		return scaleX;
 	}
 	
+	@Override
 	public double getScaleY() {
 		return scaleY;
 	}

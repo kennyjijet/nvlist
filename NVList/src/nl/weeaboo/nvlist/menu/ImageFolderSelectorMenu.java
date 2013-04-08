@@ -1,7 +1,7 @@
 package nl.weeaboo.nvlist.menu;
 
-import static nl.weeaboo.game.BaseGameConfig.IMAGE_FOLDER_MAX;
-import static nl.weeaboo.game.BaseGameConfig.IMAGE_FOLDER_MIN;
+import static nl.weeaboo.game.GameConfig.IMAGE_FOLDER_MAX;
+import static nl.weeaboo.game.GameConfig.IMAGE_FOLDER_MIN;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;

@@ -3,11 +3,12 @@ package nl.weeaboo.vn.impl.nvlist;
 import java.io.Serializable;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
 
+import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.gl.shader.GLShader;
-import nl.weeaboo.gl.texture.GLTexture;
+import nl.weeaboo.gl.tex.GLTexture;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
@@ -33,17 +34,17 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 			return false;
 		}
 		
-		Renderer rr = Renderer.cast(r);
-		GLManager glm = rr.getGLManager();
-		shader.forceLoad(glm);
-		glm.setShader(shader);
+		GLManager glm = getGLManager(r);
+		GLDraw glDraw = glm.getGLDraw();
+		shader.glTryLoad(glm);
+		glDraw.setShader(shader);
 
-		GLTexture tex = glm.getTexture();
+		GLTexture tex = glDraw.getTexture();
 		if (tex == null) {
 			applyTextureParam(r, "tex", 0, 0);
 			//applyShaderParam(r, "texSize", new float[2]);
 		} else {
-			applyTextureParam(r, "tex", 0, tex.getTexId());
+			applyTextureParam(r, "tex", 0, tex.glId());
 			//applyShaderParam(r, "texSize", new float[] {tex.getCropWidth(), tex.getCropHeight()});
 		}
 		
@@ -52,16 +53,15 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 
 	@Override
 	protected void stopShader(IRenderer r) {
-		Renderer rr = Renderer.cast(r);
-		GLManager glm = rr.getGLManager();
-		glm.setShader(null);
+		GLManager glm = getGLManager(r);
+		GLDraw glDraw = glm.getGLDraw();
+		glDraw.setShader(null);
 	}
 
 	@Override
 	protected void resetTextures(IRenderer r, int... texIndices) {
-		Renderer rr = Renderer.cast(r);
-		GLManager glm = rr.getGLManager();
-		GL gl = glm.getGL();
+		GLManager glm = getGLManager(r);
+		GL gl = JoglGLManager.getGL(glm);
 		for (int texIndex : texIndices) {
 			gl.glActiveTexture(GL.GL_TEXTURE0 + texIndex);
 			gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
@@ -75,40 +75,39 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 		if (tex instanceof TextureAdapter) {
 			Renderer rr = Renderer.cast(r);
 			TextureAdapter ta = (TextureAdapter)tex;
-			ta.forceLoad(rr.getGLManager());
-			texId = ta.getTexId();
+			ta.glTryLoad(rr.getGLManager());
+			texId = ta.glId();
 		}
 		applyTextureParam(r, name, texIndex, texId);
 	}
 	
-	protected void applyTextureParam(IRenderer r, String name, int texIndex, int texId) {		
-		shader.setTextureParam(getGL(r), name, texIndex, texId);
+	protected void applyTextureParam(IRenderer r, String name, int texIndex, int texId) {
+		shader.setTextureParam(getGLManager(r), name, texIndex, texId);
 	}
 
 	@Override
 	protected void applyFloat1Param(IRenderer r, String name, float v1) {
-		shader.setFloatParam(getGL(r), name, v1);
+		shader.setFloatParam(getGLManager(r), name, v1);
 	}
 
 	@Override
 	protected void applyFloat2Param(IRenderer r, String name, float v1, float v2) {
-		shader.setVec2Param(getGL(r), name, v1, v2);
+		shader.setVec2Param(getGLManager(r), name, v1, v2);
 	}
 
 	@Override
 	protected void applyFloat3Param(IRenderer r, String name, float v1, float v2, float v3) {
-		shader.setVec3Param(getGL(r), name, v1, v2, v3);
+		shader.setVec3Param(getGLManager(r), name, v1, v2, v3);
 	}
 
 	@Override
 	protected void applyFloat4Param(IRenderer r, String name, float v1, float v2, float v3, float v4) {
-		shader.setVec4Param(getGL(r), name, v1, v2, v3, v4);
+		shader.setVec4Param(getGLManager(r), name, v1, v2, v3, v4);
 	}
 
 	//Getters
-	protected GL2ES2 getGL(IRenderer r) {
-		GLManager glm = Renderer.cast(r).getGLManager();
-		return glm.getGL().getGL2ES2();
+	protected GLManager getGLManager(IRenderer r) {
+		return Renderer.cast(r).getGLManager();
 	}
 	
 	//Setters

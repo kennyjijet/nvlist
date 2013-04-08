@@ -62,17 +62,22 @@ public abstract class BaseSound implements ISound {
 	
 	@Override
 	public void stop() {
+		stop(0);
+	}
+	
+	@Override
+	public void stop(int fadeOutMillis) {
 		if (destroyed) return;
 
 		playing = false;
 		paused = false;
 		if (!stopped) {
-			stopped = true;
-			_stop();
+			stopped = true;			
+			_stop(fadeOutMillis);
 		}
 	}
 	
-	protected abstract void _stop();
+	protected abstract void _stop(int fadeOutMillis);
 
 	@Override
 	public void pause() {

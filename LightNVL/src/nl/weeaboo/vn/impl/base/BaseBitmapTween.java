@@ -2,7 +2,8 @@ package nl.weeaboo.vn.impl.base;
 
 import static nl.weeaboo.vn.IDrawBuffer.DEFAULT_UV;
 
-import java.util.Arrays;
+import java.nio.Buffer;
+import java.nio.ShortBuffer;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Dim;
@@ -19,6 +20,7 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
+	protected static final int INTERP_MIN = 0;
 	protected static final int INTERP_MAX = 65535;
 	
 	protected final INotifier notifier;
@@ -32,7 +34,7 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 	private int[] interpolation;
 	private Dim remapTexSize;
 	private TriangleGrid grid;
-	private transient int[] remapTemp;
+	private transient ShortBuffer remapBuffer;
 	
 	public BaseBitmapTween(INotifier ntf, String fadeFilename, double duration, double range,
 			IInterpolator interpolator, boolean fadeTexTile)
@@ -51,7 +53,7 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		interpolation = null;
 		remapTexSize = null;
 		grid = null;
-		remapTemp = null;
+		remapBuffer = null;
 	}
 	
 	@Override
@@ -65,7 +67,7 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		interpolation[0] = 0;
 		for (int n = 1; n < INTERP_MAX; n++) {
 			int i = Math.round(INTERP_MAX * interpolator.remap(n / (float)INTERP_MAX));
-			interpolation[n] = (short)Math.max(0, Math.min(INTERP_MAX, i));
+			interpolation[n] = Math.max(0, Math.min(INTERP_MAX, i));
 		}
 		interpolation[INTERP_MAX] = INTERP_MAX;
 		
@@ -152,6 +154,8 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		return consumeChanged() || changed;
 	}
 	
+	protected abstract ShortBuffer initRemapPixels(ShortBuffer current, int requiredLen);
+	
 	private boolean updateRemapTex() {
 		double maa = INTERP_MAX * getNormalizedTime() * (1 + range);
 		double mia = maa - INTERP_MAX * range;
@@ -160,31 +164,38 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		int maxA = Math.min(INTERP_MAX, Math.max(0, (int)Math.round(maa)));
 
 		int requiredLen = remapTexSize.w * remapTexSize.h;
-		if (remapTemp == null || remapTemp.length < requiredLen) {
-			remapTemp = new int[requiredLen];
+		remapBuffer = initRemapPixels(remapBuffer, requiredLen);
+		
+		short max = (short)INTERP_MAX;
+		for (int n = 0; n < minA; n++) {
+			remapBuffer.put(n, max);
 		}
 		
-		Arrays.fill(remapTemp, 0, minA, INTERP_MAX);		
-		Arrays.fill(remapTemp, maxA, remapTemp.length, 0);		
 		double inc = INTERP_MAX / (maa - mia);
 		double cur = (minA - mia) * inc;			
 		for (int n = minA; n <= maxA && n <= INTERP_MAX; n++) {
 			int ar = Math.max(0, Math.min(INTERP_MAX, (int)Math.round(cur)));
-			remapTemp[n] = INTERP_MAX - interpolation[ar];				
+			remapBuffer.put(n, (short)(INTERP_MAX - interpolation[ar]));				
 			cur += inc;
 		}
 		
-		//Add an alpha channel for debugging purposes
-		for (int n = 0; n < remapTemp.length; n++) {
-			remapTemp[n] = 0xFF000000 | remapTemp[n];
+		short min = (short)0;
+		for (int n = maxA; n < requiredLen; n++) {
+			remapBuffer.put(n, min);
 		}
 		
-		updateRemapTex(remapTemp);
+		//Add an alpha channel for debugging purposes
+		//--No longer needed when using a luminance texture instead of RGBA
+		//for (int n = 0; n < remapTemp.length; n++) {
+		//	remapTemp[n] = 0xFF000000 | remapTemp[n];
+		//}
+		
+		updateRemapTex(remapBuffer);
 		
 		return true;
 	}
 	
-	protected abstract void updateRemapTex(int[] argb);
+	protected abstract void updateRemapTex(Buffer pixels);
 	
 	@Override
 	public void draw(IDrawBuffer d) {

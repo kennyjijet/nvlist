@@ -41,7 +41,7 @@ public class BaseRenderCommand extends RenderCommand {
 	public static long createSortKey(short z, boolean clipEnabled, byte commandType,
 			BlendMode blend, byte privateField)
 	{
-		return ((-z)                  << 16)
+		return ((-(1+(int)z))         << 16)
 			 | ((clipEnabled ? 1 : 0) << 15)
 			 | ((blend.ordinal() & 7) << 12)
 			 | ((commandType & 15)    << 8 )
