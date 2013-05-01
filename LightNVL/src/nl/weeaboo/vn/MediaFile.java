@@ -11,6 +11,8 @@ import nl.weeaboo.lua2.io.LuaSerializable;
 @LuaSerializable
 public final class MediaFile implements Externalizable {
 
+	private static final long serialVersionUID = 1L;
+	
 	public static enum MediaType {
 		IMAGE, SOUND, SCRIPT;
 	}

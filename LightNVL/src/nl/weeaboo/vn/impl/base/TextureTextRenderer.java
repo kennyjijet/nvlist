@@ -85,7 +85,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 			cursorSizeDirty = false;
 			
 			IDrawable cursor = getCursor();
-			if (cursor instanceof IImageDrawable) {
+			if (cursor instanceof IImageDrawable) {				
 				//HACK: Change the cursor size automatically based on the text size
 				IImageDrawable id = (IImageDrawable)cursor;
 				int cl = getStartLine(); //Use first line instead of cursor line to prevent size jitter (constant relayouting)
@@ -112,7 +112,6 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	
 	protected void invalidateTextureContents() {
 		texContentDirty = true;
-		invalidateCursorSize();
 		markChanged();
 	}
 
@@ -120,6 +119,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	protected void invalidateLayout() {
 		super.invalidateLayout();				
 		invalidateTextureContents();
+		invalidateCursorSize();
 	}
 
 	@Override
@@ -147,7 +147,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 	protected void validateTexture() {
 		int lw = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutWidth()));
 		int lh = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutHeight()));
-		int lwMax = Math.max(lw, 2*PAD + (int)Math.ceil(getLayoutMaxWidth()));
+		int lwMax = Math.max(lw, 2*PAD + (int)Math.ceil(getMaxWidth() * getDisplayScale()));
 		int lhMax = Math.max(lh, 2*PAD + (int)Math.ceil(getLayoutMaxHeight()));
 		boolean textureOK = texture != null //Texture exists
 			&& textureW >= lw && textureH >= lh //Texture not too small

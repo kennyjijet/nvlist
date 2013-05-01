@@ -46,7 +46,7 @@ public final class NullSeenLog implements ISeenLog, Serializable {
 
 	@Override
 	public boolean isTextLineRead(String filename, int textLineIndex) {
-		return true;
+		return false;
 	}
 	
 	@Override

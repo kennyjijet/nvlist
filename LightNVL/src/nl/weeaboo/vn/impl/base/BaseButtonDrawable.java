@@ -394,7 +394,7 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	//Setters
 	@Override
 	public void setText(String s) {
-		setText(new StyledText(s));
+		setText(new StyledText(s != null ? s : ""));
 	}
 	
 	@Override

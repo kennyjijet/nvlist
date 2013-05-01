@@ -540,7 +540,7 @@ end
 
 ---Asks the user to select an option.
 -- @param ... A vararg with all selectable options.
--- @return The index of the selected option, starting at <code>1</code>.
+-- @return The index of the selected option (starting at <code>1</code>).
 function choice(...)
 	return choice2(getScriptPos(1), ...)
 end
@@ -550,7 +550,7 @@ function choice2(uniqueChoiceId, ...)
 	if options == nil or #options == 0 then
 		options = {"Genuflect"}
 	end
-
+    
 	local selected = -1
 	while selected < 0 do
 		local thread = nil
@@ -583,9 +583,10 @@ function choice2(uniqueChoiceId, ...)
 		end
 	end
 
-	seenLog:setChoiceSelected(uniqueChoiceId, selected + 1)
-	
-	return selected + 1
+    selected = selected + 1
+    
+	seenLog:setChoiceSelected(uniqueChoiceId, selected)	
+	return selected
 end
 
 -- ----------------------------------------------------------------------------

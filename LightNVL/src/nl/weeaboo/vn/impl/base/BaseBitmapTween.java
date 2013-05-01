@@ -2,7 +2,7 @@ package nl.weeaboo.vn.impl.base;
 
 import static nl.weeaboo.vn.IDrawBuffer.DEFAULT_UV;
 
-import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 import nl.weeaboo.common.Area2D;
@@ -20,9 +20,7 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
-	protected static final int INTERP_MIN = 0;
-	protected static final int INTERP_MAX = 65535;
-	
+	protected final int interpMax;
 	protected final INotifier notifier;
 	private final String fadeFilename;
 	private final double range;
@@ -34,13 +32,14 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 	private int[] interpolation;
 	private Dim remapTexSize;
 	private TriangleGrid grid;
-	private transient ShortBuffer remapBuffer;
+	private transient ByteBuffer remapBuffer;
 	
-	public BaseBitmapTween(INotifier ntf, String fadeFilename, double duration, double range,
+	public BaseBitmapTween(boolean is16Bit, INotifier ntf, String fadeFilename, double duration, double range,
 			IInterpolator interpolator, boolean fadeTexTile)
 	{	
 		super(duration);
 		
+		this.interpMax = (is16Bit ? 65535 : 255);
 		this.notifier = ntf;
 		this.fadeFilename = fadeFilename;
 		this.range = range;
@@ -63,13 +62,13 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		super.doPrepare();
 		
 		//Get interpolation function values
-		interpolation = new int[INTERP_MAX+1];
+		interpolation = new int[interpMax+1];
 		interpolation[0] = 0;
-		for (int n = 1; n < INTERP_MAX; n++) {
-			int i = Math.round(INTERP_MAX * interpolator.remap(n / (float)INTERP_MAX));
-			interpolation[n] = Math.max(0, Math.min(INTERP_MAX, i));
+		for (int n = 1; n < interpMax; n++) {
+			int i = Math.round(interpMax * interpolator.remap(n / (float)interpMax));
+			interpolation[n] = Math.max(0, Math.min(interpMax, i));
 		}
-		interpolation[INTERP_MAX] = INTERP_MAX;
+		interpolation[interpMax] = interpMax;
 		
 		//Get shader
 		prepareShader();
@@ -84,11 +83,11 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 			fadeTex = prepareFadeTexture(fadeFilename);
 		}		
 		if (fadeTex == null) {
-			fadeTex = prepareDefaultFadeTexture(INTERP_MAX / 2);
+			fadeTex = prepareDefaultFadeTexture(interpMax / 2);
 		}
 
 		//Create remap texture
-		remapTexSize = new Dim(256, 256);
+		remapTexSize = (interpMax > 255 ? new Dim(256, 256) : new Dim(1, 256));
 		prepareRemapTexture(remapTexSize.w, remapTexSize.h);
 		
 		//Create geometry
@@ -126,6 +125,8 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 				bounds0.toArea2D(), texBounds0, wrap0,
 				bounds1.toArea2D(), texBounds1, wrap1,
 				bounds2.toArea2D(), texBounds2, wrap2);
+		
+		updateRemapTex(); //Needs to be called here, we don't know if update() will be called before draw()
 	}
 	
 	@Override
@@ -154,34 +155,59 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		return consumeChanged() || changed;
 	}
 	
-	protected abstract ShortBuffer initRemapPixels(ShortBuffer current, int requiredLen);
+	protected abstract ByteBuffer initRemapPixels(ByteBuffer current, int requiredBytes);
 	
 	private boolean updateRemapTex() {
-		double maa = INTERP_MAX * getNormalizedTime() * (1 + range);
-		double mia = maa - INTERP_MAX * range;
+		double maa = interpMax * getNormalizedTime() * (1 + range);
+		double mia = maa - interpMax * range;
 		//System.out.println(mia + "~" + maa);
-		int minA = Math.min(INTERP_MAX, Math.max(0, (int)Math.round(mia)));
-		int maxA = Math.min(INTERP_MAX, Math.max(0, (int)Math.round(maa)));
+		int minA = Math.min(interpMax, Math.max(0, (int)Math.round(mia)));
+		int maxA = Math.min(interpMax, Math.max(0, (int)Math.round(maa)));
 
-		int requiredLen = remapTexSize.w * remapTexSize.h;
-		remapBuffer = initRemapPixels(remapBuffer, requiredLen);
+		int requiredPixels = remapTexSize.w * remapTexSize.h;
 		
-		short max = (short)INTERP_MAX;
-		for (int n = 0; n < minA; n++) {
-			remapBuffer.put(n, max);
-		}
-		
-		double inc = INTERP_MAX / (maa - mia);
-		double cur = (minA - mia) * inc;			
-		for (int n = minA; n <= maxA && n <= INTERP_MAX; n++) {
-			int ar = Math.max(0, Math.min(INTERP_MAX, (int)Math.round(cur)));
-			remapBuffer.put(n, (short)(INTERP_MAX - interpolation[ar]));				
-			cur += inc;
-		}
-		
-		short min = (short)0;
-		for (int n = maxA; n < requiredLen; n++) {
-			remapBuffer.put(n, min);
+		if (interpMax <= 255) {
+			remapBuffer = initRemapPixels(remapBuffer, requiredPixels);
+			ByteBuffer buf = remapBuffer;
+			
+			byte max = (byte)interpMax;
+			for (int n = 0; n < minA; n++) {
+				buf.put(n, max);
+			}
+			
+			double inc = interpMax / (maa - mia);
+			double cur = (minA - mia) * inc;			
+			for (int n = minA; n <= maxA && n <= interpMax; n++) {
+				int ar = Math.max(0, Math.min(interpMax, (int)Math.round(cur)));
+				buf.put(n, (byte)(interpMax - interpolation[ar]));				
+				cur += inc;
+			}
+			
+			byte min = (byte)0;
+			for (int n = maxA; n < requiredPixels; n++) {
+				buf.put(n, min);
+			}			
+		} else {
+			remapBuffer = initRemapPixels(remapBuffer, requiredPixels * 2);
+			ShortBuffer buf = remapBuffer.asShortBuffer();
+
+			short max = (short)interpMax;
+			for (int n = 0; n < minA; n++) {
+				buf.put(n, max);
+			}
+			
+			double inc = interpMax / (maa - mia);
+			double cur = (minA - mia) * inc;			
+			for (int n = minA; n <= maxA && n <= interpMax; n++) {
+				int ar = Math.max(0, Math.min(interpMax, (int)Math.round(cur)));
+				buf.put(n, (short)(interpMax - interpolation[ar]));				
+				cur += inc;
+			}
+			
+			short min = (short)0;
+			for (int n = maxA; n < requiredPixels; n++) {
+				buf.put(n, min);
+			}			
 		}
 		
 		//Add an alpha channel for debugging purposes
@@ -190,12 +216,12 @@ public abstract class BaseBitmapTween extends BaseImageTween {
 		//	remapTemp[n] = 0xFF000000 | remapTemp[n];
 		//}
 		
-		updateRemapTex(remapBuffer);
+		updateRemapTex(remapBuffer, interpMax > 255);
 		
 		return true;
 	}
 	
-	protected abstract void updateRemapTex(Buffer pixels);
+	protected abstract void updateRemapTex(ByteBuffer pixels, boolean is16Bit);
 	
 	@Override
 	public void draw(IDrawBuffer d) {

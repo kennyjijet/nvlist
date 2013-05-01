@@ -31,11 +31,14 @@
   <target name="compile">  
     <mkdir dir="bin"/>
 
-    <javac srcdir="src" destdir="bin" encoding="UTF-8" debug="true">
-	  <classpath refid="classpath" />
-	</javac>
+    <javac srcdir="src" destdir="bin"
+      source="1.6" target="1.6"
+      encoding="UTF-8" debug="true" includeantruntime="false">
+      
+      <classpath refid="classpath" />
+    </javac>
 
-	<!-- Copy resources (embedded images, etc.) to bin dir -->
+    <!-- Copy resources (embedded images, etc.) to bin dir -->
     <copy todir="bin" overwrite="true">
       <fileset dir="src">
         <exclude name="**/*.java" />

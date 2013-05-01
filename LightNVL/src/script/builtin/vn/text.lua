@@ -312,10 +312,10 @@ end
 --
 -- @see createStyle
 function style(s)
-	local i = #styleStack
-	
+	local i = #styleStack	
 	if s == nil then
 		styleStack[i] = nil
+        return nil
 	end
 	
 	if type(s) ~= "userdata" then
@@ -699,10 +699,20 @@ end
 
 local function createTextCursor(textBox)
 	local cursor = nil
-	local cursorTex = tex("gui/cursor#waitClick", true) or tex("gui/cursor", true)
-	if cursorTex == nil then
-		cursorTex = tex("builtin/gui/cursor#waitClick", true) or tex("builtin/gui/cursor", true) or cursorTex
-	end
+    
+	local cursorTex = nil
+    if android then
+        cursorTex = tex("gui/cursor-android#waitClick", true)
+                 or tex("gui/cursor-android", true)
+                 or tex("builtin/gui/cursor-android#waitClick", true)
+                 or tex("builtin/gui/cursor-android", true)
+    end
+    if cursorTex == nil then
+        cursorTex = tex("gui/cursor#waitClick", true)
+                 or tex("gui/cursor", true)
+                 or tex("builtin/gui/cursor#waitClick", true)
+                 or tex("builtin/gui/cursor", true)
+    end
 	
 	if cursorTex ~= nil then
 		cursor = img(cursorTex)

@@ -163,7 +163,7 @@ public abstract class BaseTextState implements ITextState {
 	//Setters		
 	@Override
 	public void setText(String t) {
-		setText(new StyledText(t));
+		setText(new StyledText(t != null ? t : ""));
 	}
 	
 	@Override
@@ -179,7 +179,7 @@ public abstract class BaseTextState implements ITextState {
 	
 	@Override
 	public void appendText(String t) {
-		appendText(new StyledText(t));
+		appendText(new StyledText(t != null ? t : ""));
 	}
 	
 	@Override
@@ -192,7 +192,7 @@ public abstract class BaseTextState implements ITextState {
 	
 	@Override
 	public void appendTextLog(String t, boolean newPage) {
-		appendTextLog(new StyledText(t), newPage);
+		appendTextLog(new StyledText(t != null ? t : ""), newPage);
 	}
 	
 	@Override
