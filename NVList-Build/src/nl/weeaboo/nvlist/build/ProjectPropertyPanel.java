@@ -107,7 +107,7 @@ public class ProjectPropertyPanel extends JPanel {
 							outputPanel.process(build.ant(build.getCleanTarget()), new ProcessCallback() {
 								public void run(int exitCode) {
 									buildINI.put(name, String.valueOf(newval));
-									save();
+									writeINI(buildINI, Build.PATH_BUILD_INI);
 								}
 							});
 							return;
@@ -116,26 +116,25 @@ public class ProjectPropertyPanel extends JPanel {
 						}
 					}
 					buildINI.put(name, String.valueOf(newval));
-					save();
+					writeINI(buildINI, Build.PATH_BUILD_INI);
 				} else if (id.startsWith(GROUP_GAME+'.')) {
 					gameINI.put(name, String.valueOf(newval));
-					save();
+					writeINI(gameINI, Build.PATH_GAME_INI);
 				} else if (id.startsWith(GROUP_PREFS+'.')) {
 					prefsDefaultINI.put(name, String.valueOf(newval));
 					//System.out.println("prefs.ini changed: " + name + " = " + newval);
-					save();
-					
-					tryUpdateSavedPrefs(name, String.valueOf(newval));
+					writeINI(prefsDefaultINI, Build.PATH_PREFS_INI);
+					Build.tryUpdateSavedPrefs(build, name, String.valueOf(newval));
 				} else if (id.startsWith(GROUP_INSTALLER+'.')) {
 					installerConfigINI.put(name, String.valueOf(newval));
-					save();
-				}
+					writeINI(installerConfigINI, Build.PATH_INSTALLER_INI);
+				}				
 			}			
 		});
 		
 		propertyTable = new PropertyTable();
 		propertyTable.setModel(new PropertyTableModel(propertyModel));
-		
+
 		ListSelectionModel selectionModel = propertyTable.getSelectionModel();
 		selectionModel.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -178,6 +177,7 @@ public class ProjectPropertyPanel extends JPanel {
 			}
 			
 		};
+		propertyTable.setEditor(GROUP_BUILD + ".package", new StringEditor(new PackageNameField()));
 		propertyTable.setEditor(GROUP_BUILD + ".project-name", new StringEditor(projectNameField));
 		
 		JScrollPane scrollPane = new JScrollPane(propertyTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -200,14 +200,14 @@ public class ProjectPropertyPanel extends JPanel {
 	}
 	
 	private void addImportantProperties() {
-		List<String> buildImp = Arrays.asList("project-name", "program-args", "obfuscate", "splashscreen",
+		List<String> buildImp = Arrays.asList("project-name", "package", "obfuscate", "splashscreen",
 				"include-private-jre"/*", applet-width", "applet-height"*/ );		
 		addAsGroup(importantProperties, GROUP_BUILD, buildImp);
 		
-		List<String> gameImp = Arrays.asList("title", "fps", "width", "height", "vn.enableProofreaderTools");
+		List<String> gameImp = Arrays.asList("title", "width", "height", "vn.enableProofreaderTools");
 		addAsGroup(importantProperties, GROUP_GAME, gameImp);
 
-		List<String> prefsImp = Arrays.asList("debug", "startFullscreen", "vn.audio.musicVolume",
+		List<String> prefsImp = Arrays.asList("debug", "graphics.startFullscreen", "vn.audio.musicVolume",
 				"vn.audio.soundVolume", "vn.textStyle", "vn.textReadStyle");
 		addAsGroup(importantProperties, GROUP_PREFS, prefsImp);
 
@@ -265,19 +265,14 @@ public class ProjectPropertyPanel extends JPanel {
 		}
 	}
 	
-	public void save() {
-		writeINI(buildINI, Build.PATH_BUILD_INI);
-		writeINI(gameINI, Build.PATH_GAME_INI);
-		writeINI(prefsDefaultINI, Build.PATH_PREFS_INI);
-		writeINI(installerConfigINI, Build.PATH_INSTALLER_INI);
-	}
-	
 	public void update() {
 		load();
 		
+		Set<String> emptySet = Collections.emptySet();
+		
 		PropertyGroupBuilder b = new PropertyGroupBuilder();
 		b.startGroup(GROUP_BUILD, "Build properties");
-		addIniFile(b, GROUP_BUILD, buildINI, buildDefs);
+		addIniFile(b, GROUP_BUILD, buildINI, buildDefs, true, emptySet);
 		b.stopGroup();
 		b.startGroup(GROUP_GAME, "Game properties");
 		Set<String> consts = addIniFile(b, GROUP_GAME, gameINI, gameDefs);
@@ -346,26 +341,7 @@ public class ProjectPropertyPanel extends JPanel {
 		T val = (strval != null ? def.fromString(strval) : def.getDefaultValue());
 		return new Property(def.getKey(), def.getKey(), def.getType(), val);
 	}
-		
-	protected boolean tryUpdateSavedPrefs(String key, String val) {
-		File file = new File(build.getProjectFolder(), "save/prefs.ini");
-		if (!file.exists()) {
-			return false; //Unable to find saved prefs. Maybe it's in a different location or doesn't exist yet.
-		}
-		
-		try {
-			INIFile ini = new INIFile();
-			ini.read(file);
-			if (ini.containsKey(key)) {
-				ini.put(key, val);
-				ini.write(file);
-			}
-			return true;
-		} catch (IOException e) {
-			return false;
-		}
-	}
-	
+			
 	//Getters
 	
 	//Setters

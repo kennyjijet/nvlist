@@ -7,11 +7,12 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
@@ -60,15 +61,23 @@ public final class BuildGUIUtil {
 		return new Color(rgb[0]*s, rgb[1]*s, rgb[2]*s);
 	}
 	
-	public static JFrame createOptimizerGUI(Build build, boolean isAndroid, boolean disposeOnDone)
-			throws Exception
+	public static JComponent createOptimizerGUI(Build build, boolean isAndroid, boolean disposeOnDone,
+			Runnable postOptimize) throws Exception
 	{
 		ClassLoader cl = build.getClassLoader();
 		Class<?> clazz = cl.loadClass("nl.weeaboo.game.optimizer.OptimizerGUI");
 		Constructor<?> constr = clazz.getConstructor(File.class, String.class, Boolean.TYPE);
-		Object optObj = constr.newInstance(build.getProjectFolder(), build.getGameId(), isAndroid);
-		return (JFrame)clazz.getDeclaredMethod("createFrame", clazz, Boolean.TYPE)
-					.invoke(null, optObj, disposeOnDone);		
+
+		JComponent opt = (JComponent)constr.newInstance(build.getProjectFolder(), build.getGameId(), isAndroid);
+		opt.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(0x828790)),
+				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+		Method m = clazz.getMethod("setFinishRunnable", Runnable.class);
+		m.invoke(opt, postOptimize);
+		
+		return opt;
+		//return (JFrame)clazz.getDeclaredMethod("createFrame", clazz, Boolean.TYPE) .invoke(null, optObj, disposeOnDone);
 	}
 
 	public static List<Image> getWindowIcons(Component c) {

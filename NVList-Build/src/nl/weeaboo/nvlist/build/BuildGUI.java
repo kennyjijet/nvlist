@@ -43,7 +43,6 @@ public class BuildGUI extends LogoPanel {
 	private final FileBrowseField engineBrowseField, projectBrowseField;
 	private ProjectPropertyPanel projectProperties;
 	private BuildCommandPanel buildCommandPanel;
-	private ConsoleOutputPanel consoleOutput;
 	
 	public BuildGUI() {
 		super("header.png");
@@ -71,14 +70,18 @@ public class BuildGUI extends LogoPanel {
 			}
 		});
 		
-		consoleOutput = new ConsoleOutputPanel();
-		buildCommandPanel = new BuildCommandPanel(consoleOutput);
+		ConsoleOutputPanel consoleOutput = new ConsoleOutputPanel();
+
+		JPanel outputPanel = new JPanel(new BorderLayout());
+		outputPanel.add(consoleOutput);
+		
 		projectProperties = new ProjectPropertyPanel(consoleOutput, getBackground());
+		buildCommandPanel = new BuildCommandPanel(projectProperties, outputPanel, consoleOutput);
 		
 		JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
 		rightPanel.setOpaque(false);
 		rightPanel.add(buildCommandPanel, BorderLayout.NORTH);
-		rightPanel.add(consoleOutput, BorderLayout.CENTER);
+		rightPanel.add(outputPanel, BorderLayout.CENTER);
 		
 		JPanel mainPanel = new JPanel(new GridLayout(-1, 2, 10, 10));
 		mainPanel.setOpaque(false);
@@ -145,7 +148,7 @@ public class BuildGUI extends LogoPanel {
 	
 	public boolean askDispose() {
 		if (buildCommandPanel.isBusy()) {
-			MessageBox mbox = new MessageBox("Confirm Exit", "A build operation is still running in the background.");
+			MessageBox mbox = new MessageBox("Confirm Exit", "A build operation or resource optimizer is still active in the background.");
 			int leave = mbox.addOption("Exit anyway", "Keep the build operation running in the background and exit anyway.");
 			mbox.addButton("Cancel", "Cancel the close operation.");
 			int r = mbox.showMessage(this);

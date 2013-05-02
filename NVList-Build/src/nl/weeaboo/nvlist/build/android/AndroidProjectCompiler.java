@@ -3,7 +3,6 @@ package nl.weeaboo.nvlist.build.android;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.FOLDER;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.ICON;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.LVL_KEY_BASE64;
-import static nl.weeaboo.nvlist.build.android.AndroidConfig.PACKAGE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.SPLASH_IMAGE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.TITLE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.VERSION_CODE;
@@ -29,6 +28,7 @@ import java.util.zip.ZipFile;
 
 import nl.weeaboo.io.FileUtil;
 import nl.weeaboo.io.StreamUtil;
+import nl.weeaboo.nvlist.build.BuildUtil;
 
 public class AndroidProjectCompiler {
 	
@@ -59,18 +59,18 @@ public class AndroidProjectCompiler {
 				: null);
 		
 		handlers.put(F_ANDROID_NVLIST + "src/nl/weeaboo/android/nvlist/ExpansionConstants.java",
-			Handlers.expansionConstants(config.get(PACKAGE), config.get(LVL_KEY_BASE64), config.get(XAPK_MAIN_VERSION),
+			Handlers.expansionConstants(config.get(BuildUtil.PACKAGE), config.get(LVL_KEY_BASE64), config.get(XAPK_MAIN_VERSION),
 				mainXAPKFile, config.get(XAPK_PATCH_VERSION), patchXAPKFile));
 				
 		handlers.put(F_ANDROID_NVLIST + "AndroidManifest.xml",
-			Handlers.androidManifestHandler(config.get(PACKAGE), config.get(VERSION_CODE),
+			Handlers.androidManifestHandler(config.get(BuildUtil.PACKAGE), config.get(VERSION_CODE),
 				config.get(VERSION_NAME)));
 		
 		handlers.put(F_ANDROID_NVLIST + "res/values/strings.xml",
 			Handlers.stringResHandler(config.get(TITLE), config.get(FOLDER)));				
 		
 		handlers.put("java",
-			Handlers.javaHandler(config.get(PACKAGE)));
+			Handlers.javaHandler(config.get(BuildUtil.PACKAGE)));
 		
 		File iconF = new File(gameFolder, config.get(ICON));
 		File splashF = new File(gameFolder, config.get(SPLASH_IMAGE));
@@ -85,19 +85,21 @@ public class AndroidProjectCompiler {
 	public static void main(String[] args) throws IOException {
 		File gameF = new File(args[0]);
 		File templateF = new File(args[1]);
-		File configF = new File(args[2]);
-		File dstF = new File(args[3]);
+		File buildPropertiesF = new File(args[2]);
+		File androidConfigF = new File(args[3]);
+		File dstF = new File(args[4]);
 		
-		if (!gameF.exists() || !configF.exists() || !templateF.exists()) {
+		if (!gameF.exists() || !buildPropertiesF.exists() || !androidConfigF.exists() || !templateF.exists()) {
 			if (!gameF.exists()) System.err.println("Folder doesn't exist: " + gameF);
-			if (!configF.exists()) System.err.println("Folder doesn't exist: " + configF);
+			if (!buildPropertiesF.exists()) System.err.println("File doesn't exist: " + buildPropertiesF);
+			if (!androidConfigF.exists()) System.err.println("File doesn't exist: " + androidConfigF);
 			if (!templateF.exists()) System.err.println("Folder doesn't exist: " + templateF);
 			printUsage();
 			System.exit(1);
 			return;
 		}
 		
-		AndroidConfig config = AndroidConfig.fromFile(configF);
+		AndroidConfig config = AndroidConfig.fromFile(buildPropertiesF, androidConfigF);
 		
 		AndroidProjectCompiler compiler = new AndroidProjectCompiler(gameF, templateF, dstF, config);
 		compiler.compile();

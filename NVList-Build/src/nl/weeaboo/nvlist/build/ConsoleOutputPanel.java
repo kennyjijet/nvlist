@@ -184,6 +184,15 @@ public class ConsoleOutputPanel extends JPanel implements Runnable {
 		return false;
 	}
 	
+	@Override
+	public void revalidate() {
+		if (outputPane != null) {
+			outputPane.invalidate();
+		}		
+		super.revalidate();
+		repaint();
+	}
+	
 	//Getters
 	
 	//Setters

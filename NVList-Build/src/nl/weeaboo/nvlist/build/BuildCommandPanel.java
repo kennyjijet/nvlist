@@ -18,6 +18,7 @@ import java.io.IOException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -37,27 +38,26 @@ public class BuildCommandPanel extends JPanel {
 
 	private Build build;
 
+	private final ProjectPropertyPanel propertyPanel;
 	private final RunPanel runPanel;
-	private final ConsoleOutputPanel outputPanel;
+	private final JPanel rightPanel;
+	private final ConsoleOutputPanel consoleOutput;
 	private final Action optimizerAction, buildAppletAction, buildInstallerAction, buildInstallerCDAction, androidAction;
 	private final JButton rebuildButton, editButton, backupButton;
 	private final JButton moreButton;
 	
 	private volatile boolean busy;
 
-	public BuildCommandPanel(ConsoleOutputPanel output) {
-		outputPanel = output;
+	public BuildCommandPanel(ProjectPropertyPanel propPanel, JPanel panel, ConsoleOutputPanel output) {
+		this.propertyPanel = propPanel;
+		this.rightPanel = panel;
+		this.consoleOutput = output;
 		
-		runPanel = new RunPanel(this, outputPanel);
+		runPanel = new RunPanel(this, consoleOutput);
 
 		optimizerAction = new AbstractAction("Resource Optimizer...") {
 			public void actionPerformed(ActionEvent event) {
-				try {
-					BuildGUIUtil.createOptimizerGUI(build, false, true);
-				} catch (Exception e) {
-					e.printStackTrace();
-					AwtUtil.showError(e);
-				}
+				showResourceOptimizer(null);
 			}
 		};
 
@@ -97,6 +97,7 @@ public class BuildCommandPanel extends JPanel {
 					frame.addWindowListener(new WindowAdapter() {
 						@Override
 						public void windowClosed(WindowEvent event) {
+							propertyPanel.update();
 							myWindow.setVisible(true);
 						}
 					});
@@ -209,7 +210,7 @@ public class BuildCommandPanel extends JPanel {
 		setBusy(true);
 		try {
 			Process process = build.ant(target);
-			outputPanel.process(process, new ProcessCallback() {
+			consoleOutput.process(process, new ProcessCallback() {
 				public void run(int exitCode) {
 					setBusy(false);
 					runPanel.update();
@@ -262,16 +263,21 @@ public class BuildCommandPanel extends JPanel {
 		
 		//Show resource optimizer
 		try {
-			JFrame frame = BuildGUIUtil.createOptimizerGUI(build, false, true);
-			frame.addWindowListener(new WindowAdapter() {
+			JComponent c = BuildGUIUtil.createOptimizerGUI(build, false, true, new Runnable() {
 				@Override
-			    public void windowClosed(WindowEvent e) {
+				public void run() {
 					busy = wasBusy;
+					rightPanel.removeAll();
+					rightPanel.add(consoleOutput, BorderLayout.CENTER);
+					consoleOutput.revalidate();
 					updateEnabled();
-					callback.run();
-			    }
+					if (callback != null) callback.run();
+				}
 			});
-		} catch (Exception e) {
+			rightPanel.removeAll();
+			rightPanel.add(c, BorderLayout.CENTER);
+			revalidate();
+		} catch (Throwable e) {
 			e.printStackTrace();
 			AwtUtil.showError(e);
 

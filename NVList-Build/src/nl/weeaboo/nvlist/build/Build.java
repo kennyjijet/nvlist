@@ -35,6 +35,7 @@ public class Build {
 	public static final String PATH_BUILD_INI     = "build-res/build.properties";
 	public static final String PATH_GAME_INI      = "res/game.ini";
 	public static final String PATH_PREFS_INI     = "res/prefs-default.ini";
+	public static final String PATH_PREFS_ANDROID_INI = "res/prefs-default-android.ini";
 	public static final String PATH_INSTALLER_INI = "build-res/installer-config.ini";
 	public static final String PATH_ANDROID_INI   = "build-res/android-config.ini";
 	
@@ -289,6 +290,25 @@ public class Build {
 		}
 	}
 	
+	public static boolean tryUpdateSavedPrefs(Build build, String key, String val) {
+		File file = new File(build.getProjectFolder(), "save/prefs.ini");
+		if (!file.exists()) {
+			return false; //Unable to find saved prefs. Maybe it's in a different location or doesn't exist yet.
+		}
+		
+		try {
+			INIFile ini = new INIFile();
+			ini.read(file);
+			if (ini.containsKey(key)) {
+				ini.put(key, val);
+				ini.write(file);
+			}
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
+	}
+	
 	/**
 	 * @return <code>true</code> if files in the res folder have been changed
 	 *         since the optimized res folder was made (determined by comparing
@@ -299,6 +319,10 @@ public class Build {
 	public boolean isOptimizedResOutdated() {
 		File resF = getResFolder();
 		File resoptF = getOptimizedResFolder();
+		return isOptimizedResOutdated(resF, resoptF);
+	}
+	
+	public static boolean isOptimizedResOutdated(File resF, File resoptF) {
 		if (!resoptF.exists()) {
 			return true;
 		}		
@@ -314,23 +338,38 @@ public class Build {
 		for (Entry<String, File> entry : resFiles.entrySet()) {
 			String relpath = entry.getKey();
 			File oldFile = entry.getValue();
+			if (isHiddenFile(oldFile) || isBackupFile(oldFile)) {
+				continue;
+			}
+			
 			File newFile = resoptFiles.get(relpath);
 			if (newFile == null) {
 				System.out.printf("Optimized file doesn't exist (%s)\n", relpath);
 				return true;
-			}
-
-			long oldTime = oldFile.lastModified();
-			long newTime = newFile.lastModified();
-			if (newTime < oldTime) {
-				System.out.printf("Optimized file outdated (%s), %d < %d\n", relpath, newTime, oldTime);
-				return true;
-			}
-			
+			} else {
+				long oldTime = oldFile.lastModified();
+				long newTime = newFile.lastModified();
+				if (newTime < oldTime) {
+					System.out.printf("Optimized file outdated (%s), %d < %d\n", relpath, newTime, oldTime);
+					return true;
+				}
+			}			
 			//Optimized file is acceptable
 		}
 		return false;
 	}	
+	
+	private static boolean isHiddenFile(File file) {
+		String name = file.getName();
+		return name.equals("Thumbs.db")
+			|| name.equals("desktop.ini")
+			|| name.startsWith(".");
+	}
+	
+	private static boolean isBackupFile(File file) {
+		String name = file.getName();
+		return name.endsWith(".ini.bak");
+	}
 	
 	public File getResFolder() {
 		return new File(getProjectFolder(), "res");

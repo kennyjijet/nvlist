@@ -1,10 +1,10 @@
 package nl.weeaboo.nvlist.build.android;
 
-import static nl.weeaboo.nvlist.build.BuildGUIUtil.*;
+import static nl.weeaboo.nvlist.build.BuildGUIUtil.getWindowIcons;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.*;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.LVL_KEY_BASE64;
-import static nl.weeaboo.nvlist.build.android.AndroidConfig.PACKAGE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.XAPK_MAIN_FILE;
+import static nl.weeaboo.nvlist.build.android.AndroidConfig.XAPK_MAIN_VERSION;
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
@@ -12,8 +12,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +21,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -33,6 +32,7 @@ import nl.weeaboo.awt.MessageBox;
 import nl.weeaboo.io.FileUtil;
 import nl.weeaboo.nvlist.build.Build;
 import nl.weeaboo.nvlist.build.BuildGUIUtil;
+import nl.weeaboo.nvlist.build.BuildUtil;
 import nl.weeaboo.nvlist.build.ConsoleOutputPanel;
 import nl.weeaboo.nvlist.build.LogoPanel;
 import nl.weeaboo.nvlist.build.ProcessCallback;
@@ -57,15 +57,16 @@ public class AndroidGUI extends LogoPanel {
 	
 	private final Build build;
 	private final AndroidPropertyPanel androidProperties;
+	private final JPanel outputPanel;
 	private final ConsoleOutputPanel consoleOutput;
 	private final JButton updateButton, createButton;
 	
 	private boolean busy;
 	
 	public AndroidGUI(Build b) {
-		super("header.png");
+		super("header-android.png");
 		
-		build = b;
+		build = b;		
 		
 		consoleOutput = new ConsoleOutputPanel();
 		
@@ -98,13 +99,16 @@ public class AndroidGUI extends LogoPanel {
 		commandPanel.add(buildPanel);
 		commandPanel.add(Box.createHorizontalGlue());
 		
+		outputPanel = new JPanel(new BorderLayout());
+		outputPanel.add(consoleOutput, BorderLayout.CENTER);
+		
 		JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
 		rightPanel.setOpaque(false);
-		rightPanel.add(consoleOutput, BorderLayout.CENTER);
+		rightPanel.add(outputPanel, BorderLayout.CENTER);
 		rightPanel.add(commandPanel, BorderLayout.SOUTH);
 		
 		androidProperties = new AndroidPropertyPanel(getBackground());
-		androidProperties.setPropertyDefinitions(b.getAndroidDefs());
+		androidProperties.setPropertyDefinitions(b.getBuildDefs(), b.getAndroidDefs(), b.getPrefsDefaultDefs());
 		androidProperties.setBuild(b);
 		
 		JPanel mainPanel = new JPanel(new GridLayout(-1, 2, 10, 10));
@@ -112,7 +116,7 @@ public class AndroidGUI extends LogoPanel {
 		mainPanel.add(androidProperties);
 		mainPanel.add(rightPanel);
 		
-		setPreferredSize(new Dimension(650, 450));
+		setPreferredSize(new Dimension(750, 550));
 		add(Box.createRigidArea(new Dimension(315, 95)), BorderLayout.NORTH);
 		add(mainPanel, BorderLayout.CENTER);
 	}
@@ -131,12 +135,149 @@ public class AndroidGUI extends LogoPanel {
 		AwtUtil.setFrameIcon(frame, getImageRes("icon.png"));
 		return frame;
 	}
+		
+	protected void createNVL(final ProcessCallback callback) {
+		final File resFolder = getResFolder();
+		final File optimizedFolder = getResOptimizedFolder();
+
+		final boolean wasBusy = busy;
+		setBusy(true);
+
+		final Runnable postOptimize = new Runnable() {
+			@Override
+			public void run() {
+				StringBuilder cmd = new StringBuilder("dist");
+				cmd.append(" -Dobfuscate=true"); //Obfuscation required for XAPK files
+				cmd.append(" -Dres.dir=\"");
+				cmd.append((optimizedFolder.exists() ? optimizedFolder : resFolder).toString());
+				cmd.append("\"");
+				
+				setBusy(wasBusy);
+				ant(cmd.toString(), callback);		
+			}
+		};
+		
+		//Show resource optimizer
+		try {
+			JComponent c = BuildGUIUtil.createOptimizerGUI(build, true, true, new Runnable() {
+				@Override
+				public void run() {
+					outputPanel.removeAll();
+					outputPanel.add(consoleOutput, BorderLayout.CENTER);
+					consoleOutput.revalidate();
+					postOptimize.run();
+				}
+			});
+			outputPanel.removeAll();
+			outputPanel.add(c, BorderLayout.CENTER);
+			revalidate();
+		} catch (Throwable e) {
+			e.printStackTrace();
+			StringBuilder sb = new StringBuilder();
+			while (e != null) {
+				if (sb.length() > 0) sb.append(" :: ");
+				sb.append(e.toString());
+			}
+			AwtUtil.showError(sb.toString());
+		}
+	}
+	
+	protected void doUpdate() {	
+		File folder = new File(build.getProjectFolder(), "android-project");
+		DirectoryChooser dc = new DirectoryChooser(true);
+		dc.setSelectedDirectory(folder);
+		if (dc.showDialog(AndroidGUI.this, "Select Android project to update...")) {
+			folder = dc.getSelectedDirectory();
+			if (!folder.exists()) {
+				AwtUtil.showError("Selected folder doesn't exist or can't be read: " + folder);
+				return;
+			}
+						
+			AndroidConfig config = loadConfig();
+			if (!updateProperties(config, folder)) {
+				return;
+			}
 			
-	protected boolean checkProperties(AndroidConfig config) {		
+			if (checkForUpgrade(folder)) {
+				doCreate(folder);
+			} else {			
+				doUpdate(folder);
+			}
+		}		
+	}
+	protected void doUpdate(final File folder) {
+		AndroidConfig config = loadConfig();			
+
+		ProcessCallback cb = new ProcessCallback() {
+			@Override
+			public void run(int exitCode) {
+				if (exitCode == 0) {
+					createAndroidProject(AntMode.UPDATE, folder, folder);
+				}
+			}
+		};
+
+		if (config.get(AUTO_INCLUDE_NVL)) {
+			File resFolder = getResFolder();
+			File optimizedFolder = getResOptimizedFolder();
+			File xapkF = getMainXAPKFile(config, folder);
+			if (Build.isOptimizedResOutdated(resFolder, optimizedFolder) || !xapkF.exists()) {
+				updateMainXAPK(folder, cb);
+			} else {
+				cb.run(0);
+			}
+		} else {
+			cb.run(0);
+		}
+	}
+	
+	protected void doCreate() {
+		File createFolder = new File(build.getProjectFolder(), "android-project");
+		DirectoryChooser dc = new DirectoryChooser(true);
+		dc.setSelectedDirectory(createFolder);
+		if (dc.showDialog(AndroidGUI.this, "Select a folder for the new project...")) {
+			createFolder = dc.getSelectedDirectory();
+			if (createFolder != null) {
+				doCreate(createFolder);
+			}
+		}		
+	}
+	
+	protected void doCreate(final File folder) {
+		createAndroidProject(AntMode.CREATE, null, folder, new ProcessCallback() {
+			@Override
+			public void run(int exitCode) {				
+				if (exitCode == 0) {
+					AndroidConfig config = loadConfig();
+					if (!updateProperties(config, folder)) {
+						doUpdate(folder);
+					}
+				}
+			}
+		});		
+	}
+	
+	protected boolean updateProperties(AndroidConfig config, File workspaceF) {
+		if (config.get(AUTO_INCLUDE_NVL)) {
+			File resFolder = getResFolder();
+			File optimizedFolder = getResOptimizedFolder();
+			File xapkF = getMainXAPKFile(config, workspaceF);
+			int versionCode = config.get(VERSION_CODE);
+			boolean optimizedResOutdated = Build.isOptimizedResOutdated(resFolder, optimizedFolder);
+			if ((optimizedResOutdated || !xapkF.exists()) && config.get(XAPK_MAIN_VERSION) != versionCode) {
+				config.set(XAPK_MAIN_VERSION, versionCode);
+				androidProperties.setProperty(XAPK_MAIN_VERSION, versionCode);			
+			}
+			
+			String xapkMainPath = getXAPKMainPath(config);
+			config.set(XAPK_MAIN_FILE, xapkMainPath);
+			androidProperties.setProperty(XAPK_MAIN_FILE, xapkMainPath);
+		}
+		
 		List<String> warnings = new ArrayList<String>();
 		
-		String pkg = config.get(PACKAGE);
-		if (pkg.equals(PACKAGE.getDefaultValue())) {
+		String pkg = config.get(BuildUtil.PACKAGE);
+		if (!BuildUtil.isValidPackage(pkg)) {
 			warnings.add("Invalid package name: " + pkg);
 		}
 		
@@ -170,112 +311,6 @@ public class AndroidGUI extends LogoPanel {
 		
 		return true;
 	}
-		
-	protected void createNVL(final ProcessCallback callback) {		
-		//Show resource optimizer
-		try {
-			JFrame frame = BuildGUIUtil.createOptimizerGUI(build, true, true);
-			frame.addWindowListener(new WindowAdapter() {
-				@Override
-			    public void windowClosed(WindowEvent e) {
-					File resFolder = new File(build.getProjectFolder(), "res");
-					File optimizedFolder = new File(build.getProjectFolder(), Build.getOptimizerOutputName(build, true));
-					if (optimizedFolder.exists()) {
-						resFolder = optimizedFolder;
-					}
-
-					StringBuilder cmd = new StringBuilder("dist");
-					cmd.append(" -Dobfuscate=true"); //Obfuscation required for XAPK files
-					cmd.append(" -Dres.dir=\"").append(resFolder.toString()).append("\"");
-					ant(cmd.toString(), callback);		
-			    }
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-			StringBuilder sb = new StringBuilder();
-			while (e != null) {
-				if (sb.length() > 0) sb.append(" :: ");
-				sb.append(e.toString());
-			}
-			AwtUtil.showError(sb.toString());
-		}
-	}
-	
-	protected void doUpdate() {	
-		AndroidConfig config = loadConfig();		
-		if (config.get(AUTO_INCLUDE_NVL)) {
-			config.set(XAPK_MAIN_FILE, getXAPKMainPath(config));
-			androidProperties.setProperty(XAPK_MAIN_FILE, getXAPKMainPath(config));
-		}
-		if (!checkProperties(config)) {
-			return;
-		}
-
-		File updateFolder = new File(build.getProjectFolder(), "android-project");
-		DirectoryChooser dc = new DirectoryChooser(true);
-		dc.setSelectedDirectory(updateFolder);
-		if (dc.showDialog(AndroidGUI.this, "Select Android project to update...")) {
-			updateFolder = dc.getSelectedDirectory();
-			if (!updateFolder.exists()) {
-				AwtUtil.showError("Selected folder doesn't exist or can't be read: " + updateFolder);
-				return;
-			}
-			
-			if (checkForUpgrade(updateFolder)) {
-				doCreate(updateFolder);
-			} else {			
-				doUpdate(updateFolder);
-			}
-		}		
-	}
-	protected void doUpdate(final File folder) {
-		AndroidConfig config = loadConfig();			
-
-		ProcessCallback cb = new ProcessCallback() {
-			@Override
-			public void run(int exitCode) {
-				if (exitCode == 0) {
-					createAndroidProject(AntMode.UPDATE, folder, folder);
-				}
-			}
-		};
-		
-		if (config.get(AUTO_INCLUDE_NVL)) {
-			updateMainXAPK(folder, cb);
-		} else {
-			cb.run(0);
-		}
-	}
-	
-	protected void doCreate() {
-		File createFolder = new File(build.getProjectFolder(), "android-project");
-		DirectoryChooser dc = new DirectoryChooser(true);
-		dc.setSelectedDirectory(createFolder);
-		if (dc.showDialog(AndroidGUI.this, "Select a folder for the new project...")) {
-			createFolder = dc.getSelectedDirectory();
-			if (createFolder != null) {
-				doCreate(createFolder);
-			}
-		}		
-	}
-	
-	protected void doCreate(final File folder) {
-		createAndroidProject(AntMode.CREATE, null, folder, new ProcessCallback() {
-			@Override
-			public void run(int exitCode) {				
-				if (exitCode == 0) {
-					AndroidConfig config = loadConfig();					
-					if (config.get(AUTO_INCLUDE_NVL)) {
-						config.set(XAPK_MAIN_FILE, getXAPKMainPath(config));
-						androidProperties.setProperty(XAPK_MAIN_FILE, getXAPKMainPath(config));
-					}
-					if (checkProperties(config)) {
-						doUpdate(folder);
-					}
-				}
-			}
-		});		
-	}
 	
 	protected boolean checkForUpgrade(File folder) {
 		TemplateVersion stored = new TemplateVersion();
@@ -308,10 +343,9 @@ public class AndroidGUI extends LogoPanel {
 				if (exitCode == 0) {
 					AndroidConfig config = loadConfig();
 					File nvlF = new File(build.getProjectFolder(), "dist/" + build.getGameId() + ".nvl");
-					File mainF = new File(androidWorkspaceF, AndroidProjectCompiler.F_ANDROID_NVLIST
-							+ File.separator + getXAPKMainPath(config));
+					File mainF = getMainXAPKFile(config, androidWorkspaceF);
 					File xapkFolder = mainF.getParentFile();
-					try {						
+					try {
 						FileUtil.copyFile(nvlF, mainF);
 						FileUtil.write(new File(xapkFolder, "what-are-these-files.txt"),
 							"The .nvl/.obb files in this folder are APK Expansion files used by the Google play store.\n" +
@@ -385,7 +419,9 @@ public class AndroidGUI extends LogoPanel {
 	
 	private AndroidConfig loadConfig() {
 		try {
-			return AndroidConfig.fromFile(new File(build.getProjectFolder(), Build.PATH_ANDROID_INI));
+			File projectF = build.getProjectFolder();
+			return AndroidConfig.fromFile(new File(projectF, Build.PATH_BUILD_INI),
+					new File(projectF, Build.PATH_ANDROID_INI));
 		} catch (IOException ioe) {
 			System.err.println(ioe);
 			return new AndroidConfig();
@@ -394,8 +430,21 @@ public class AndroidGUI extends LogoPanel {
 	
 	//Getters
 	protected String getXAPKMainPath(AndroidConfig config) {
-		return String.format("xapk/main.%d.%s.obb", config.get(XAPK_MAIN_VERSION), config.get(PACKAGE));
+		return String.format("xapk/main.%d.%s.obb", config.get(XAPK_MAIN_VERSION), config.get(BuildUtil.PACKAGE));
 		//return "xapk/" + build.getGameId() + ".nvl";
+	}
+	
+	protected File getResFolder() {
+		return new File(build.getProjectFolder(), "res");		
+	}
+	
+	protected File getResOptimizedFolder() {
+		return new File(build.getProjectFolder(), Build.getOptimizerOutputName(build, true));		
+	}
+	
+	protected File getMainXAPKFile(AndroidConfig config, File androidWorkspaceF) {
+		return new File(androidWorkspaceF, AndroidProjectCompiler.F_ANDROID_NVLIST
+				+ File.separator + getXAPKMainPath(config));		
 	}
 	
 	//Setters

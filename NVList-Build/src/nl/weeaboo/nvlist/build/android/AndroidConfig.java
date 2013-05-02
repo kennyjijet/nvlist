@@ -18,10 +18,9 @@ import nl.weeaboo.settings.Preference;
 
 public class AndroidConfig extends BaseConfig {
 
-	public static final Preference<String>  PACKAGE            = newPreference("package", "com.example", "Package Name", "Unique Java package name for your application. Should start with your website's domain name reversed (blah.example.com -> com.example.blah), followed by some part specific to this specific app (example: com.example.blah.myapp).");
 	public static final Preference<String>  TITLE              = newPreference("title", "App Title", "Title", "Display name for your app.");
 	public static final Preference<Integer> VERSION_CODE       = newPreference("versionCode", 1, "Version Code", "Version code, must be an integer. Each new release should have a higher versionCode than the last.");
-	public static final Preference<String>  VERSION_NAME       = newPreference("versionName", "1.0", "Version Name", "The application version as seen by the user. Can be anything you want: <code>1.0</code>, <code>pancake edition</code>, whatever.");
+	public static final Preference<String>  VERSION_NAME       = newPreference("versionName", "1.0", "Version Name", "The application version as seen by the user. Can be anything you want: 1.0, pancake edition, whatever.");
 	public static final Preference<String>  ICON               = newPreference("icon", "res/icon.png", "Icon", "Application icon, should be at least 96x96. Will be downscaled automatically as needed.");
 	public static final Preference<String>  SPLASH_IMAGE       = newPreference("splashImage", "build-res/splash-android.png", "Splashscreen Image", "Image shown above the progress bar during startup. Use a 1x1 transparent image if you don't want to display a splash image.");
 	public static final Preference<Boolean> AUTO_INCLUDE_NVL   = newPreference("autoIncludeNVL", true, "Auto Include NVL", "Controls if the build system should automatically include an updated .nvl file containing your visual novel's resources when creating/updating an Android project.");	
@@ -32,20 +31,27 @@ public class AndroidConfig extends BaseConfig {
 	public static final Preference<Integer> XAPK_PATCH_VERSION = newPreference("xapk.patch.version", 1, "Patch XAPK Version", "Version code for the current 'patch' APK expansion file.");
 	public static final Preference<String>  XAPK_PATCH_FILE    = newPreference("xapk.patch.file", "", "Patch XAPK File", "Points to the patch APK expansion file.");
 	
-	public static AndroidConfig fromFile(File file) throws IOException {
+	public static AndroidConfig fromFile(File buildProperties, File androidConfig) throws IOException {
 		AndroidConfig config = new AndroidConfig();
-		if (file.exists() && file.isFile()) {
-			FileInputStream fin = new FileInputStream(file);
-			try {
-				config.load(fin);
-			} finally {
-				fin.close();
-			}
+		if (buildProperties.exists() && buildProperties.isFile()) {
+			config.load(buildProperties);
+		}
+		if (androidConfig.exists() && androidConfig.isFile()) {
+			config.load(androidConfig);
 		}
 		config.init(null);
 		return config;
 	}
 		
+	private void load(File file) throws IOException {
+		FileInputStream fin = new FileInputStream(file);
+		try {
+			load(fin);
+		} finally {
+			fin.close();
+		}		
+	}
+	
 	private void load(InputStream in) throws IOException {		
 		INIFile iniFile = new INIFile();
 		iniFile.read(new BufferedReader(new InputStreamReader(in, "UTF-8"), 8192));			

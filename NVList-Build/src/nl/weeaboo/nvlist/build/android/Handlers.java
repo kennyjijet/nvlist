@@ -121,7 +121,7 @@ final class Handlers {
 				createFile(dstF);
 				String contents = FileUtil.read(srcF);
 								
-				contents = doJavaHandler(contents, pkg);
+				contents = doJavaHandler(relpath, contents, pkg);
 				contents = replaceJavaCodeField(contents, "LVL_KEY_BASE64", "\"" + lvlKeyBase64 + "\"");
 				
 				StringBuilder xapkDefs = new StringBuilder();
@@ -143,8 +143,10 @@ final class Handlers {
 		};
 	}
 	
-	private static final String doJavaHandler(String contents, String pkg) {
-		contents = contents.replace("import nl.weeaboo.android.nvlist.template.R", "import " + pkg + ".R");
+	private static final String doJavaHandler(String relpath, String contents, String pkg) {
+		if (relpath.contains("AndroidNVList/src/")) {
+			contents = contents.replaceAll("import [A-Za-z0-9_.]+.R;", "import " + pkg + ".R;");
+		}
 		return contents;
 	}
 	
@@ -153,8 +155,8 @@ final class Handlers {
 			@Override
 			public void process(String relpath, File srcF, File dstF) throws IOException {
 				createFile(dstF);
-				String contents = FileUtil.read(srcF);
-				contents = doJavaHandler(contents, pkg);								
+				String contents = FileUtil.read(srcF);				
+				contents = doJavaHandler(relpath, contents, pkg);								
 				FileUtil.write(dstF, contents);
 			}
 		};
