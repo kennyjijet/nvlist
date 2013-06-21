@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import nl.weeaboo.settings.BaseConfig;
 import nl.weeaboo.settings.INIFile;
@@ -42,7 +43,22 @@ public class AndroidConfig extends BaseConfig {
 		config.init(null);
 		return config;
 	}
-		
+	
+	private void initProperties(Set<Entry<String, String>> entries, boolean constants) {
+		for (Entry<String, String> entry : entries) {
+			String key = entry.getKey();
+			String val = entry.getValue();
+						
+			Var var = map.get(key);
+			if (var != null && var.isConstant() && !constants) {
+				if (!var.getRaw().equals(val)) {
+					System.err.println("Almost overwrote a constant with a variable while loading config, maybe you're accidentally using the same name for two different properties? :: " + key + " -> " + val);
+				}
+			} else {
+				map.put(key, new Var(constants, val));
+			}
+		}		
+	}	
 	private void load(File file) throws IOException {
 		FileInputStream fin = new FileInputStream(file);
 		try {
@@ -54,8 +70,8 @@ public class AndroidConfig extends BaseConfig {
 	
 	private void load(InputStream in) throws IOException {		
 		INIFile iniFile = new INIFile();
-		iniFile.read(new BufferedReader(new InputStreamReader(in, "UTF-8"), 8192));			
-		initProperties(iniFile.entrySet());
+		iniFile.read(new BufferedReader(new InputStreamReader(in, "UTF-8"), 8192));		
+		initProperties(iniFile.entrySet(), false);
 	}
 	
 	public void save(OutputStream out) throws IOException {
@@ -70,7 +86,7 @@ public class AndroidConfig extends BaseConfig {
 	public void init(Map<String, String> overrides) throws IOException {
 		loadVariables();
 		if (overrides != null) {
-			initProperties(overrides.entrySet());
+			initProperties(overrides.entrySet(), false);
 		}
 	}
 

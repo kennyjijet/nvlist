@@ -1,4 +1,37 @@
 
+2013/06/21 -- 3.3 (r101)
+
+enhancements:
+- Added support for tiling textures, see ch11-resources.xml for more details.
+- Images now let you specify a custom UV-range to control the texture offset.
+- Added a fast mode to the texture composite function that skips alpha blending.
+- skipScene() is now cancelable by pressing the text continue key.
+- Improved analytics responsible for generating preloader.bin, handles multiple
+  image loads generated from a single line better.
+- Better error messages in case of syntax errors in loaded modules.
+- Closing Build.jar will now show a warning if a build task is still running.
+- The resource optimizer window has been integrated into its parent window.
+- Android: Resource optimizer will only be re-run when necessary.
+- Android: Added prefs-default-android.ini which allows preference overrides
+  to be used for an Android port.
+- Android: Added a GLES 2.0 rendering backend with support for bitmaptweens and
+  shaders.
+  
+bugfixes:
+- setScale() erroneously stopped accepting non-positive values.
+- Running in Java 7 could under specific circumstances result in an
+  IllegalArgumentException.
+- Newline characters in text commands weren't being handled properly.
+- Built-in word count incorrectly counted punctuation as words.
+- Changed the rendering implementation of TriangleGrid to avoid a potential GC
+  in the middle of rendering.
+- Retrieving the pixels for certain texture types didn't work.
+- Fixed a possible OutOfMemory exception when using the skip mode on Java 7
+  continuously for very long stretches of time.
+- Android: Will not try to download an XAPK if no valid LVL key is specified.
+
+
+
 2013/01/09 -- 3.2 (r94)
 
 enhancements:

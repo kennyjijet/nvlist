@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import static nl.weeaboo.gl.GLConstants.GL_LUMINANCE;
 import static nl.weeaboo.gl.GLConstants.GL_LUMINANCE16;
+import static nl.weeaboo.gl.GLConstants.GL_UNSIGNED_BYTE;
 import static nl.weeaboo.gl.GLConstants.GL_UNSIGNED_SHORT;
 
 import java.awt.image.BufferedImage;
@@ -144,6 +145,13 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	
 	public ITextureData newARGB8TextureData(IntBuffer argb, int w, int h) {
 		return texStore.newARGB8TextureData(argb, true, w, h);
+	}
+	public ITextureData newGray8TextureData(Buffer buf, int w, int h) {
+		MipmapData mdata = new MipmapData(texStore, buf, w);
+		int ifmt = GL_LUMINANCE;
+		int fmt = GL_LUMINANCE;
+		int glType = GL_UNSIGNED_BYTE;
+		return new JoglTextureData(w, h, ifmt, fmt, glType, texStore, Arrays.asList(mdata));		
 	}
 	public ITextureData newGray16TextureData(Buffer buf, int w, int h) {
 		MipmapData mdata = new MipmapData(texStore, buf, w * 2);

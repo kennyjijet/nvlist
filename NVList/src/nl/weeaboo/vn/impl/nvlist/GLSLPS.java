@@ -82,27 +82,27 @@ public class GLSLPS extends BaseHardwarePS implements Serializable {
 	}
 	
 	protected void applyTextureParam(IRenderer r, String name, int texIndex, int texId) {
-		shader.setTextureParam(getGLManager(r), name, texIndex, texId);
+		shader.setTextureUniform(getGLManager(r), name, texIndex, texId);
 	}
 
 	@Override
 	protected void applyFloat1Param(IRenderer r, String name, float v1) {
-		shader.setFloatParam(getGLManager(r), name, v1);
+		shader.setFloatUniform(getGLManager(r), name, v1);
 	}
 
 	@Override
 	protected void applyFloat2Param(IRenderer r, String name, float v1, float v2) {
-		shader.setVec2Param(getGLManager(r), name, v1, v2);
+		shader.setVec2Uniform(getGLManager(r), name, v1, v2);
 	}
 
 	@Override
 	protected void applyFloat3Param(IRenderer r, String name, float v1, float v2, float v3) {
-		shader.setVec3Param(getGLManager(r), name, v1, v2, v3);
+		shader.setVec3Uniform(getGLManager(r), name, v1, v2, v3);
 	}
 
 	@Override
 	protected void applyFloat4Param(IRenderer r, String name, float v1, float v2, float v3, float v4) {
-		shader.setVec4Param(getGLManager(r), name, v1, v2, v3, v4);
+		shader.setVec4Uniform(getGLManager(r), name, v1, v2, v3, v4);
 	}
 
 	//Getters

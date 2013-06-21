@@ -38,6 +38,7 @@ public class Novel extends LuaNovel {
 	private transient IFileSystem fs;
 	private transient IKeyConfig keyConfig;
 	private transient boolean isVNDS;
+	private transient boolean preloaderBroken;
 	
 	// !!WARNING!! Do not add properties without adding code for saving/loading
 	
@@ -60,6 +61,8 @@ public class Novel extends LuaNovel {
 	@Override
 	protected void initPreloader(LuaMediaPreloader preloader) {
 		preloader.clear();
+		
+		Throwable preloaderError = null;
 		try {
 			try {
 				InputStream in = new BufferedInputStream(fs.newInputStream("preloader-default.bin"), 4096);
@@ -68,6 +71,8 @@ public class Novel extends LuaNovel {
 				} finally {
 					in.close();
 				}
+			} catch (InvalidClassException ice) {
+				preloaderError = ice;
 			} catch (FileNotFoundException fnfe) {
 				//Ignore
 			}
@@ -86,12 +91,20 @@ public class Novel extends LuaNovel {
 				} catch (IOException ioe) {
 					//Oh well, nothing we can do about it then
 				}
-				throw ice;
+				preloaderError = ice;
 			} catch (FileNotFoundException fnfe) {
 				//Ignore
 			}
+			
+			if (!preloaderBroken && preloaderError != null) {
+				preloaderBroken = true;
+				getNotifier().d("Error initializing preloader", preloaderError);
+			}
 		} catch (IOException ioe) {
-			getNotifier().d("Error initializing preloader", ioe);
+			if (!preloaderBroken) {
+				preloaderBroken = true;
+				getNotifier().d("Error initializing preloader", ioe);
+			}
 		}
 	}
 	

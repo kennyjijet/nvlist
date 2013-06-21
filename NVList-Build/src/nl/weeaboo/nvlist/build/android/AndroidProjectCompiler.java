@@ -122,7 +122,7 @@ public class AndroidProjectCompiler {
 				FileUtil.collectFiles(files, tempFolder, false, true, true);
 			} else {
 				FileUtil.collectFiles(files, templateF, false, true, true);				
-			}			
+			}
 			
 			for (Entry<String, File> entry : files.entrySet()) {
 				String relpath = entry.getKey();

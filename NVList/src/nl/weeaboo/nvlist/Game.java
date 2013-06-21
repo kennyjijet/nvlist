@@ -483,6 +483,7 @@ public class Game extends AWTGame {
 			}
 			
 			DrawBuffer buffer = renderer.getDrawBuffer();
+			buffer.reset();
 			root.draw(buffer);
 			renderer.render(root, buffer);
 			buffer.reset();

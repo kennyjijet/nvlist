@@ -23,7 +23,7 @@
   <macrodef name="android-project-compiler">
     <attribute name="game" default="${gamedata.dir}" />
     <attribute name="template" default="${android-template}" />
-    <attribute name="config" default="${build-res.dir}/android.ini" />
+    <attribute name="build-res" default="${build-res.dir}" />
     <attribute name="output" default="${android-dist.dir}" />
 
     <sequential>
@@ -33,7 +33,8 @@
         
         <arg value="@{game}" />
         <arg value="@{template}" />
-        <arg value="@{config}" />
+        <arg value="@{build-res}/build.properties" />
+        <arg value="@{build-res}/android.ini" />
         <arg value="@{output}" />
       </java>
     </sequential>

@@ -2,18 +2,15 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import static nl.weeaboo.gl.GLConstants.GL_NEAREST;
 
-import java.awt.image.BufferedImage;
-import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 import javax.media.opengl.GL2;
 
-import nl.weeaboo.common.Dim;
-import nl.weeaboo.common.ScaleUtil;
 import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.GLUtil;
 import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.gl.shader.GLShader;
 import nl.weeaboo.gl.tex.GLTexRect;
@@ -31,8 +28,6 @@ import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
 import nl.weeaboo.vn.impl.base.CustomRenderCommand;
 import nl.weeaboo.vn.impl.base.TriangleGrid;
 import nl.weeaboo.vn.math.Matrix;
-
-import com.jogamp.opengl.util.GLBuffers;
 
 @LuaSerializable
 public class BitmapTween extends BaseBitmapTween {
@@ -54,7 +49,7 @@ public class BitmapTween extends BaseBitmapTween {
 			String fadeFilename, double duration,
 			double range, IInterpolator i, boolean fadeTexTile)
 	{	
-		super(ntf, fadeFilename, duration, range, i, fadeTexTile);
+		super(true, ntf, fadeFilename, duration, range, i, fadeTexTile);
 		
 		this.imgfac = imgfac;
 		this.shfac = shfac;
@@ -111,13 +106,6 @@ public class BitmapTween extends BaseBitmapTween {
 		fadeTex = ta.getTexRect();
 		return ta;
 	}
-
-	protected BufferedImage fadeImageSubRect(BufferedImage img, int targetW, int targetH) {
-		final int iw = img.getWidth();
-		final int ih = img.getHeight();
-		Dim d = ScaleUtil.scaleProp(targetW, targetH, iw, ih);
-		return img.getSubimage((iw-d.w)/2, (ih-d.h)/2, d.w, d.h);
-	}
 	
 	@Override
 	protected ITexture prepareDefaultFadeTexture(int colorARGB) {
@@ -133,8 +121,8 @@ public class BitmapTween extends BaseBitmapTween {
 	}
 
 	@Override
-	protected ShortBuffer initRemapPixels(ShortBuffer current, int requiredLen) {
-		return GLBuffers.newDirectShortBuffer(requiredLen);
+	protected ByteBuffer initRemapPixels(ByteBuffer current, int requiredBytes) {
+		return GLUtil.newDirectByteBuffer(requiredBytes);
 	}
 	
 	@Override
@@ -143,8 +131,12 @@ public class BitmapTween extends BaseBitmapTween {
 	}
 
 	@Override
-	protected void updateRemapTex(Buffer pixels) {
-		remapTex.setPixels(imgfac.newGray16TextureData(pixels, remapTex.getTexWidth(), remapTex.getTexHeight()));
+	protected void updateRemapTex(ByteBuffer pixels, boolean is16Bit) {
+		if (is16Bit) {
+			remapTex.setPixels(imgfac.newGray16TextureData(pixels, remapTex.getTexWidth(), remapTex.getTexHeight()));
+		} else {
+			remapTex.setPixels(imgfac.newGray8TextureData(pixels, remapTex.getTexWidth(), remapTex.getTexHeight()));
+		}
 	}
 
 	@Override
@@ -210,10 +202,10 @@ public class BitmapTween extends BaseBitmapTween {
 			glDraw.setShader(shader);
 			
 			//Initialize shader
-			shader.setTextureParam(glm, "src0",  0, texId(texs[0]));
-			shader.setTextureParam(glm, "src1",  1, texId(texs[1]));
-			shader.setTextureParam(glm, "fade",  2, texId(fadeTex));
-			shader.setTextureParam(glm, "remap", 3, texId(remapTex));
+			shader.setTextureUniform(glm, "src0",  0, texId(texs[0]));
+			shader.setTextureUniform(glm, "src1",  1, texId(texs[1]));
+			shader.setTextureUniform(glm, "fade",  2, texId(fadeTex));
+			shader.setTextureUniform(glm, "remap", 3, texId(remapTex));
 			
 			//Render geometry
 			gl.glPushMatrix();

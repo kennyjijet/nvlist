@@ -20,40 +20,74 @@
 <!-- Imports -->
   
 <!-- Tasks -->
-  <taskdef name="jarbundler"           
-           classname="net.sourceforge.jarbundler.JarBundler"
+  <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
            classpath="${tools.dir}/jarbundler/jarbundler-2.2.0.jar" />
 
+  <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"   
+           classpath="${tools.dir}/appbundler/appbundler-1.0.jar" />
+    
   <macrodef name="create-application-bundle">
     <attribute name="dir" default="${dist.dir}" />
-
+    
     <sequential>
-		<chmod dir="${build-res.dir}/mac" includes="JavaApplicationStub*" perm="ugo+rx"/>
+      <!-- Java 7 Application Bundle
+      <mkdir dir="@{dir}" />
 
-		<!-- Create Mac OSX launcher -->
-		<jarbundler dir="@{dir}"
-			name="${project-name}"
-			mainclass="${main-class}"
-			icon="${res.dir}/icon.icns"
-			stubfile="${build-res.dir}/mac/JavaApplicationStub"
-			jvmversion="1.6+"
-			jvmarchs="x86_64 i386 ppc"
-			vmoptions="${jvm-args}"
-			arguments="-reparseArgs -id &quot;${project-name}&quot; ${program-args} $APP_PACKAGE/Contents/Resources">
-				
-		  <!-- Include jars to classpath -->
-		  <jarfileset dir="lib" includes="**/*.jar" />
-		  <jarfilelist dir="${dist.dir}" >
-			  <file name="${project-name}.jar" />
-		  </jarfilelist>
-			
-		  <!-- Include native libs -->
-		  <javafileset dir="lib/mac" />
-		  
-		  <!-- Include resources -->
-		  <resourcefileset dir="${dist.dir}/res" erroronmissingdir="false" />
-		  <resourcefileset dir="${dist.dir}" includes="*.zip,*.nvl" />
-		</jarbundler>					
+      <java classname="nl.weeaboo.installer.CompressionUtil" classpath="${tools.dir}/MakeInstaller.jar" fork="true">        
+        <arg value="-d" />
+        <arg value="build-res/jdk-mac.xz" />
+        <arg value="@{dir}" />
+      </java>
+      
+      <bundleapp
+        outputdirectory="@{dir}"
+        name="${project-name}"
+        displayname="${title}"
+        icon="${res.dir}/icon.icns"
+        identifier="${package}"
+        mainclassname="${main-class}">
+        
+        <runtime dir="@{dir}/jdk-mac/Contents/Home" erroronmissingdir="false" />
+        
+        <classpath dir="lib" includes="**/*.jar" />
+        <classpath dir="${dist.dir}" includes="${project-name}.jar" />
+
+        <option value="${jvm-args}" />
+        
+        <argument value="-reparseArgs -id &quot;${project-name}&quot; ${program-args}" />
+        <argument value="$APP_ROOT/Contents/Resources" />        
+      </bundleapp>
+
+      <copy todir="@{dir}/${project-name}.app/Contents/Resources">
+        <fileset dir="${dist.dir}/res" erroronmissingdir="false" />
+        <fileset dir="${dist.dir}/lib/mac" erroronmissingdir="false" />
+        <fileset dir="${dist.dir}" includes="*.zip,*.nvl" />
+      </copy>
+      -->
+
+      <!-- Create Mac OSX launcher with JarBundler -->
+      <chmod dir="${build-res.dir}/mac" includes="JavaApplicationStub*" perm="ugo+rx"/>
+      
+      <jarbundler dir="@{dir}"
+        name="${project-name}"
+        mainclass="${main-class}"
+        icon="${res.dir}/icon.icns"
+        stubfile="${build-res.dir}/mac/JavaApplicationStub"
+        jvmversion="1.6+"
+        jvmarchs="x86_64 i386 ppc"
+        vmoptions="${jvm-args}"
+        arguments="-reparseArgs -id &quot;${project-name}&quot; ${program-args} $APP_PACKAGE/Contents/Resources">
+          
+        <jarfileset dir="lib" includes="**/*.jar" />
+        <jarfilelist dir="${dist.dir}" >
+          <file name="${project-name}.jar" />
+        </jarfilelist>
+        
+        <javafileset dir="lib/mac" />
+        
+        <resourcefileset dir="${dist.dir}/res" erroronmissingdir="false" />
+        <resourcefileset dir="${dist.dir}" includes="*.zip,*.nvl" />
+      </jarbundler>
     </sequential>
   </macrodef>
 
@@ -67,7 +101,7 @@
         <![CDATA[
           importPackage(java.awt.image);
           importPackage(java.io);
-          importPackage(javax.imageio);
+          importPackage(Packages.javax.imageio);
     
           var splashFolder = project.getProperty("build-res.dir")
           var img = ImageIO.read(new File(splashFolder, project.getProperty("splashscreen")));
@@ -201,7 +235,7 @@
       <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
         includes="**"  excludes="Contents/MacOS/**,Contents/Resources/Java/**" />
     </zip>
-    <delete dir="${dist.dir}/${project-name}.app" />        	
+    <delete dir="${dist.dir}/${project-name}.app" />
 
     <delete file="${build-res.dir}/installer.ini" />
   </target>

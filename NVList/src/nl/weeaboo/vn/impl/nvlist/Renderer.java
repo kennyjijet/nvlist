@@ -260,9 +260,12 @@ public class Renderer extends BaseRenderer {
 		if (ss.isVolatile()) {
 			GLWritableTexture glTex = imgfac.createGLTexture(glScreenRect.w, glScreenRect.h, 0, 0, 0, 0);
 			glTex = glTex.glTryLoad(glm);
-			GLTexRect glTexRect = glTex.getSubRect(GLUtil.TEXRECT_FLIPPED) ;
+			GLTexRect glTexRect = glTex.getSubRect(GLUtil.TEXRECT_FLIPPED);
 
 			glDraw.setTexture(glTex);
+			//The teximage may not have been created even if the texture id exists
+			gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, glTex.getTexWidth(), glTex.getTexHeight(),
+					0, GL.GL_RGBA, GL.GL_BYTE, null);
 			gl.glCopyTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, glScreenRect.x, glScreenRect.y,
 					glScreenRect.w, glScreenRect.h);
 			

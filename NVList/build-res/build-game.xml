@@ -152,7 +152,7 @@
     <attribute name="dst" />
 
     <sequential>
-      <java classname="nl.weeaboo.installer.CompressionUtil" classpath="${tools.dir}/MakeInstaller.jar" fork="true">        
+      <java classname="nl.weeaboo.installer.CompressionUtil" classpath="${tools.dir}/MakeInstaller.jar" fork="true">
         <arg value="-d" />
         <arg value="@{src}" />
         <arg value="@{dst}" />
@@ -195,11 +195,14 @@
   <target name="compile" depends="init" if="javasrc.exists">
     <mkdir dir="${bin.dir}"/>
         
-    <javac srcdir="${src.dir}" destdir="${bin.dir}" encoding="UTF-8" target="1.6" debug="true">        
-	  <classpath refid="classpath" />
-	</javac>
+    <javac srcdir="${src.dir}" destdir="${bin.dir}"
+      source="1.6" target="1.6"
+      encoding="UTF-8" debug="true" includeantruntime="false">
+      
+      <classpath refid="classpath" />
+    </javac>
 
-	<!-- Copy resources (embedded images, etc.) to bin dir -->
+    <!-- Copy resources (embedded images, etc.) to bin dir -->
     <copy todir="${bin.dir}">
       <fileset dir="${src.dir}" excludes="**/*.java" />
     </copy>
