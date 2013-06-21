@@ -137,7 +137,7 @@
         </tr>
         <tr>
           <th><javadoc-link class="nl.weeaboo.vn.impl.base.LoopMode">LoopMode</javadoc-link></th>
-          <td>NOWRAP, WRAP, BOUNCE, SIN</td>
+          <td>NOWRAP, WRAP, BOUNCE, SINE</td>
         </tr>
       </table>
     </section>

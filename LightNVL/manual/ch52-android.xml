@@ -63,6 +63,10 @@
       <p>First, <a href="http://developer.android.com/sdk/installing/installing-adt.html">install Eclipse with the ADT plugin</a>. Then choose <code>File -&gt; Switch Workspace -&gt; Other...</code> and select the generated &quot;Workspace&quot; folder. Right click within the package explorer, select <code>Import... -&gt; General -&gt; Import Projects into Workspace</code> and set the root folder to the same Workspace folder you just selected. Press &quot;Finish&quot; to import the detected projects.</p>
       <p>To create a new release in Eclipse, right-click on the AndroidNVList folder and select <code>Export... -&gt; Android -&gt; Export Android Application</code>. A new window will pop up to guide you through the final steps.</p>
     </section>
+      
+    <section title="Installing the Required API Levels" level="3">
+      <p>To build Android applications that target older version of the operating system, you need to have the corresponding API levels installed. NVList uses several different API levels (currently 4,8,15) and all of them must be installed from the Android SDK manager for the code to compile (you may get some kind of cryptic error otherwise).</p>
+    </section>
     
     <section title="Releasing on the Google play store (optional)" level="3">
       <p>It's fairly straightforward, just don't forget to include the generated APK expansion file in <code>Workspace/AndroidNVList/xapk/</code> as the main APK expansion file when uploading the APK.</p>

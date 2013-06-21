@@ -75,10 +75,12 @@ function soundStop(ch, fadeTime)
     Sound.stop(ch, fadeTime)
 end
 
----Plays a sound effect of type <code>SoundType.VOICE</code
+---Plays a sound effect of type <code>SoundType.VOICE</code>. This function
+-- calls <code>sound</code> internally.
+-- @param ch The audio channel to play the sound on, default is <code>101</code>.
 -- @see sound
 function voice(filename, loops, vol, ch)
-    return sound(filename, loops, vol, ch, SoundType.VOICE)
+    return sound(filename, loops, vol, ch or 101, SoundType.VOICE)
 end
 
 ---Starts playback of looping background music. This function calls
