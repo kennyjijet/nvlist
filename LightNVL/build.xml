@@ -86,8 +86,7 @@
     
     <delete dir="script-reference"/>
   	<exec dir="script-temp" executable="cmd">
-      <arg value="/c"/>
-      <arg value="luadoc_start -d ../script-reference builtin"/>
+      <arg value="/c ldoc.lua -d ../script-reference builtin"/>
   	</exec>
     
   	<delete file="documentation.zip" />
