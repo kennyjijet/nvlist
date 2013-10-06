@@ -108,20 +108,21 @@ end
 
 -- ----------------------------------------------------------------------------
 
-function stopFog(fadeSpeed)
-    fadeSpeed = fadeSpeed or 0.01
+function stopFog(fadeDuration)
+    fadeDuration = fadeDuration or 90
 
     if fog ~= nil then
-        fadeTo(fog, 0, fadeSpeed)
+        fadeTo(fog, 0, fadeDuration)
         fog:destroy()
         fog = nil
     end
 end
 
-function startFog(fadeSpeed, overrides)
-    stopFog(fadeSpeed)
+function startFog(fadeDuration, overrides)
+    stopFog(fadeDuration)
 
-    fadeSpeed = fadeSpeed or 0.01
+    fadeDuration = fadeDuration or 90
+
     local alpha = .4
     if overrides ~= nil then
         alpha = overrides.alpha or alpha
@@ -130,7 +131,7 @@ function startFog(fadeSpeed, overrides)
     fog = Fog.new(overrides)
     fog:setAlpha(0)
     fog:start()
-    fadeTo(fog, alpha, fadeSpeed)
+    fadeTo(fog, alpha, fadeDuration)
     return fog
 end
 
@@ -217,20 +218,22 @@ end
 
 -- ----------------------------------------------------------------------------
 
-function stopFog(fadeSpeed)
-    fadeSpeed = fadeSpeed or 0.01
+function stopFog(fadeDuration)
+    fadeDuration = fadeDuration or 90
+
 
     if fog ~= nil then
-        fadeTo(fog, 0, fadeSpeed)
+        fadeTo(fog, 0, fadeDuration)
         fog:destroy()
         fog = nil
     end
 end
 
-function startFog(fadeSpeed, overrides)
-    stopFog(fadeSpeed)
+function startFog(fadeDuration, overrides)
+    stopFog(fadeDuration)
 
-    fadeSpeed = fadeSpeed or 0.01
+    fadeDuration = fadeDuration or 90
+
     local alpha = .4
     if overrides ~= nil then
         alpha = overrides.alpha or alpha
@@ -239,24 +242,25 @@ function startFog(fadeSpeed, overrides)
     fog = Fog.new(overrides)
     fog:setAlpha(0)
     fog:start()
-    fadeTo(fog, alpha, fadeSpeed)
+    fadeTo(fog, alpha, fadeDuration)
     return fog
 end
 
-function stopSimpleFog(fadeSpeed)
-    fadeSpeed = fadeSpeed or 0.01
+function stopSimpleFog(fadeDuration)
+    fadeDuration = fadeDuration or 90
 
     if simpleFog ~= nil then
-        fadeTo(simpleFog, 0, fadeSpeed)
+        fadeTo(simpleFog, 0, fadeDuration)
         simpleFog:destroy()
         simpleFog = nil
     end
 end
 
-function startSimpleFog(fadeSpeed, overrides)
-    stopSimpleFog(fadeSpeed)
+function startSimpleFog(fadeDuration, overrides)
+    stopSimpleFog(fadeDuration)
 
-    fadeSpeed = fadeSpeed or 0.01
+    fadeDuration = fadeDuration or 90
+
     local alpha = .4
     if overrides ~= nil then
         alpha = overrides.alpha or alpha
@@ -265,7 +269,7 @@ function startSimpleFog(fadeSpeed, overrides)
     simpleFog = SimpleFog.new(overrides)
     simpleFog:setAlpha(0)
     simpleFog:start()
-    fadeTo(simpleFog, alpha, fadeSpeed)
+    fadeTo(simpleFog, alpha, fadeDuration)
     return simpleFog
 end
 

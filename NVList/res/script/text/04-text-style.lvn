@@ -1,31 +1,38 @@
 
 @@
-local function monospace()
-    return style{fontName="DejaVuSansMono"}
-end
+registerTextTagHandler("monospace", function()
+    return nil,createStyle{fontName="DejaVuSansMono"}
+end)
 
---Note: createStyle(), not style()
+registerTextTagHandler("myOutline", function()
+	return nil,createStyle{outlineSize=5, outlineColor=0xFF0000FF}
+end)
+
+registerTextTagHandler("myShadow", function()
+	return nil,createStyle{shadowColor=0xFFFF0000, shadowDx=10, shadowDy=10}
+end)
+
 registerSpeaker("bob", "Suit of Armor", createStyle{fontName="DejaVuSansMono", fontStyle="bolditalic", underline=true})
 @@
 
 @bgf("bg/bg1")
 
-The default text style is determined by the [monospace()]text.defaultStyle[style()] preference.
+The default text style is determined by the {monospace}text.defaultStyle{/monospace} preference.
 
 @textoff()
 @setTextModeNVL()
 @texton()
 
-Change the [style{fontName="DejaVuSansMono"}]fontName[style()] or [style{fontSize=15}]fontSize[style()].
+Change the {font 'DejaVuSansMono'}fontName{/font} or {size 15}fontSize{/size}.
 
 #Attention! Don't forget the quotes around "bold", etc.
-Or change the fontStyle to [style{fontStyle="bold"}]bold[style()], [style{fontStyle="italic"}]italic[style()], [style{fontStyle="bolditalic"}]bolditalic[style()].
+Or change the fontStyle to {b}bold{/b}, {i}italic{/i}, {b}{i}bolditalic{/b}{/i}.
 
-Change the [style{color=0xFFFF0000}]color[style()], or make text [style{underline=true}]underlined[style()].
+Change the {color 0xFFFF0000}color{/color}, or make text {u}underlined{/u}.
 
-The [style{outlineSize=5, outlineColor=0xFF0000FF}]outline size and color[style()] are of course also changeable.
+The {myOutline}outline size and color{/myOutline} are of course also changeable.
 
-Finally, there's [style{shadowColor=0xFFFF0000, shadowDx=10, shadowDy=10}]drop shadow[style()] to play with.
+Finally, there's {myShadow}drop shadow{/myShadow} to play with.
 
 @textoff()
 @clearText()
@@ -33,10 +40,8 @@ Finally, there's [style{shadowColor=0xFFFF0000, shadowDx=10, shadowDy=10}]drop s
 
 @local sprite = imgf("arm01m", "c")
 @texton()
-$bob You can pass a text style to [pushStyle();monospace()]registerSpeaker[popStyle()] in order to change the default text style for a specific speaker.
+$bob You can pass a text style to {monospace}registerSpeaker{/monospace} in order to change the default text style for a specific speaker.
 
 @rmf(sprite)
-
-The [pushStyle(); style{fontStyle="italic"}]pushStyle and [pushStyle(); style{fontStyle="bolditalic"}]popStyle[popStyle()] functions can be used to temporarily change the style[popStyle()], then change it back to the style used earlier in the line.
 @rmbgf()
 @clearText()

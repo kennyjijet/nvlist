@@ -85,6 +85,9 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
       } else if (ch == '[') {
         state.cur = embeddedCode;
         return null;
+      } else if (ch == '{') {
+        state.cur = textTag;
+        return null;		
       } else if (ch == '$') {
         state.cur = internalString;
         return null;
@@ -111,6 +114,34 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
     }
     return "comment";
   }
+
+  function textTag(stream, state) {
+    var style = "texttag";	
+    var ch = stream.next();
+	
+    if (ch == '\\') {
+      stream.next();
+	} else if (ch == '{') {
+	  if (stream.peek() == '/') stream.next();
+	  stream.eatWhile(/[\w_]/);
+	} else if (ch == '}') {
+      state.cur = normal;
+    } else if (ch == "\"" || ch == "'") {
+      /*style =*/ (state.cur = string(ch, textTag))(stream, state);
+    } else if (/\d/.test(ch)) {
+      stream.eatWhile(/[\w.%]/);
+      //style = "number";
+    } else if (/[\w_]/.test(ch)) {
+      stream.eatWhile(/[\w_.]/);
+      //style = "variable";	  
+    }
+	
+	if (stream.eol()) {
+		state.cur = normal;
+		//return null;
+	}	
+    return style;
+  }  
   
   function internalString(stream, state) {
     stream.next(); //Skip $
@@ -168,7 +199,7 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
         style = "comment";
       }
     } else if (ch == "\"" || ch == "'") {
-      style = (state.cur = string(ch))(stream, state);
+      style = (state.cur = string(ch, code))(stream, state);
     } else if (ch == "[" && /[\[=]/.test(stream.peek())) {
       style = (state.cur = bracketed(readBracket(stream), "string"))(stream, state);
     } else if (/\d/.test(ch)) {
@@ -199,14 +230,14 @@ CodeMirror.defineMode("lvn", function(config, parserConfig) {
     };
   }
 
-  function string(quote) {
+  function string(quote, returnState) {
     return function(stream, state) {
-      var escaped = false, ch;
-      while ((ch = stream.next()) != null) {
-        if (ch == quote && !escaped) break;
-        escaped = !escaped && ch == "\\";
+      var ch;
+      while (!stream.eol() && (ch = stream.next()) != null) {
+	    if (ch == '\\') stream.next();
+        else if (ch == quote) break;
       }
-      if (!escaped) state.cur = code;
+      state.cur = returnState;
       return "string";
     };
   }

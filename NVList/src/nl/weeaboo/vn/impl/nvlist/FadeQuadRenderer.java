@@ -40,7 +40,7 @@ public class FadeQuadRenderer extends FadeQuadHelper {
 		} else {
 			glDraw.setTexture(null);
 		}
-		
+				
 		gl.glPushMatrix();		
 		gl.glMultMatrixf(transform.toGLMatrix(), 0);
 		

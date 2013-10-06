@@ -1,6 +1,8 @@
 package nl.weeaboo.vn;
 
-public interface IInput {
+import java.io.Serializable;
+
+public interface IInput extends Serializable {
 	
 	/**
 	 * Translates the coordinate system by <code>(dx, dy)</code>. Useful for

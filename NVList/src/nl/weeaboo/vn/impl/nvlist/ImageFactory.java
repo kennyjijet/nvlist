@@ -35,6 +35,7 @@ import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseImageFactory;
+import nl.weeaboo.vn.impl.lua.LuaEventHandler;
 import nl.weeaboo.vn.impl.lua.LuaNovelUtil;
 
 @LuaSerializable
@@ -50,10 +51,10 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 	private int subTexLim; //Max size to try and put in a GLPackedTexture instead of generating a whole new texture.
 	private boolean isTextRightToLeft;
 	
-	public ImageFactory(JoglTextureStore ts, GlyphManager gman,
-			IAnalytics an, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
+	public ImageFactory(JoglTextureStore ts, GlyphManager gman, IAnalytics an,
+			LuaEventHandler eh, ISeenLog sl, INotifier ntf, int w, int h, boolean renderTextToTexture)
 	{
-		super(sl, ntf, w, h);
+		super(eh, sl, ntf, w, h);
 		
 		this.analytics = an;
 		this.texStore = ts;
@@ -89,7 +90,7 @@ public class ImageFactory extends BaseImageFactory implements Serializable {
 
 	@Override
 	public IButtonDrawable createButtonDrawable() {
-		return new ButtonDrawable(createTextRenderer());
+		return new ButtonDrawable(createTextRenderer(), eventHandler);
 	}
 	
 	protected ITextRenderer createTextRenderer() {

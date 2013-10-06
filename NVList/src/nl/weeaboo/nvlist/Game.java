@@ -71,6 +71,7 @@ import nl.weeaboo.vn.impl.base.NullAnalytics;
 import nl.weeaboo.vn.impl.base.RenderStats;
 import nl.weeaboo.vn.impl.base.Timer;
 import nl.weeaboo.vn.impl.lua.EnvLuaSerializer;
+import nl.weeaboo.vn.impl.lua.LuaEventHandler;
 import nl.weeaboo.vn.impl.nvlist.Analytics;
 import nl.weeaboo.vn.impl.nvlist.DrawBuffer;
 import nl.weeaboo.vn.impl.nvlist.GUIFactory;
@@ -101,8 +102,8 @@ import org.xml.sax.SAXException;
 
 public class Game extends AWTGame {
 
-	public static final int VERSION_MAJOR = 3;
-	public static final int VERSION_MINOR = 3;
+	public static final int VERSION_MAJOR = 4;
+	public static final int VERSION_MINOR = 0;
 	public static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
 	public static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; //Our current engine version
 	public static final String MIN_COMPAT_VERSION = "3.0"; //The oldest target engine version we still support
@@ -220,6 +221,7 @@ public class Game extends AWTGame {
 		Dim nvlSize = new Dim(novelConfig.getWidth(), novelConfig.getHeight());
 				
 		NovelNotifier notifier = new NovelNotifier(getNotifier());
+		LuaEventHandler eventHandler = new LuaEventHandler();
 		SaveHandler saveHandler = new SaveHandler(fs, notifier);
 		
 		SharedGlobals sharedGlobals = new SharedGlobals(sfw, "save-shared.bin", notifier);
@@ -267,8 +269,8 @@ public class Game extends AWTGame {
 		SystemLib syslib = new SystemLib(this, notifier);
 		boolean renderTextToTexture = false; //isVNDS();
 		ShaderFactory shfac = new ShaderFactory(notifier, shStore);
-		ImageFactory imgfac = new ImageFactory(texStore, glyphManager,
-				an, seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
+		ImageFactory imgfac = new ImageFactory(texStore, glyphManager, an, eventHandler,
+				seenLog, notifier, nvlSize.w, nvlSize.h, renderTextToTexture);
 		ImageFxLib fxlib = new ImageFxLib(imgfac);
 		SoundFactory sndfac = new SoundFactory(sm, an, seenLog, notifier);
 		VideoFactory vidfac = new VideoFactory(fs, texStore, shStore, resCache, seenLog, notifier);
@@ -291,7 +293,7 @@ public class Game extends AWTGame {
 		
 		novel = new Novel(novelConfig, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts,
 				notifier, in, shfac, syslib, saveHandler, scrlib, tweenLib, sharedGlobals, globals,
-				seenLog, an, timer,
+				seenLog, an, timer, eventHandler,
 				fs, getInput().getKeyConfig(), isVNDS());
 		if (isVNDS()) {
 			novel.setBootstrapScripts("builtin/vnds/main.lua");

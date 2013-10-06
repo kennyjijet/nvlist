@@ -14,6 +14,28 @@
   </pathconvert>
   <property name="jar-classpath" value=". ${jar-classpath-raw}" />
 
+<!-- Macros -->
+  
+  <macrodef name="luadoc">
+    <attribute name="scriptdir" default="src/script" />
+    <attribute name="outputdir" default="script-reference" />
+
+    <sequential>
+      <copy todir="script-temp">
+        <fileset dir="@{scriptdir}" excludes="**/vnds/**" />
+      </copy>
+    
+      <delete dir="@{outputdir}" />
+      <mkdir dir="@{outputdir}" />
+      <exec executable="cmd">
+        <arg value="/c ldoc.lua -d @{outputdir} --config ldoc/config.ld script-temp/"/>
+      </exec>
+      
+      <copy todir="@{outputdir}" file="ldoc/logo.png" />
+      
+    </sequential>
+  </macrodef>
+  
 <!-- Targets -->
 
   <target name="clean-jar">
@@ -71,6 +93,11 @@
     </zip>
   </target>
   	
+  <target name="ldoc">
+    <luadoc />
+    <delete dir="script-temp" />
+  </target>
+    
   <target name="doc">
     <delete dir="engine-internals"/>
     <javadoc destdir="engine-internals" classpathref="classpath"
@@ -79,15 +106,8 @@
       <fileset dir="src" includes="**/*.java" excludes="nl/weeaboo/vn/vnds/** nl/weeaboo/vn/test/**" />
       <link href="http://java.sun.com/javase/6/docs/api/" />
     </javadoc>
-  	
-    <copy todir="script-temp">
-      <fileset dir="src/script" excludes="**/vnds/**" />
-    </copy>
-    
-    <delete dir="script-reference"/>
-  	<exec dir="script-temp" executable="cmd">
-      <arg value="/c ldoc.lua -d ../script-reference builtin"/>
-  	</exec>
+  	    
+    <luadoc />
     
   	<delete file="documentation.zip" />
     <zip destfile="documentation.zip" update="true">

@@ -11,6 +11,8 @@ import java.util.List;
 
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScriptLib;
+import nl.weeaboo.vn.parser.LVNParser;
+import nl.weeaboo.vn.parser.ParserUtil;
 
 import org.luaj.vm2.LuaString;
 import org.luaj.vm2.lib.PackageLib;
@@ -22,9 +24,10 @@ public abstract class BaseScriptLib implements IScriptLib, Serializable {
 	private static final LuaString PATH = valueOf("path");
 	
 	protected final INotifier notifier;
+	private String engineVersion = "1.0";
 	
 	public BaseScriptLib(INotifier ntf) {
-		notifier = ntf;
+		this.notifier = ntf;
 	}
 	
 	//Functions
@@ -83,6 +86,14 @@ public abstract class BaseScriptLib implements IScriptLib, Serializable {
 	
 	protected abstract void getExternalScriptFiles(Collection<String> out, String folder);
 	
+	@Override
+	public LVNParser getLVNParser() {
+		return ParserUtil.getParser(engineVersion);
+	}
+	
 	//Setters
+	public void setEngineVersion(String version) {
+		engineVersion = version;
+	}
 	
 }

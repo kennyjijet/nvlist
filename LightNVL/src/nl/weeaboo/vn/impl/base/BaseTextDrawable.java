@@ -81,10 +81,8 @@ public abstract class BaseTextDrawable extends BaseDrawable implements ITextDraw
 			markChanged();
 		}
 		
-		if (!getCurrentLinesFullyVisible()) {
-			setVisibleChars(textSpeed >= 0 ? getVisibleChars()+textSpeed : 999999);
-		}
-		textRenderer.setVisibleText(getStartLine(), (float)getVisibleChars());
+		textRenderer.setVisibleText(startLine, (float)visibleChars);
+		visibleChars += textRenderer.increaseVisibleChars((float)textSpeed);
 
 		if (textRenderer.update()) {
 			markChanged();

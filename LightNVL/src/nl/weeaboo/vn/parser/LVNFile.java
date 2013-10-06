@@ -3,10 +3,23 @@ package nl.weeaboo.vn.parser;
 import java.text.BreakIterator;
 
 import nl.weeaboo.common.StringUtil;
-import nl.weeaboo.vn.parser.LVNParser.Mode;
 
 public class LVNFile {
 
+	public enum Mode {
+		TEXT(false),
+		CODE(true), MULTILINE_CODE(false),
+		COMMENT(true), MULTILINE_COMMENT(false);
+		
+		private boolean singleLine;
+		
+		private Mode(boolean singleLine) {
+			this.singleLine = singleLine;
+		}
+		
+		public boolean isSingleLine() { return singleLine; }
+	}
+	
 	private final String filename;
 	private final String[] srcLines;
 	private final String[] compiledLines;

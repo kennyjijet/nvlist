@@ -10,6 +10,8 @@ public interface ITextRenderer extends Serializable {
 	//Functions
 	public void destroy();
 	
+	public float increaseVisibleChars(float textSpeed);
+	
 	public boolean update();
 	
 	public void draw(IDrawBuffer buf, short z, boolean clipEnabled, BlendMode blendMode, int argb,

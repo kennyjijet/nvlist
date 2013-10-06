@@ -2,11 +2,11 @@ package nl.weeaboo.vn.impl.lua;
 
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ;
 import static nl.weeaboo.vn.NovelPrefs.AUTO_READ_WAIT;
+import static nl.weeaboo.vn.NovelPrefs.ENGINE_TARGET_VERSION;
 import static nl.weeaboo.vn.NovelPrefs.FPS;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_LOOK_AHEAD;
 import static nl.weeaboo.vn.NovelPrefs.PRELOADER_MAX_PER_LINE;
 import static nl.weeaboo.vn.NovelPrefs.SCRIPT_DEBUG;
-import static nl.weeaboo.vn.NovelPrefs.SKIP_UNREAD;
 import static org.luaj.vm2.LuaString.valueOf;
 import static org.luaj.vm2.LuaValue.INDEX;
 import static org.luaj.vm2.LuaValue.NIL;
@@ -90,6 +90,7 @@ import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.parser.LVNFile;
 import nl.weeaboo.vn.parser.LVNParser;
 import nl.weeaboo.vn.parser.ParseException;
+import nl.weeaboo.vn.parser.RuntimeTextParser;
 
 import org.luaj.vm2.LuaClosure;
 import org.luaj.vm2.LuaError;
@@ -123,6 +124,7 @@ public abstract class LuaNovel extends BaseNovel {
 	private LuaUserdata mainThreadUserdata;
 	private LuaLinkedProperties linkedProperties;
 	private PrefsMetaFunction prefsGetterFunction, prefsSetterFunction;
+	private LuaEventHandler eventHandler;
 	
 	private transient IConfig prefs;
 	private transient String lastCallSite;
@@ -132,7 +134,7 @@ public abstract class LuaNovel extends BaseNovel {
 			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vidfac, IVideoState vs, BaseGUIFactory guifac,
 			ITextState ts, BaseNotifier n, IInput in, BaseShaderFactory shfac, BaseSystemLib syslib, LuaSaveHandler sh,
 			final BaseScriptLib scrlib, LuaTweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
-			ISeenLog seenLog, IAnalytics analytics, ITimer tmr)
+			ISeenLog seenLog, IAnalytics analytics, ITimer tmr, LuaEventHandler eh)
 	{
 		super(gc, imgfac, is, imgfxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib,
 				tl, sharedGlobals, globals, seenLog, analytics, tmr);
@@ -141,6 +143,7 @@ public abstract class LuaNovel extends BaseNovel {
 		bootstrapScripts = new String[] {"main.lua"};
 		preloader = new LuaMediaPreloader(imgfac, sndfac);
 		linkedProperties = new LuaLinkedProperties();
+		eventHandler = eh;
 
 		//Init Lua global state
 		BaseLib.FINDER = new ResourceFinder() {
@@ -170,7 +173,8 @@ public abstract class LuaNovel extends BaseNovel {
 		mainThread = null;
 		mainThreadUserdata = null;
 		//linkedProperties.clear(); //Retain properties when (re)starting
-		
+		eventHandler.clear();
+
 		initPreloader(preloader);
 	}
 	
@@ -182,10 +186,11 @@ public abstract class LuaNovel extends BaseNovel {
 		onPrefsChanged(prefs);
 		
 		luaRunState = new LuaRunState();
+		eventHandler.clear();
 		initLuaRunState();
 		mainThread = luaRunState.newThread(mainFuncName);
 		mainThread.setPersistent(true);
-		mainThreadUserdata = LuajavaLib.toUserdata(mainThread, mainThread.getClass());		
+		mainThreadUserdata = LuajavaLib.toUserdata(mainThread, mainThread.getClass());
 	}
 	
 	private Resource openScriptFile(String filename) throws IOException {
@@ -282,7 +287,7 @@ public abstract class LuaNovel extends BaseNovel {
 			} else {
 				LVNFile file;
 				try {
-					LVNParser parser = new LVNParser();
+					LVNParser parser = getScriptLib().getLVNParser();
 					file = parser.parseFile(filename, in);					
 				} catch (ParseException e) {
 					throw new IOException(e.toString());
@@ -326,21 +331,23 @@ public abstract class LuaNovel extends BaseNovel {
 			if (!edt.isnil()) {
 				LuaClosure edtUpdate = edt.rawget(S_UPDATE).checkclosure();
 				Varargs result = mainThread.call(edtUpdate);			
-				if (result.istable(1)) {
-					LuaTable table = result.checktable(1);
-					
+				if (result.istable(1) || !eventHandler.isEmpty()) {					
 					Varargs args = mainThread.call("edt.prePushEvents", mainThread);
 					args = LuaValue.varargsOf(mainThreadUserdata, args);
 					
 					mainThread.pushCall("edt.postPushEvents", args);
-					for (int n = table.length(); n > 0; n--) {
-						LuaValue val = table.rawget(n);
-						if (val.isclosure()) {
-							mainThread.pushCall(val.checkclosure(), NONE);
-						} else {
-							mainThread.pushCall(val.tojstring());
+					if (result.istable(1)) {
+						LuaTable table = result.checktable(1);					
+						for (int n = table.length(); n > 0; n--) {
+							LuaValue val = table.rawget(n);
+							if (val.isclosure()) {
+								mainThread.pushCall(val.checkclosure(), NONE);
+							} else {
+								mainThread.pushCall(val.tojstring());
+							}
 						}
 					}
+					eventHandler.flushEvents(mainThread);
 					
 					changed = true;
 				} else if (!result.isnil(1)) {
@@ -402,7 +409,6 @@ public abstract class LuaNovel extends BaseNovel {
 		Enumeration<URL> e = cl.getResources("builtin/script/" + folder);
 		while (e.hasMoreElements()) {
 			String filename = "builtin/" + folder + e.nextElement().getFile();
-			System.out.println(filename);
 			if (isBuiltInScript(filename)) {
 				out.add(filename);
 			}
@@ -462,7 +468,7 @@ public abstract class LuaNovel extends BaseNovel {
 			LuaUtil.registerClass(globals, Looper.class);
 			// Enums
 			LuaUtil.registerClass(globals, ErrorLevel.class);
-			LuaUtil.registerClass(globals, BlendMode.class);			
+			LuaUtil.registerClass(globals, BlendMode.class);
 			LuaUtil.registerClass(globals, SoundType.class);
 			LuaUtil.registerClass(globals, LoopMode.class);
 			// Layouts
@@ -502,7 +508,8 @@ public abstract class LuaNovel extends BaseNovel {
 			globals.load(new LuaSoundLib(ntf, sndfac, ss));
 			globals.load(new LuaVideoLib(ntf, vidfac, vs));
 			globals.load(new LuaGUILib(ntf, guifac, is));
-			globals.load(new LuaTextLib(ts));
+			RuntimeTextParser runtimeTextParser = new RuntimeTextParser(globals);
+			globals.load(new LuaTextLib(ts, runtimeTextParser));
 			globals.load(new LuaShaderLib(ntf, shfac));
 			globals.load(new LuaSystemLib(ntf, syslib));
 			globals.load(new LuaSaveLib(sh));
@@ -601,14 +608,20 @@ public abstract class LuaNovel extends BaseNovel {
 		int fps = config.get(FPS);
 				
 		setScriptDebug(config.get(SCRIPT_DEBUG));
-		setSkipUnread(config.get(SKIP_UNREAD));
 		setAutoRead(config.get(AUTO_READ), fps * config.get(AUTO_READ_WAIT) / 1000);
 
+		BaseScriptLib scriptLib = getScriptLib();
+		if (scriptLib != null) {
+			scriptLib.setEngineVersion(config.get(ENGINE_TARGET_VERSION));
+		}
+		
 		LuaMediaPreloader preloader = getPreloader();
 		if (preloader != null) {
 			preloader.setLookAhead(config.get(PRELOADER_LOOK_AHEAD));
 			preloader.setMaxItemsPerLine(config.get(PRELOADER_MAX_PER_LINE));
 		}		
+		
+		luaCall("onPrefsChanged", NONE);
 	}
 	
 	public void onExit() throws LuaException { luaCall("onExit"); }
@@ -711,10 +724,6 @@ public abstract class LuaNovel extends BaseNovel {
 		if (enable) {
 			setWaitClick(false);
 		}
-	}
-
-	protected void setSkipUnread(boolean s) {
-		setLuaGlobal("skipUnread", valueOf(s));
 	}
 			
 	//Inner Classes

@@ -67,6 +67,12 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 		return consumeChanged();
 	}
 	
+	@Override
+	public float increaseVisibleChars(float textSpeed) {
+		visibleChars += textSpeed;
+		return textSpeed;
+	}
+	
 	//Getters	
 	protected IDrawable getCursor() {
 		return cursor;
@@ -247,6 +253,8 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 	
 	@Override
 	public void setDefaultStyle(TextStyle ts) {
+		if (ts == null) throw new IllegalArgumentException("Default text style may not be null");
+		
 		if (!defaultStyle.equals(ts)) {
 			defaultStyle = ts;
 			invalidateLayout();

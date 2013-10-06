@@ -18,7 +18,7 @@
     </section>
     <section title="Minor Issues" level="2">
       <ul>
-        <li>JNG/KTX image formats are not supported.</li>
+        <li>KTX image format not supported.</li>
         <li>Theora video isn't supported on all devices (but you can use other video formats).</li>
         <li>Textures may use a lower bit-depth (RGBA8888, RGB565) for performance/compatibility.</li>
       </ul>

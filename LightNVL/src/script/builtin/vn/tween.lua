@@ -1,9 +1,5 @@
--------------------------------------------------------------------------------
--- tween.lua
--------------------------------------------------------------------------------
--- Provides the 'built-in' VN tween functions.
--------------------------------------------------------------------------------
-
+---Defines some image transition functions (image 'tweens').
+-- 
 module("vn.tween", package.seeall)
 
 -- ----------------------------------------------------------------------------
@@ -14,118 +10,124 @@ module("vn.tween", package.seeall)
 --  Functions
 -- ----------------------------------------------------------------------------
 
----Tweens <code>i</code> to the texture specified by <code>t</code>
--- @param i The image to change the texture of.
--- @param t A texture object or a path to a valid image file
-function imgtween(i, t)
-	t = tex(t)
-	if not crossFadeTween(i, t, 30) then
-		i:setTexture(t)
+---Performs an animated transition from the current texture of
+-- <code>image</code> to a new texture, <code>targetTexture</code>.
+-- @tparam ImageDrawable image The image to change the texture of.
+-- @param targetTexture A texture object or a path to a valid image file
+--        (relative to <code>res/img</code>).
+function imgtween(image, targetTexture)
+	targetTexture = tex(targetTexture)
+	if not crossFadeTween(image, targetTexture, 30) then
+		image:setTexture(targetTexture)
 	end
-	return i
+	return image
 end
 
----Tweens background image to the texture specified by <code>tex</code>
--- @param tex A texture object or a path to a valid image file
-function bgtween(tex, ...)
-	return imgtween(getBackground(), tex, ...)
+---Convenience function for performing an <code>imgtween</code> on the current
+-- background image. In the case of backgrounds, changing the background through
+-- <code>bgf</code> has roughly the same default effect. The use of
+-- <code>bgtween</code> is mainly for cases when <code>imgtween</code> is
+-- overridden to do something different or to keep changes to the ImageDrawable
+-- used for the background (<code>bgf</code> creates a new ImageDrawable each
+-- time).
+-- @param targetTexture A texture object or a path to a valid image file
+--        (relative to <code>res/img</code>).
+function bgtween(targetTexture)
+	return imgtween(getBackground(), targetTexture)
 end
 
+---shaderTween
+-------------------------------------------------------------------------------- @section
 
-
-
-
-
-
----Fades an image using from <code>tex1, gs1, ps1</code> to
--- <code>tex2, gs2, ps2</code>.
--- @param img The image to change the texture of.
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param tex1 The start texture for the tween
--- @param gs1 The start geometry shader for the tween
--- @param ps1 The start pixel shader for the tween
--- @param tex2 The end texture for the tween
--- @param gs2 The end geometry shader for the tween
--- @param ps2 The end pixel shader for the tween
-function shaderTween(img, duration, tex1, gs1, ps1, tex2, gs2, ps2)
+---Performs an animated transition of an ImageDrawable from
+-- <code>tex1, gs1, ps1</code> to <code>tex2, gs2, ps2</code>.
+-- @tparam ImageDrawable image The image to change the texture of.
+-- @number duration The duration of the effect in frames (will be multiplied by
+--         <code>effectSpeed</code> internally).
+-- @tparam Texture tex1 The start texture.
+-- @tparam GeometryShader gs1 The start geometry shader.
+-- @tparam PixelShader ps1 The start pixel shader.
+-- @tparam Texture tex2 The end texture.
+-- @tparam GeometryShader gs2 The end geometry shader.
+-- @tparam PixelShader ps2 The end pixel shader.
+function shaderTween(image, duration, tex1, gs1, ps1, tex2, gs2, ps2)
 	tex1 = tex(tex1)
 	tex2 = tex(tex2)
 
-	img:setTexture(tex1)
+	image:setTexture(tex1)
 	
 	duration = duration or 60
 	
 	local tween = ShaderImageTween.new(duration, gs1, ps1, gs2, ps2)
 	tween:setEndImage(tex2)
-	img:setTween(tween)
-	while not img:isDestroyed() and not tween:isFinished() do
+	image:setTween(tween)
+	while not image:isDestroyed() and not tween:isFinished() do
 		yield()
 	end
-	return img
+	return image
 end
 
----Fades in an image using shaders.
--- @param img The image to tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param gs The end geometry shader for the tween
--- @param ps The end pixel shader for the tween
+---Like <code>shaderTween</code>, but starts the transition from blank and ends
+-- at <code>image:getTexture(), gs, ps</code>. 
+-- @tparam ImageDrawable image The image to change the texture of.
+-- @number duration The duration of the effect in frames (will be multiplied by
+--         <code>effectSpeed</code> internally).
+-- @tparam GeometryShader gs The end geometry shader.
+-- @tparam PixelShader ps The end pixel shader.
 -- @see shaderTween
-function shaderTweenIn(img, duration, gs, ps)
-	return shaderTween(img, duration, nil, nil, nil, img:getTexture(), gs, ps)
+function shaderTweenIn(image, duration, gs, ps)
+	return shaderTween(image, duration, nil, nil, nil, image:getTexture(), gs, ps)
 end
 
----Fades out an image using shaders.
--- @param img The image to tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param gs The start geometry shader for the tween
--- @param ps The start pixel shader for the tween
+---Like <code>shaderTween</code>, but starts the transition from
+-- <code>image:getTexture(), gs, ps</code> and ends at blank. 
+-- @tparam ImageDrawable image The image to change the texture of.
+-- @number duration The duration of the effect in frames (will be multiplied by
+--         <code>effectSpeed</code> internally).
+-- @tparam GeometryShader gs The start geometry shader.
+-- @tparam PixelShader ps The start pixel shader.
 -- @see shaderTween
-function shaderTweenOut(img, duration, gs, ps)
-	return shaderTween(img, duration, img:getTexture(), gs, ps, nil, nil, nil)
+function shaderTweenOut(image, duration, gs, ps)
+	return shaderTween(image, duration, image:getTexture(), gs, ps, nil, nil, nil)
 end
 
-
-
-
----Temporarily changes the shaders of <code>img</code> to <code>gs, ps</code>,
+---Temporarily changes the shaders of <code>image</code> to <code>gs, ps</code>,
 -- animates them to <code>time=1.0</code>, then changes the texture of
--- <code>img</code> to <code>dstTex</code>. After the texture has been changed,
--- the shaders are animated back to <code>time=0.0</code>, and then replaced
--- by the original shaders of <code>img</code>.
--- @param img The image to tween
--- @param dstTex The new texture for <code>img</code>
--- @param duration The duration of the tween in frames
--- @param bounceTime The shader time that should be reached halfway through the
---        tween (at the bounce point). Defaults to <code>1.0</code>
--- @param gs The geometry shader to use during the tween (or <code>nil</code>
--- 	      to use the current geometry shader).
--- @param ps The pixel shader to use during the tween (or <code>nil</code>
---        to use the current pixel shader).
-function shaderBounceTween(img, dstTex, duration, bounceTime, gs, ps)
-    dstTex = tex(dstTex)
+-- <code>image</code> to <code>targetTexture</code>. After the texture has been
+-- changed, the shaders are animated back to <code>time=0.0</code> and then
+-- replaced by the original shaders of <code>image</code>.
+-- @tparam ImageDrawable image The image drawable to change the texture of.
+-- @tparam Texture targetTexture The new texture for <code>img</code>
+-- @number duration The duration of the effect in frames (will be multiplied by
+--         <code>effectSpeed</code> internally).
+-- @number bounceTime The shader time that should be reached halfway
+--        through the effect (which is the bounce point).
+-- @tparam GeometryShader gs The geometry shader
+--        to use during the effect.
+-- @tparam PixelShader ps The pixel shader to use
+--        during the effect.
+function shaderBounceTween(image, targetTexture, duration, bounceTime, gs, ps)
+    targetTexture = tex(targetTexture)
     duration = duration or 60
     bounceTime = bounceTime or 1.0
     
-    local oldGS = img:getGeometryShader()
-    local oldPS = img:getPixelShader()
+    local oldGS = image:getGeometryShader()
+    local oldPS = image:getPixelShader()
     if gs ~= nil then
-        img:setGeometryShader(gs)
+        image:setGeometryShader(gs)
     end
     if ps ~= nil then
-        img:setPixelShader(ps)
+        image:setPixelShader(ps)
     end
     
     local time = 0
     local timeInc = (2 * bounceTime) / duration
-    while not img:isDestroyed() do
+    while not image:isDestroyed() do
         time = time + timeInc * effectSpeed
         if time >= bounceTime then
         	time = 2 * bounceTime - time --Wrap around
             timeInc = -timeInc
-            img:setTexture(dstTex)
+            image:setTexture(targetTexture)
         elseif time < 0 then
             break
         end
@@ -140,227 +142,223 @@ function shaderBounceTween(img, dstTex, duration, bounceTime, gs, ps)
         yield()
     end
     
-    img:setGeometryShader(oldGS)
-    img:setPixelShader(oldPS)
-    return img
+    image:setTexture(targetTexture)
+    image:setGeometryShader(oldGS)
+    image:setPixelShader(oldPS)
+    return image
 end
 
+---shutterTween
+-------------------------------------------------------------------------------- @section
 
-
-
-
-
----Tweens an image to a new texture using a shutter transition
--- @param img The image to shutter-tween
--- @param tex The new texture for the image
--- @param dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down
--- @param steps The number of bars for the shutter tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
-function shutterTween(img, tex, dir, steps, duration)
+---Changes an ImageDrawable's texture using a shutter transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @tparam Texture targetTexture The new texture for the image.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @int[opt=10] steps The number of shutter bars to use.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
+function shutterTween(image, targetTexture, dir, steps, duration)
 	dir = dir or 6
 	steps = steps or 10
 
 	local gs1 = ShutterGS.new(false, dir, steps)
 	local gs2 = ShutterGS.new(true, dir, steps)
-	return shaderTween(img, duration, img:getTexture(), gs1, nil, tex, gs2, nil)
+	return shaderTween(image, duration, img:getTexture(), gs1, nil, targetTexture, gs2, nil)
 end
 
----Tweens in an image using a shutter transition
--- @param img The image to shutter-tween
--- @param dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down
--- @param steps The number of bars for the shutter tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
+---Fades in an ImageDrawable's texture using a shutter transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @int[opt=10] steps The number of shutter bars to use.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
 -- @see shutterTween
-function shutterTweenIn(img, dir, steps, duration)
+function shutterTweenIn(image, dir, steps, duration)
 	dir = dir or 6
 	steps = steps or 10
 
-	return shaderTweenIn(img, duration, ShutterGS.new(true, dir, steps))
+	return shaderTweenIn(image, duration, ShutterGS.new(true, dir, steps))
 end
 
----Tweens out an image using a shutter transition
--- @param img The image to shutter-tween
--- @param dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down
--- @param steps The number of bars for the shutter tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
+---Fades away an ImageDrawable's texture using a shutter transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @int[opt=10] steps The number of shutter bars to use.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
 -- @see shutterTween
-function shutterTweenOut(img, dir, steps, duration)
+function shutterTweenOut(image, dir, steps, duration)
 	dir = dir or 6
 	steps = steps or 10
 
-	return shaderTweenOut(img, duration, ShutterGS.new(false, dir, steps))
+	return shaderTweenOut(image, duration, ShutterGS.new(false, dir, steps))
 end
 
+---wipeTween
+-------------------------------------------------------------------------------- @section
 
-
-
-
-
-
----Tweens an image to a new texture using a wipe transition
--- @param img The image to wipe-tween
--- @param tex The new texture for the image
--- @param dir The direction of the wipe, 4=left, 8=up, 6=right, 2=down
--- @param span The range (between <code>0.0</code> and <code>1.0</code>) of
---        the partially transparent area of the wipe tween.
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
-function wipeTween(img, tex, dir, span, duration)
+---Changes an ImageDrawable's texture using a shutter transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @tparam Texture targetTexture The new texture for the image.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @number[opt=0.1] span The range (between <code>0.0</code> and
+--        <code>1.0</code>) of the partially transparent area of the wipe.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
+function wipeTween(image, targetTexture, dir, span, duration)
 	dir = dir or 6
 	span = span or 0.2
 
 	local gs1 = WipeGS.new(false, dir, span)
 	local gs2 = WipeGS.new(true, dir, span)
-	return shaderTween(img, duration, img:getTexture(), gs1, nil, tex, gs2, nil)
+	return shaderTween(image, duration, image:getTexture(), gs1, nil, targetTexture, gs2, nil)
 end
 
----Tweens in an image using a wipe transition
--- @param img The image to wipe-tween
--- @param dir The direction of the wipe, 4=left, 8=up, 6=right, 2=down
--- @param span The range (between <code>0.0</code> and <code>1.0</code>) of
---        the partially transparent area of the wipe tween.
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
+---Fades in an ImageDrawable's texture using a wipe transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @number[opt=0.1] span The range (between <code>0.0</code> and
+--        <code>1.0</code>) of the partially transparent area of the wipe.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
 -- @see wipeTween
-function wipeTweenIn(img, dir, span, duration)
+function wipeTweenIn(image, dir, span, duration)
 	dir = dir or 6
 	span = span or 0.2
 
-	return shaderTweenIn(img, duration, WipeGS.new(true, dir, span))
+	return shaderTweenIn(image, duration, WipeGS.new(true, dir, span))
 end
 
----Tweens out an image using a wipe transition
--- @param img The image to wipe-tween
--- @param dir The direction of the wipe, 4=left, 8=up, 6=right, 2=down
--- @param span The range (between <code>0.0</code> and <code>1.0</code>) of
---        the partially transparent area of the wipe tween.
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
+---Fades away an ImageDrawable's texture using a wipe transition.
+-- @tparam ImageDrawable image The image to shutter-tween.
+-- @int[opt=6] dir The direction of the shutter, 4=left, 8=up, 6=right, 2=down.
+-- @number[opt=0.1] span The range (between <code>0.0</code> and
+--        <code>1.0</code>) of the partially transparent area of the wipe.
+-- @number[opt=60] duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
 -- @see wipeTween
-function wipeTweenOut(img, dir, span, duration)
+function wipeTweenOut(image, dir, span, duration)
 	dir = dir or 6
 	span = span or 0.2
 
-	return shaderTweenOut(img, duration, WipeGS.new(false, dir, span))
+	return shaderTweenOut(image, duration, WipeGS.new(false, dir, span))
 end
 
+---crossFadeTween
+-------------------------------------------------------------------------------- @section
 
-
-
-
-
-
-
----Tweens an image following the shape of the specified grayscale bitmap
--- @param img The image to bitmap-tween
--- @param dstTex The new texture for the image
--- @param fadeFilename The bitmap that determines the shape of the tween
--- @param duration The duration of the tween in frames (will be multiplied by
+---Changes an ImageDrawable's texture using a cross fade (dissolve) transition.
+-- @tparam ImageDrawable image The image to tween.
+-- @tparam Texture targetTexture The new texture for the image.
+-- @param duration The duration of the fade in frames (will be multiplied by
 --        <code>effectSpeed</code> internally).
--- @param range Determines the relative width of the fading region between
---        <code>0.0</code> and <code>1.0</code>
--- @param interpolator A function or interpolator object mapping an input
+-- @param interpolator A function or Interpolator object mapping an input
 --        in the range <code>(0, 1)</code> to an output in the range
 --        <code>(0, 1)</code>.
--- @return <code>false</code> if the bitmap tween isn't supported on the
---         current hardware. Useful to provide a fallback tween in case the
---         bitmap tween doesn't work.
-function bitmapTween(img, dstTex, fadeFilename, duration, range, interpolator)
+-- @treturn bool <code>false</code> if cross fade tweens aren't supported on the
+--          current hardware. Useful to provide a fallback tween in case the
+--          cross fade tween doesn't work.
+function crossFadeTween(image, targetTexture, duration, interpolator)
+	if CrossFadeTween == nil or not CrossFadeTween.isAvailable() then
+		return false
+	end
+	
+	duration = duration or 30
+	targetTexture = tex(targetTexture)
+
+	local tween = CrossFadeTween.new(duration, interpolator)
+	tween:setEndImage(targetTexture)
+	image:setTween(tween)
+	while not image:isDestroyed() and not tween:isFinished() do
+		yield()
+	end
+	return true
+end
+
+---bitmapTween
+-------------------------------------------------------------------------------- @section
+
+---Changes an ImageDrawable's texture through a dissolve effect shaped by a
+-- grayscale bitmap.
+-- @tparam ImageDrawable image The image to tween.
+-- @tparam Texture targetTexture The new texture for the image.
+-- @param bitmap The filename (relative to <code>res/img</code>) of the bitmap
+--        that controls the shape of the tween.
+-- @number duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
+-- @number[opt=0.5] range Determines the relative width of the fading region
+--        between <code>0.0</code> and <code>1.0</code>.
+-- @param[opt=nil] interpolator A function or interpolator object mapping an
+--       input in the range <code>(0, 1)</code> to an output in the range
+--       <code>(0, 1)</code>.
+-- @treturn bool <code>false</code> if bitmap tweens aren't supported on the
+--          current hardware. Useful to provide a fallback tween in case the
+--          bitmap tween doesn't work.
+function bitmapTween(image, targetTexture, bitmap, duration, range, interpolator)
 	if BitmapTween == nil or not BitmapTween.isAvailable() then
 		return false
 	end
 
 	duration = duration or 60
 	range = range or 0.5
-	dstTex = tex(dstTex)
+	targetTexture = tex(targetTexture)
 
-	local tween = BitmapTween.new(fadeFilename, duration, range, interpolator)
-	tween:setEndImage(dstTex) --, 7)
-	img:setTween(tween)
-	while not img:isDestroyed() and not tween:isFinished() do
+	local tween = BitmapTween.new(bitmap, duration, range, interpolator)
+	tween:setEndImage(targetTexture) --, 7)
+	image:setTween(tween)
+	while not image:isDestroyed() and not tween:isFinished() do
 		yield()
 	end
-	return img
+	return image
 end
 
----Tweens in an image following the shape of the specified grayscale bitmap
--- @param img The image to bitmap-tween
--- @param fadeFilename The bitmap that determines the shape of the tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param range Determines the relative width of the fading region between
---        <code>0.0</code> and <code>1.0</code>
--- @param interpolator A function or interpolator object mapping an input
---        in the range <code>(0, 1)</code> to an output in the range
---        <code>(0, 1)</code>.
--- @return <code>false</code> if the bitmap tween isn't supported on the
---         current hardware. Useful to provide a fallback tween in case the
---         bitmap tween doesn't work.
+---Fades in an ImageDrawable's texture using a bitmap transition.
+-- @tparam ImageDrawable image The image to tween.
+-- @param bitmap The filename (relative to <code>res/img</code>) of the bitmap
+--        that controls the shape of the tween.
+-- @number duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
+-- @number[opt=0.5] range Determines the relative width of the fading region
+--        between <code>0.0</code> and <code>1.0</code>.
+-- @param[opt=nil] interpolator A function or interpolator object mapping an
+--       input in the range <code>(0, 1)</code> to an output in the range
+--       <code>(0, 1)</code>.
+-- @treturn bool <code>false</code> if bitmap tweens aren't supported on the
+--          current hardware. Useful to provide a fallback tween in case the
+--          bitmap tween doesn't work.
 -- @see bitmapTween
-function bitmapTweenIn(img, fadeFilename, duration, range, interpolator)
+function bitmapTweenIn(image, bitmap, duration, range, interpolator)
 	if BitmapTween == nil or not BitmapTween.isAvailable() then
 		return false
 	end
 
-	local tex = img:getTexture()
-	img:setTexture(nil)
-	return bitmapTween(img, tex, fadeFilename, duration, range, interpolator)
+	local tex = image:getTexture()
+	image:setTexture(nil)
+	return bitmapTween(image, tex, bitmap, duration, range, interpolator)
 end
 
----Tweens out an image following the shape of the specified grayscale bitmap
--- @param img The image to bitmap-tween
--- @param fadeFilename The bitmap that determines the shape of the tween
--- @param duration The duration of the tween in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param range Determines the relative width of the fading region between
---        <code>0.0</code> and <code>1.0</code>
--- @param interpolator A function or interpolator object mapping an input
---        in the range <code>(0, 1)</code> to an output in the range
---        <code>(0, 1)</code>.
--- @return <code>false</code> if the bitmap tween isn't supported on the
---         current hardware. Useful to provide a fallback tween in case the
---         bitmap tween doesn't work.
+---Fades away an ImageDrawable's texture using a bitmap transition.
+-- @tparam ImageDrawable image The image to tween.
+-- @param bitmap The filename (relative to <code>res/img</code>) of the bitmap
+--        that controls the shape of the tween.
+-- @number duration The duration of the tween in frames (will be
+--        multiplied by <code>effectSpeed</code> internally).
+-- @number[opt=0.5] range Determines the relative width of the fading region
+--        between <code>0.0</code> and <code>1.0</code>.
+-- @param[opt=nil] interpolator A function or interpolator object mapping an
+--       input in the range <code>(0, 1)</code> to an output in the range
+--       <code>(0, 1)</code>.
+-- @treturn bool <code>false</code> if bitmap tweens aren't supported on the
+--          current hardware. Useful to provide a fallback tween in case the
+--          bitmap tween doesn't work.
 -- @see bitmapTween
-function bitmapTweenOut(img, fadeFilename, duration, range, interpolator)
+function bitmapTweenOut(image, bitmap, duration, range, interpolator)
 	if BitmapTween == nil or not BitmapTween.isAvailable() then
 		return false
 	end
 
-	return bitmapTween(img, nil, fadeFilename, duration, range, interpolator)
+	return bitmapTween(image, nil, bitmap, duration, range, interpolator)
 end
 
-
-
-
-
-
-
----Tweens an image to a new texture using a cross fade transition
--- @param img The image to crossfade
--- @param dstTex The new texture for the image
--- @param duration The duration of the fade in frames (will be multiplied by
---        <code>effectSpeed</code> internally).
--- @param interpolator A function or interpolator object mapping an input
---        in the range <code>(0, 1)</code> to an output in the range
---        <code>(0, 1)</code>.
--- @return <code>false</code> if the crossfade tween isn't supported on the
---         current hardware.
-function crossFadeTween(img, dstTex, duration, interpolator)
-	if CrossFadeTween == nil or not CrossFadeTween.isAvailable() then
-		return false
-	end
-	
-	duration = duration or 30
-	dstTex = tex(dstTex)
-
-	local tween = CrossFadeTween.new(duration, interpolator)
-	tween:setEndImage(dstTex)
-	img:setTween(tween)
-	while not img:isDestroyed() and not tween:isFinished() do
-		yield()
-	end
-	return true
-end
+-------------------------------------------------------------------------------- @section end

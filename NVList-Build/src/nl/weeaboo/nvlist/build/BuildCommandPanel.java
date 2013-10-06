@@ -72,7 +72,7 @@ public class BuildCommandPanel extends JPanel {
 		buildInstallerAction = new AbstractAction("Create Release") {
 			public void actionPerformed(ActionEvent e) {
 				if (preReleaseCheck()) {
-					dist("clean dist make-installer make-installer-mac make-installer-zip clean-dist-jre");
+					dist("clean dist release-win release-mac release-zip");
 				}
 			}
 		};
@@ -80,7 +80,7 @@ public class BuildCommandPanel extends JPanel {
 		buildInstallerCDAction = new AbstractAction("Create CD Release") {
 			public void actionPerformed(ActionEvent e) {
 				if (preReleaseCheck()) {
-					dist("clean dist make-installer-cd clean-dist-jre");
+					dist("clean dist release-cd");
 				}
 			}
 		};

@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.textlayout.LayoutUtil;
 import nl.weeaboo.textlayout.LineElement;
 import nl.weeaboo.textlayout.LineLayout;
 import nl.weeaboo.textlayout.TextLayout;
@@ -87,6 +88,14 @@ public class TextDrawable extends BaseTextDrawable {
 			}
 		}
 		return null;		
+	}
+	
+	protected static float increaseVisibleChars(ITextRenderer tr, TextLayout layout, int startLine, float visibleChars, float textSpeed) {
+		float off = layout.getCharOffset(startLine);
+		float oldvc = off + visibleChars;
+		float newvc = LayoutUtil.increaseVisibleCharacters(layout, oldvc, textSpeed);
+		tr.setVisibleText(startLine, newvc - off);
+		return newvc - oldvc;
 	}
 	
 	//Setters

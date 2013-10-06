@@ -23,7 +23,7 @@ function defaultTitlescreen(startScript, extraScript)
     local function cleanup()
         destroyValues(buttons) --Removes the buttons
         rmbgf() --Fades out and removes the background
-        texton(1) --Turns on the text box with speed 1 (instantly)
+        texton(0) --Turns on the text box over the course of 0 frames (instantly)
     end
     
     while true do

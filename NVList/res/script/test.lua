@@ -1,4 +1,34 @@
-﻿
+
+--[[
+local b = button("gui/test-button")
+local n = 0
+b:setClickHandler(function()
+	n = n + 1
+	--text("button clicked " .. n)
+	return jump("image/00-index")
+end)
+
+while true do
+	yield()
+end
+]]
+
+registerTextTagHandler("test", function(tag, args)
+	--for k,v in pairs(args) do
+	--	print(k, v)
+	--end
+	return nil,createStyle{fontName=args[1]}
+end)
+local variable = "DejaVuSansMono"
+text("Text with {test variable}custom tags{/test} and stuff.")
+text("Text with {b}bold{/b}, {i}italic{/i} and {b}bold{i}italic{/i}{/b} parts.")
+text("Text with {font 'DejaVuSansMono'}{color 0xFFFF0000}{size 50}BIG RED TEXT{/size}{/color}{/font}")
+text("left aligned, left aligned, {align 'right'}right aligned, right aligned\n{center}center aligned, center aligned, center aligned")
+text("Normal speed text, {speed 2}double speed text, double speed text, double speed text, {/speed}{color 0xFFFF0000}{speed .25} slow speed text, slow speed text, slow speed text, slow speed text.{/speed}")
+
+
+
+
 --[[
 local i = img("effect/fog/fog")
 i:setSize(screenWidth, screenHeight)
@@ -12,7 +42,7 @@ end
 
 --choice() --Choice without arguments test (shouldn't crash, may show one or more placeholder options)
 
---[[ Word wrapping tests ]]
+--[[ Word wrapping tests
 setTextModeNVL()
 edt.addEvent(skipScene)
 
@@ -25,6 +55,7 @@ text("Vestibulum arcu justo, gravida rhoncus feugiat ut, sollicitudin quis sapie
 text("Aliquam non tortor justo. Sed pulvinar sodales ligula sit amet ornare. Sed id sapien risus, ut consequat sapien. Curabitur dui felis, euismod non consequat non, ullamcorper eget arcu. Phasellus ullamcorper ullamcorper ante, eu convallis orci ornare quis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras posuere accumsan vulputate. Etiam iaculis nunc nec magna lobortis ultrices. Aenean nisi nunc, adipiscing vel suscipit sed, congue in arcu.")
 
 text("Fusce auctor massa iaculis erat dignissim vel imperdiet velit interdum. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam vehicula fringilla turpis. Nulla facilisi. Duis consequat accumsan placerat. Suspendisse consequat venenatis semper. Nulla fermentum fermentum nunc sit amet molestie. Aenean et dolor est. Donec fringilla ipsum a mi vestibulum nec laoreet massa dictum. Praesent ultricies accumsan nisl, eleifend consequat metus porttitor eu. Ut consectetur dignissim porttitor. Nulla porttitor pretium augue id auctor. Integer eleifend sapien at purus porttitor quis tincidunt sem elementum. Maecenas vulputate augue sit amet justo interdum aliquam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed quam sem, vel ultrices dolor.")
+]]
 
 --[[ Text rendering tests
 bgf("bg/bg1")
@@ -403,7 +434,7 @@ end
 destroyValues(bgimgs)
 destroyValues(imgs)
 rmbg()
-texton(1)
+texton(0)
 
 ]]
 

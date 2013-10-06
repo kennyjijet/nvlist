@@ -2,6 +2,8 @@ package nl.weeaboo.vn;
 
 public class EmptyInput implements IInput {
 
+	private static final long serialVersionUID = 1L;
+	
 	private static EmptyInput instance;
 	
 	private EmptyInput() {		

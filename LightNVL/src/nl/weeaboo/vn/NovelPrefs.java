@@ -29,8 +29,8 @@ public final class NovelPrefs {
 	public static final Preference<Double>  MUSIC_VOLUME = newPreference("vn.musicVolume", 0.7, "Music Volume", "Volume (between 0.0 and 1.0) of background music.");
 	public static final Preference<Double>  SOUND_VOLUME = newPreference("vn.soundVolume", 0.8, "Sound Volume", "Volume (between 0.0 and 1.0) of sound effects.");
 	public static final Preference<Double>  VOICE_VOLUME = newPreference("vn.voiceVolume", 1.0, "Voice Volume", "Volume (between 0.0 and 1.0) of voices.");	
-	public static final Preference<String>  ENGINE_MIN_VERSION = newPreference("vn.engineMinVersion", "3.0", "Engine Minimum Version", "The minimum allowable version of NVList that can be used to read your novel. Raises an error if the current version is less than the required version.");		
-	public static final Preference<String>  ENGINE_TARGET_VERSION = newPreference("vn.engineTargetVersion", "3.0", "Engine Target Version", "The version of NVList this VN was created for.");		
+	public static final Preference<String>  ENGINE_MIN_VERSION = newPreference("vn.engineMinVersion", "4.0", "Engine Minimum Version", "The minimum allowable version of NVList that can be used to read your novel. Raises an error if the current version is less than the required version.");		
+	public static final Preference<String>  ENGINE_TARGET_VERSION = newPreference("vn.engineTargetVersion", "4.0", "Engine Target Version", "The version of NVList this VN was created for.");		
 	public static final Preference<Integer> TIMER_IDLE_TIMEOUT = newPreference("vn.timerIdleTimeout", 30, "Timer Idle Timeout", "The number of seconds of user inactivity that are tolerated before the playtime timer is stopped.");
 	public static final Preference<Boolean> ENABLE_PROOFREADER_TOOLS = newPreference("vn.enableProofreaderTools", false, "Enable Proofreader Tools", "Enables available bug reporting features for proofreaders/editors.");
 	public static final Preference<Boolean> RTL = newPreference("vn.rtl", false, "Right-to-Left Text", "Sets the default text direction to RTL (right to left).");

@@ -1,12 +1,22 @@
 package nl.weeaboo.vn.parser;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 
+import nl.weeaboo.common.StringUtil;
 
 public class ParserUtil {
 
 	private static final char ZERO_WIDTH_SPACE = 0x200B;
 	
 	//Functions
+	public static LVNParser getParser(String engineVersion) {
+		if (StringUtil.compareVersion(engineVersion, "4.0") < 0) {
+			return new LVNParser3();
+		}
+		return new LVNParser4();
+	}
+	
 	public static String concatLines(String[] lines) {
 		StringBuilder sb = new StringBuilder();
 		for (String line : lines) {
@@ -16,64 +26,7 @@ public class ParserUtil {
 		return sb.toString();		
 	}
 	
-	static final char escapeList[] = new char[] {
-		'n', '\n', 'r', '\r', 't', '\t', 'f', '\f', '\"', '\"', '\'', '\'', '\\', '\\'
-	};
-	
-	public static String escape(String s) {
-		StringBuilder sb = new StringBuilder(s.length());
-		escape(sb, s);
-		return sb.toString();
-	}
-	public static void escape(StringBuilder out, String s) {
-		if (s == null || s.length() == 0) {
-			return;
-		}
-		
-		for (int n = 0; n < s.length(); n++) {
-			char c = s.charAt(n);
-			
-			int t;
-			for (t = 0; t < escapeList.length; t+=2) {
-				if (c == escapeList[t+1]) {
-					out.append('\\');
-					out.append(escapeList[t]);
-					break;
-				}
-			}			
-			if (t >= escapeList.length) {
-				out.append(c);
-			}
-		}
-	}
-	
-	public static String unescape(String s) {
-		char chars[] = new char[s.length()];
-		s.getChars(0, chars.length, chars, 0);
-		
-		int t = 0;
-		for (int n = 0; n < chars.length; n++) {
-			if (chars[n] == '\\') {
-				n++;
-				chars[t] = unescape(chars[n]);
-			} else {
-				chars[t] = chars[n];
-			}
-			t++;
-		}
-		return new String(chars, 0, t);
-	}
-	
-	public static char unescape(char c) {
-		for (int n = 0; n < escapeList.length; n+=2) {
-			if (c == escapeList[n]) {
-				return escapeList[n+1];
-			}
-		}
-		return c;
-	}
-	
-	private static boolean isCollapsibleSpace(char c) {
+	public static boolean isCollapsibleSpace(char c) {
 		return c == ' ' || c == '\t' || c == '\f' || c == ZERO_WIDTH_SPACE;		
 	}
 	
@@ -148,25 +101,32 @@ public class ParserUtil {
 	}
 
 	static int findBlockEnd(String str, int off, char endChar) {
-		final int end = str.length();
+		CharacterIterator itr = new StringCharacterIterator(str, off);
+		return findBlockEnd(itr, endChar, null);
+	}
+	static int findBlockEnd(CharacterIterator itr, char endChar, StringBuilder out) {
 		boolean inQuotes = false;
 		int brackets = 0;
 		
-		int x = off;
-		while (x < end) {
-			int d = str.charAt(x);
-			if (d == '\\') {
-				x++;
-			} else if (d == '\"') {
+		for (char c = itr.current(); c != CharacterIterator.DONE; c = itr.next()) {			
+			if (c == '\\') {
+				if (out != null) out.append(c);
+				c = itr.next();
+			} else if (c == '\"') {
 				inQuotes = !inQuotes;
 			} else if (!inQuotes) {
-				if (brackets <= 0 && d == endChar) return x;
-				else if (d == '[') brackets++;
-				else if (d == ']') brackets--;
+				if (brackets <= 0 && c == endChar) {
+					break;
+				}
+				else if (c == '[') brackets++;
+				else if (c == ']') brackets--;
 			}
-			x++;
+			
+			if (out != null && c != CharacterIterator.DONE) {
+				out.append(c);			
+			}
 		}
-		return Math.min(x, end);
+		return itr.getIndex();
 	}
 	
 }

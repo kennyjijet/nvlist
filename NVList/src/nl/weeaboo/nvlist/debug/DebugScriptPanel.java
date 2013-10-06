@@ -1,5 +1,7 @@
 package nl.weeaboo.nvlist.debug;
 
+import static nl.weeaboo.lua2.LuaUtil.escape;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -43,7 +45,6 @@ import nl.weeaboo.vn.impl.lua.BaseScriptLib;
 import nl.weeaboo.vn.impl.lua.LuaNovel;
 import nl.weeaboo.vn.impl.nvlist.Novel;
 import nl.weeaboo.vn.parser.ParseException;
-import nl.weeaboo.vn.parser.ParserUtil;
 
 @SuppressWarnings("serial")
 public class DebugScriptPanel extends JPanel {
@@ -211,7 +212,7 @@ public class DebugScriptPanel extends JPanel {
 		}
 		
 		synchronized (lock) {
-			final String fn = ParserUtil.escape(StringUtil.stripExtension(filename));
+			final String fn = escape(StringUtil.stripExtension(filename));
 			final String cmd = "call(\"" + fn + "\")";
 			novel.eval(cmd);
 		}

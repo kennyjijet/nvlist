@@ -1,8 +1,6 @@
--------------------------------------------------------------------------------
--- screens.lua
--------------------------------------------------------------------------------
--- Defines the standard user interface screens.
--------------------------------------------------------------------------------
+--- Defines the standard user interface screens.
+--
+--  @module vn.screens
 
 local function tex2(path, suppressErrors, ...)
 	return tex(path, true, ...) or tex("builtin/" .. path, suppressErrors, ...)
@@ -23,7 +21,7 @@ end
 
 -------------------------------------------------------------------------------
 
----Adds a visible scroll bar to an existing viewport
+---Adds a visible scroll bar to an existing viewport.
 -- @param viewport The viewport to change the scrollbar of.
 -- @param horizontal A boolean <code>true/false</code> whether to change the
 --        horizontal or vertical scrollbar.
@@ -644,7 +642,8 @@ local ChoiceScreen = {
 	pad=screenHeight*.03,
 	ipad=screenHeight*.015,
 	w=screenWidth,
-	h=screenHeight*.75
+	h=screenHeight*.75,
+	buttonImage="gui/choice-button",
 }
 
 function ChoiceScreen.new(choiceId, ...)
@@ -665,7 +664,7 @@ function ChoiceScreen.new(choiceId, ...)
 	self.buttons = {}
 	self.components = {}
 	for i,opt in ipairs(self.options) do
-		local b = button2("gui/choice-button")
+		local b = button2(self.buttonImage)
 		b:setText(opt or "???")		
 		b:setAlpha(0)
 		
@@ -717,7 +716,7 @@ function ChoiceScreen:layout()
 	end
 end
 
-function ChoiceScreen:fadeButtons(visible, speed)
+function ChoiceScreen:fadeButtons(visible, fadeDurationFrames)
 	local targetAlpha = 1
 	if not visible then
 		targetAlpha = 0
@@ -725,7 +724,7 @@ function ChoiceScreen:fadeButtons(visible, speed)
 	
 	local threads = {}
 	for _,b in ipairs(self.buttons) do
-		table.insert(threads, newThread(fadeTo, b, targetAlpha, speed))
+		table.insert(threads, newThread(fadeTo, b, targetAlpha, fadeDurationFrames))
 	end
 	update1join(threads)
 end
@@ -734,7 +733,7 @@ function ChoiceScreen:run()
 	self.selected = -1
 	self:layout()
 
-	self:fadeButtons(false, 1)
+	self:fadeButtons(false, 0)
 	self:fadeButtons(true)
 
 	local focusIndex = 0

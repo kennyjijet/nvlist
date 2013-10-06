@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import nl.weeaboo.vn.parser.LVNParser;
+
 public interface IScriptLib {
 
 	// === Functions ===========================================================
@@ -17,6 +19,8 @@ public interface IScriptLib {
 	public List<String> getScriptFiles(String folder, boolean includeBuiltIn);
 	
 	public long getScriptModificationTime(String filename) throws IOException;
+	
+	public LVNParser getLVNParser();
 	
 	// === Setters =============================================================
 	

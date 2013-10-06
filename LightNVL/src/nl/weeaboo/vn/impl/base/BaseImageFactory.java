@@ -8,24 +8,27 @@ import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ISeenLog;
 import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.impl.lua.LuaEventHandler;
 
 public abstract class BaseImageFactory extends BaseMediaFactory implements IImageFactory, Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 	
+	protected final LuaEventHandler eventHandler;
 	protected final ISeenLog seenLog;
 	//protected final int imgWidth, imgHeight; //The screen size according to img.ini
 	protected final int width, height; //Virtual width, usually the same as ImageState's
 	
 	private boolean isTextRightToLeft;
 	
-	public BaseImageFactory(ISeenLog sl, INotifier ntf, int w, int h) {
+	public BaseImageFactory(LuaEventHandler eh, ISeenLog sl, INotifier ntf, int w, int h) {
 		super(new String[]{"png", "jpg"}, sl, ntf);
 		
 		if (sl instanceof BaseSeenLog) {
 			((BaseSeenLog)sl).setImageFactory(this);
 		}
 		
+		this.eventHandler = eh;
 		this.seenLog = sl;		
 		this.width = w;
 		this.height = h;

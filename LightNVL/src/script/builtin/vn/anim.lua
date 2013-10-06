@@ -1,9 +1,9 @@
--------------------------------------------------------------------------------
--- anim.lua
--------------------------------------------------------------------------------
--- Provides the 'built-in' VN animation functions.
--------------------------------------------------------------------------------
-
+--- Animation helper functions.
+--  Using these Animators is usually not strictly
+--  necessary, it's usually possible to get away with just using Threads
+--  directly. Animators are convenient when you want to piece together more
+--  complex multi-step animations or when you want to be able to skip to the
+--  end of such an animation instantly.
 module("vn.anim", package.seeall)
 
 -- ----------------------------------------------------------------------------
@@ -11,7 +11,7 @@ module("vn.anim", package.seeall)
 -- ----------------------------------------------------------------------------
 
 -- ----------------------------------------------------------------------------
---  Classes
+--  Helper Functions
 -- ----------------------------------------------------------------------------
 
 local function destroyAnimatorThread(anim)
@@ -20,6 +20,11 @@ local function destroyAnimatorThread(anim)
     if t ~= nil then t:destroy() end
 end
 
+-- ----------------------------------------------------------------------------
+--  Classes
+-- ----------------------------------------------------------------------------
+
+---@type Animator
 local Animator = {
     time=0,
     duration=0,
@@ -27,7 +32,9 @@ local Animator = {
     thread=nil
 }
 
----Starts a background animation thread.
+---Starts the animation.
+-- @number loops[opt=self.loops] Optional override for the number of times the
+--         animation should loop.
 function Animator:start(loops)
 	self.loops = loops or self.loops or 1
 	destroyAnimatorThread(self)	
@@ -50,7 +57,7 @@ function Animator:start(loops)
     self:update()
 end
 
----Called when the current time exceeds the duration
+---This method is called when the animation completes a loop.
 function Animator:onLoopEnd()
 	local spillover = math.max(0, self.duration - self.time)
 	
@@ -66,30 +73,35 @@ function Animator:onLoopEnd()
 	self.loops = math.max(0, self.loops - completed)
 end
 
----Calls <code>start</code>, and waits for the background thread to finish.
+---Starts the animation (by calling <code>start</code>) and waits for it to
+-- finish before returning.
+-- @param ... Any number of parameters to pass into <code>Animator:start</code>.
 -- @see Animator:start
 function Animator:run(...)
     self:start(...)
     Anim.waitFor(self)
 end
 
----Gets called every frame once started
+---This method is called every frame while the animation is running.
 function Animator:update()
 end
 
----Returns <code>true</code> if the animation is currently running.
+---Checks if this animation is running.
+-- @treturn bool <code>true</code> if the animation is currently running.
 function Animator:isRunning()
 	return self.thread ~= nil and not self.thread:isFinished()
 end
 
----Called after the animation ends, either by finishing or by being destroyed.
+---This method is called after the animation ends, either by finishing normally
+-- or by being destroyed.
 function Animator:onEnd()
 	destroyAnimatorThread(self)
 end
 
 ---Immediately kills any background threads, not bothering to cleanly finish
 -- the animation. Use this method if you want to cancel the animation, use
--- <code>finish</code> if you want to end it cleanly by skipping to the end.
+-- <code>finish</code> if you want to complete it cleanly by skipping to the
+-- end.
 -- @see Animator:finish
 function Animator:destroy()
 	self:onEnd()
@@ -103,6 +115,8 @@ function Animator:finish()
 
 	self:onEnd()
 end
+
+---@section end
 
 -- ----------------------------------------------------------------------------
 
@@ -308,6 +322,7 @@ end
 
 -- ----------------------------------------------------------------------------
 
+---@type FilmstripAnimator
 local FilmstripAnimator = {
     obj=nil,
     oldtex=nil,
@@ -386,6 +401,8 @@ function FilmstripAnimator.setTexture(i, tex0, tex1, frac)
 	i:setTexture(tex0) --Don't fade or anything, just show the current tex until it's done
 end
 
+---@section end
+
 -- ----------------------------------------------------------------------------
 
 local FunctorAnimator = {
@@ -405,20 +422,190 @@ function FunctorAnimator:update()
 end
 
 -- ----------------------------------------------------------------------------
+
+local ImageTweenAnimator = {
+	image=nil,
+	tween=nil
+}
+
+
+function ImageTweenAnimator.new(self)
+	return extend(Animator, ImageTweenAnimator, self)
+end
+
+function ImageTweenAnimator:start(loops)
+	self.image:setTween(self.tween)
+
+    return Animator.start(self, loops)
+end
+
+function ImageTweenAnimator:onEnd()
+	Animator.onEnd(self)
+	self.tween:finish()
+end
+
+-- ----------------------------------------------------------------------------
 --  Functions
 -- ----------------------------------------------------------------------------
 
 Anim = {
 }
 
+---Calls <code>Anim.tweenFromTo</code> using the current value of the property
+-- as its <code>startval</code>.
+-- @param obj The object to change the property of.
+-- @string property The property to change.
+-- @param endval The end value for the property.
+-- @number durationFrames The duration of the animation in frames (default is
+--         60 frames per second).
+-- @tparam[opt=nil] Interpolator interpolator An optional Interpolator object,
+--         can be used to create an ease-in, ease-out effect.
+-- @treturn Animator A new <code>PropertyInterpolator</code>.
+-- @see Anim.tweenFromTo
+function Anim.tweenTo(obj, property, endval, durationFrames, interpolator)
+    return Anim.tweenFromTo(obj, property, nil, endval, durationFrames, interpolator)
+end
+
+---Gradually changes the value of <code>obj[property]</code> from
+-- <code>startval</code> to <code>endval</code> over the course of
+-- <code>durationFrames</code> frames.
+-- @param obj The object to change the property of.
+-- @string property The property to change.
+-- @param startval The initial value to set the property to.
+-- @param endval The end value for the property.
+-- @number durationFrames The duration of the animation in frames (default is
+--         60 frames per second).
+-- @tparam[opt=nil] Interpolator interpolator An optional Interpolator object,
+--         can be used to create an ease-in, ease-out effect.
+-- @treturn Animator A new <code>PropertyInterpolator</code>.
+-- @see Anim.createTween
+function Anim.tweenFromTo(obj, property, startval, endval, durationFrames, interpolator)
+    local tween = Anim.createTween(obj, property, startval, endval, durationFrames, interpolator)
+    tween:run()
+end
+
+---Returns an Animator providing more control than <code>Anim.tweenFromTo</code>.
+-- When started, gradually changes the value of <code>property</code> from
+-- <code>startval</code> to <code>endval</code> over the course of
+-- <code>durationFrames</code> frames. 
+-- @param obj The object to change the property of.
+-- @string property The property to change.
+-- @param startval The initial value to set the property to.
+-- @param endval The end value for the property.
+-- @number durationFrames The duration of the animation in frames (default is
+--         60 frames per second).
+-- @tparam[opt=nil] Interpolator interpolator An optional Interpolator object,
+--         can be used to create an ease-in, ease-out effect.
+-- @treturn Animator A new <code>PropertyInterpolator</code>.
+-- @see Anim.tweenFromTo
+function Anim.createTween(obj, property, startval, endval, durationFrames, interpolator)
+    durationFrames = durationFrames or 60
+
+    return PropertyInterpolator.new{
+        obj=obj,
+        property=property,
+        duration=durationFrames,
+        startval=startval,
+        endval=endval,
+        interpolator=interpolator
+        }
+end
+
+---Returns an Animator that does nothing but wait for the specified duration.
+-- @param durationFrames The wait duration in frames.
+-- @treturn Animator A new <code>WaitAnimator</code>.
+function Anim.createWait(durationFrames)
+	return WaitAnimator.new{
+		duration=durationFrames
+		}
+end
+
+---Returns a new Animator that changes an ImageDrawable's texture based on a
+-- list of images and durations.
+-- @tparam ImageDrawable obj The ImageDrawable that the filmstrip animation
+--         should change the texture of.
+-- @tparam {{string,number}} frames A table of tables, each containing a
+--        <code>texture</code> and a <code>duration</code>. Example:
+--        <code>{{"image1", 30}, {"image2", 10}}</code>
+-- @treturn Animator A new <code>FilmstripAnimator</code>.
+function Anim.createFilmstrip(obj, frames)
+	return FilmstripAnimator.new{
+		obj=obj,
+		frames=frames,
+		}	
+end
+
+---Returns a new Animator wrapping the given function. The Animator (once
+-- started) will call the function every frame, passing in the value of
+-- (<code>time / duration</code>) as an argument.
+-- @func func The function to call every frame.
+-- @number durationFrames The duration of the animation in frames (holding the skip key
+--        can cause the animation to advance multiple frames at once).
+function Anim.fromFunction(func, durationFrames)
+	durationFrames = durationFrames or 0
+
+	return FunctorAnimator.new{
+		func=func,
+		duration=durationFrames,
+		}
+end
+
+---Returns a new Animator that applies an image tween on <code>image</code>,
+-- gradually changing its texture to <code>targetTexture</code>.
+-- @tparam ImageDrawable image The image to change the texture of.
+-- @tparam Texture targetTexture The new texture to change to.
+-- @number durationFrames The duration of the animation in frames (holding the
+--         skip key can cause the animation to advance multiple frames at once).
+function Anim.createImageTween(image, targetTexture, durationFrames)
+	targetTexture = tex(targetTexture)
+	durationFrames = durationFrames or 60
+	interpolator = nil
+	
+	local tween = CrossFadeTween.new(durationFrames, interpolator)
+	tween:setEndImage(targetTexture)
+	
+	return ImageTweenAnimator.new{
+		image=image,
+		tween=tween,
+		}	
+end
+
+---Creates a new Animator that wraps other Animators and runs them in parallel.
+-- @tparam Animator ... Any number of Animators.
+-- @treturn ParallelAnimator A new Animator that runs its child animations all
+--          at the same time.
+function Anim.par(...)
+	local anims = getTableOrVarArg(...)
+	return ParallelAnimator.new{anims=anims}
+end
+
+---Creates a new Animator that wraps other Animators and runs them in sequence.
+-- @tparam Animator ... Any number of Animators.
+-- @treturn SequentialAnimator A new Animator that runs its child animations
+--          one after another.
+function Anim.seq(...)
+	local anims = getTableOrVarArg(...)
+	return SequentialAnimator.new{anims=anims}
+end
+
+---Waits for all Animators passed to this function to stop running.
+-- @tparam Animator ... Any number of Animator parameters.
+function Anim.waitFor(...)
+	for _,anim in ipairs(arg) do
+	    while anim:isRunning() do
+	    	yield()
+	    end
+	end
+end
+
 ---Interpolates between two values <code>a, b</code> based on a weight factor
 -- <code>frac</code>.
--- @param a The first value
--- @param b The second value
--- @param frac The weight factor between <code>0.0</code> and <code>1.0</code>,
+-- @param a The first value.
+-- @param b The second value.
+-- @number frac The weight factor between <code>0.0</code> and <code>1.0</code>,
 --        where <code>0.0</code> returns <code>a</code> and <code>1.0</code>
 --        returns <code>b</code>.
--- @return A value in-between <code>a</code> and <code>b</code>.
+-- @return A value between <code>a</code> and <code>b</code>.
 function Anim.interpolateValue(a, b, frac)
     local typeA = type(a)
     local typeB = type(b)
@@ -439,110 +626,4 @@ function Anim.interpolateValue(a, b, frac)
     else
         return a + (b-a) * frac
     end
-end
-
----Blocks until all Animators passed as arguments are not (or are no longer) running.
-function Anim.waitFor(...)
-	for _,anim in ipairs(arg) do
-	    while anim:isRunning() do
-	    	yield()
-	    end
-	end
-end
-
----Calls <code>Anim.tweenFromTo</code> using the current value of the property
--- as its <code>startval</code>.
--- @see Anim.tweenFromTo
-function Anim.tweenTo(obj, property, endval, duration, interpolator)
-    return Anim.tweenFromTo(obj, property, nil, endval, duration, interpolator)
-end
-
----Gradually changes the value of <code>property</code> from
--- <code>startval</code> to <code>endval</code> over the course of
--- <code>duration</code> frames.
--- @param obj The object to change the property of
--- @param property The property to change
--- @param startval The initial value to set the property to
--- @param endval The end value for the property
--- @param duration The number of frames to take
--- @param interpolator An optional Interpolator object, can be used to create
---        an ease-in, ease-out effect.
--- @see Anim.createTween
-function Anim.tweenFromTo(obj, property, startval, endval, duration, interpolator)
-    local tween = Anim.createTween(obj, property, startval, endval, duration, interpolator)
-    tween:run()
-end
-
----Returns an Animator providing more control than <code>Anim.tweenFromTo</code>.
--- When started, gradually changes the value of <code>property</code> from
--- <code>startval</code> to <code>endval</code> over the course of
--- <code>duration</code> frames. 
--- @param obj The object to change the property of
--- @param property The property to change
--- @param startval The initial value to set the property to
--- @param endval The end value for the property
--- @param duration The number of frames to take
--- @param interpolator An optional Interpolator object, can be used to create
---        an ease-in, ease-out effect.
--- @see Anim.tweenFromTo
-function Anim.createTween(obj, property, startval, endval, duration, interpolator)
-    duration = duration or 60
-
-    return PropertyInterpolator.new{
-        obj=obj,
-        property=property,
-        duration=duration,
-        startval=startval,
-        endval=endval,
-        interpolator=interpolator
-        }
-end
-
----Returns an Animator that does nothing but wait for the specified duration.
--- @param duration The wait duration in frames
-function Anim.createWait(duration)
-	return WaitAnimator.new{
-		duration=duration
-		}
-end
-
----Returns an Animator wrapping the given function. The Animator (once started)
--- will call the function every frame with one argument:
--- <code>time / duration</code>.
--- @param func The function to call every frame
--- @param duration The duration of the animation in frames (holding the skip key
---        can cause the animation to advance multiple frames at once).
-function Anim.fromFunction(func, duration)
-	return FunctorAnimator.new{
-		func=func,
-		duration=duration
-		}
-end
-
----Returns a new Animator that changes an ImageDrawable's texture based on a
--- list of images and durations.
--- @param obj The ImageDrawable that the filmstrip animation should change the
---        texture of.
--- @param frames A table of tables, each containing a <code>texture</code> and
---        a <code>duration</code>. Example:
---        <code>{{"image1", 30}, {"image2", 10}}</code>
-function Anim.createFilmstrip(obj, frames)
-	return FilmstripAnimator.new{
-		obj=obj,
-		frames=frames
-		}	
-end
-
----Creates a new Animator that runs all the given Animator arguments in
--- parallel.
-function Anim.par(...)
-	local anims = getTableOrVarArg(...)
-	return ParallelAnimator.new{anims=anims}
-end
-
----Creates a new Animator that runs all the given Animator arguments in
--- sequence.
-function Anim.seq(...)
-	local anims = getTableOrVarArg(...)
-	return SequentialAnimator.new{anims=anims}
 end

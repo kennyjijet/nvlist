@@ -20,17 +20,13 @@
 <!-- Imports -->
   
 <!-- Tasks -->
-  <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
-           classpath="${tools.dir}/jarbundler/jarbundler-2.2.0.jar" />
-
-  <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"   
-           classpath="${tools.dir}/appbundler/appbundler-1.0.jar" />
-    
-  <macrodef name="create-application-bundle">
+  <macrodef name="create-application-bundle7">
     <attribute name="dir" default="${dist.dir}" />
-    
+	
     <sequential>
-      <!-- Java 7 Application Bundle
+	  <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"   
+		   classpath="${tools.dir}/appbundler/appbundler-1.0.jar" />
+			   
       <mkdir dir="@{dir}" />
 
       <java classname="nl.weeaboo.installer.CompressionUtil" classpath="${tools.dir}/MakeInstaller.jar" fork="true">        
@@ -62,10 +58,18 @@
         <fileset dir="${dist.dir}/res" erroronmissingdir="false" />
         <fileset dir="${dist.dir}/lib/mac" erroronmissingdir="false" />
         <fileset dir="${dist.dir}" includes="*.zip,*.nvl" />
-      </copy>
-      -->
+      </copy>	
+	</sequential>
+  </macrodef>
 
-      <!-- Create Mac OSX launcher with JarBundler -->
+  <macrodef name="create-application-bundle6">
+    <attribute name="dir" default="${dist.dir}" />
+    
+    <sequential>
+	  <!-- Create Mac OSX launcher with JarBundler -->
+	  <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler"
+			   classpath="${tools.dir}/jarbundler/jarbundler-2.2.0.jar" />
+		   
       <chmod dir="${build-res.dir}/mac" includes="JavaApplicationStub*" perm="ugo+rx"/>
       
       <jarbundler dir="@{dir}"
@@ -105,9 +109,11 @@
     
           var splashFolder = project.getProperty("build-res.dir")
           var img = ImageIO.read(new File(splashFolder, project.getProperty("splashscreen")));
-          var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-          opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
-          ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
+          if (img != null) {
+            var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+            opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
+            ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
+          }
         ]]>
       </script>
   
@@ -127,11 +133,8 @@
     
 <!-- Targets -->
 
-  <target name="clean-installer">
-    <delete dir="${build-res.dir}" includes="installer.ini" />
-  </target>
-
-  <target name="clean-releases">
+  <target name="clean-release">
+    <delete dir="${build-res.dir}" includes="installer.ini" />	
     <delete>
       <fileset dir="${releases.dir}">
         <include name="${project-name}-*.jar" />
@@ -141,7 +144,7 @@
     </delete>
   </target>
   
-  <target name="make-installer-common">
+  <target name="release-common">
     <tstamp />
     <copy tofile="${build-res.dir}/installer.ini" file="${build-res.dir}/installer-config.ini">
       <filterChain>
@@ -152,7 +155,7 @@
   
   <!-- Creates a no-installer ZIP archive from the releases folder -->
   <!-- Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
-  <target name="make-installer-zip" depends="make-installer-common, dist-jre">  
+  <target name="release-zip" depends="release-common, dist-jre">  
     <echo>Creating no-installer ZIP archive (may take a long time)...</echo>
     
     <zip destfile="${releases.dir}/${project-name}-${DSTAMP}.zip"
@@ -165,8 +168,8 @@
     <delete file="${build-res.dir}/installer.ini" />
   </target>
 
-  <!-- Subtask of make-installer, creates a cross-platform installer JAR -->
-  <target name="make-installer-jar" depends="make-installer-common">
+  <!-- Creates a cross-platform installer JAR -->
+  <target name="release-jar" depends="release-common">
     <echo>Creating installer (may take a long time)...</echo>    
     <java jar="${tools.dir}/MakeInstaller.jar" fork="true">
       <arg value="${dist.dir}" />
@@ -178,12 +181,12 @@
   
   <!-- Create an installer from the dist folder
     Doesn't depend on dist as either 'dist-src' or 'dist' may be used. -->
-  <target name="make-installer" depends="make-installer-jar" if="${installer-exe}">
+  <target name="release-win" depends="release-jar" if="${installer-exe}">
     <create-installer-exe src="${releases.dir}/${project-name}-install-${DSTAMP}.jar"
         dst="${releases.dir}/${project-name}-install-${DSTAMP}.exe" />
   </target>
 
-  <target name="make-installer-cd" depends="make-installer-common, dist-jre">
+  <target name="release-cd" depends="release-common, dist-jre">
     <echo>Creating installer (may take a long time)...</echo>
     	
     <java jar="${tools.dir}/MakeInstaller.jar" fork="true">
@@ -221,10 +224,10 @@
     <delete file="${build-res.dir}/installer.ini" />
   </target>
 
-  <target name="make-installer-mac" depends="make-installer-common">
+  <target name="release-mac" depends="release-common">
     <echo>Creating Mac OSX application bundle (may take a long time)...</echo>
     
-    <create-application-bundle dir="${dist.dir}" />
+    <create-application-bundle6 dir="${dist.dir}" />
 	
     <!-- Zip application bundle -->
     <zip destfile="${releases.dir}/${project-name}-mac-${DSTAMP}.zip"
@@ -234,6 +237,25 @@
         filemode="755" includes="Contents/MacOS/**,Contents/Resources/Java/**" />
       <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
         includes="**"  excludes="Contents/MacOS/**,Contents/Resources/Java/**" />
+    </zip>
+    <delete dir="${dist.dir}/${project-name}.app" />
+
+    <delete file="${build-res.dir}/installer.ini" />
+  </target>
+
+  <target name="release-mac-store" depends="release-common">
+    <echo>Creating Mac Store compatible application bundle (may take a long time)...</echo>
+    
+    <create-application-bundle7 dir="${dist.dir}" />
+	
+    <!-- Zip application bundle -->
+    <zip destfile="${releases.dir}/${project-name}-mac-${DSTAMP}.zip"
+      compress="true" encoding="UTF-8">
+			
+      <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
+        filemode="755" includes="Contents/MacOS/**,Contents/Resources/**" />
+      <zipfileset dir="${dist.dir}/${project-name}.app" prefix="${project-name}.app"
+        includes="**"  excludes="Contents/MacOS/**,Contents/Resources/**" />
     </zip>
     <delete dir="${dist.dir}/${project-name}.app" />
 

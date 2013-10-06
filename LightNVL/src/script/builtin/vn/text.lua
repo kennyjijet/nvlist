@@ -1,26 +1,26 @@
--------------------------------------------------------------------------------
--- text.lua
--------------------------------------------------------------------------------
--- Provides the 'built-in' VN text functions.
--------------------------------------------------------------------------------
-
+---Functions related to text display.
+-- 
 module("vn.text", package.seeall)
 
 -- ----------------------------------------------------------------------------
 --  Variables
 -- ----------------------------------------------------------------------------
 
-TextMode = {ADV=1, NVL=2}
+---Text modes. These determine the way the textbox looks.
+TextMode = {
+	ADV=1, --Adventure game style bottom-aligned text.
+	NVL=2, --Novel style full screen text.
+}
 
 local textMode = 0
 local textAlpha = 1
-local speaker = {}
-local lineRead = true
+speaker = {}
+lineRead = true
 local textLayerConstructors = {}
-local styleStack = {}
+local currentStyle = nil
 
 -- ----------------------------------------------------------------------------
---  Text Functions
+--  Local Functions
 -- ----------------------------------------------------------------------------
 
 local function getTextLayerAlphas(mode)
@@ -33,16 +33,6 @@ local function getTextLayerDrawables()
 	return getImageStateAttribute("textLayerDrawables" .. textMode)
 end
 
----Returns a named drawable from the current text layer, or <code>nil</code> if
--- a drawable with that name doesn't (yet) exist.
-function getTextLayerDrawable(name)
-	local drawables = getTextLayerDrawables()
-	if drawables == nil then
-		return nil
-	end
-	return drawables[name]
-end
-
 local function isNameTextDrawable(name)
 	return name ~= nil and string.sub(name, 1, 8) == "nameText" --Check prefix
 end
@@ -51,12 +41,12 @@ local function isCursorDrawable(name)
 	return name ~= nil and string.sub(name, 1, 6) == "cursor" --Check prefix
 end
 
-local function textfade(targetAlpha, speed, predicate)
+local function textfade(targetAlpha, fadeDurationFrames, predicate)
 	if textMode == 0 then
 		return
 	end
 
-	speed = speed or 0.05
+	fadeDurationFrames = fadeDurationFrames or 20
 	
 	local threads = {}
 	local baseAlpha = getTextLayerAlphas()
@@ -81,13 +71,23 @@ local function textfade(targetAlpha, speed, predicate)
 			elseif baseAlpha[d] ~= nil then
 				a = a * baseAlpha[d]
 			end
-			table.insert(threads, newThread(fadeTo, d, a, speed))
+			table.insert(threads, newThread(fadeTo, d, a, fadeDurationFrames))
 		end
 	end
 	update1join(threads)
 end
 
-local function updateSpeakerName()
+local function hideSpeakerName()
+	local nameText = getTextLayerDrawable("nameText")
+	if nameText ~= nil then
+		nameText:setText("")
+		textfade(0, 0, function(k, d)
+			return isNameTextDrawable(k)
+		end)
+	end
+end
+
+function updateSpeakerName()
 	if getTextMode() == 0 or not speaker.nameChanged then
         return
 	end
@@ -104,10 +104,8 @@ local function updateSpeakerName()
 		end
 		
 		--Append name to text log (and to textState if no nameText exists)
-		pushStyle()
-		if speaker.nameStyle ~= nil then
-			style(speaker.nameStyle)
-		end
+		local oldStyle = currentStyle;
+		currentStyle = speaker.nameStyle
 		if nameText ~= nil then
 			appendTextLog("[" .. speaker.name .. "]\n")
 		else
@@ -116,20 +114,14 @@ local function updateSpeakerName()
 			else
 				appendText("[" .. speaker.name .. "]\n")
 			end
-		end			
-		popStyle()			
+		end
+		currentStyle = oldStyle
 
-		textfade(textAlpha, 1, function(k, d)
+		textfade(textAlpha, 0, function(k, d)
 			return isNameTextDrawable(k)
 		end)
 	else
-		if nameText ~= nil then
-			nameText:setText("")
-		end
-		
-		textfade(0, 1, function(k, d)
-			return isNameTextDrawable(k)
-		end)
+		hideSpeakerName()
 	end
 
     speaker.nameChanged = false		
@@ -143,31 +135,98 @@ local function getText()
 	return nil
 end
 
----Sets the current text of the main textbox
--- @param str The new text (may be either a string, or a StyledText object)
-function text(str)
-	--clearText()
-	paragraph.start()
-	paragraph.append(str)
-	paragraph.finish()
+-- ----------------------------------------------------------------------------
+--  Functions
+-- ----------------------------------------------------------------------------
+
+---Sets the current text of the main textbox.
+-- @param str The new text (may be either a string or a StyledText object). Any
+--        embedded stringifiers or text tags are evaluated unless
+--        <code>meta.parse == false</code>.
+-- @tab[opt=nil] triggers An optional table containing functions that should be
+--               called at specific text positions.
+-- @tab[opt=nil] meta A table with metadata for this line of text (filename,
+--      line, etc.)
+function text(str, triggers, meta)
+	meta = meta or {}
+
+	local textBox = textState:getTextDrawable()
+
+	--Update lineRead for this line
+	lineRead = seenLog:isTextLineRead(meta.filename, meta.line)
+	
+	--Handle paragraph start differently based on text mode
+	if isTextModeADV() then
+		clearText()
+	elseif isTextModeNVL() then
+		if android then
+			if textBox ~= nil and textBox:getTextHeight() >= .5 * textBox:getHeight() then
+				clearText() --Auto-page to compensate for much larger text size on Android
+			end
+		end
+		
+		local curText = getText()
+		if curText ~= nil and curText:length() > 0 then
+			local lastChar = curText:getChar(curText:length()-1)
+			if lastChar ~= 0x20 and lastChar ~= 0x0A then			
+				appendText("\n\n")
+			end
+		end	
+	end
+	
+	--Parse str and execute stringifiers, text tag handlers, etc.
+	if meta.parse ~= false then --Explicit ~= false check is important to distinguish from nil.
+		str, triggers = Text.parseText(str, triggers)
+	end
+	
+	--Update speaker and append text to the textbox
+    updateSpeakerName()
+	if textBox ~= nil then
+		triggers = Text.rebaseTriggers(triggers, textBox)
+	end
+		    
+	currentStyle = speaker.textStyle
+	appendText(str)
+	
+	--Now wait until all text has faded in and execute triggers at appropriate times
+	waitForTextVisible(textBox, triggers)
+
+	--Turn off skip mode if applicable
+	if getSkipMode() == SkipMode.PARAGRAPH then
+		setSkipMode(0)
+	end
+	
+	--Wait for click
+	waitClick()	
+	
+	--Reset speaker
+	currentStyle = nil
+	if speaker.resetEOL then
+		say()
+	end
+	
+	--Register line as read
+	if meta.filename ~= nil and meta.line >= 1 then
+		seenLog:setTextLineRead(meta.filename, meta.line)
+	end
+	lineRead = true	
 end
 
----Clears the current text of the main textbox
+---Clears the text of the main textbox (effectively sets it to <code>""</code>).
+-- In ADV mode, the text is cleared between each line of text. In NVL mode, you
+-- need to call <code>clearText</code> manually.
 function clearText()
     textState:setText("")
     appendTextLog("", true)
-	
-	speaker.nameChanged = true
-    updateSpeakerName()
+    hideSpeakerName()
 end
 
----Appends text to the main textbox
--- @param str The text to append (may be either a string, or a StyledText
--- object)
+---Appends text to the main textbox.
+-- @param str The text to append (may be either a string or a StyledText
+--        object).
 function appendText(str)
 	local styled = nil
 	local logStyled = nil
-	local currentStyle = getCurrentStyle()
 	if lineRead and prefs.textReadStyle ~= nil then
 		styled = createStyledText(str, extendStyle(prefs.textReadStyle, currentStyle))
 		logStyled = createStyledText(str, currentStyle)
@@ -185,26 +244,38 @@ function appendText(str)
 	end
 end
 
----Appends a new line of text to the main textbox
--- @param string The text to append
-function appendTextLine(string)
+---Appends text to the main textbox. Puts the added text on a new line.
+-- @param str The text to append (may be either a string or a StyledText
+--        object).
+-- @deprecated 4.0
+function appendTextLine(str)
+	deprecated("4.0")
+
 	local curText = getText()
 	if curText ~= nil and curText:length() > 0 then
-		appendText("\n" .. string)
+		appendText("\n" .. str)
 	else
-		appendText(string)
+		appendText(str)
 	end
 end
 
----Appends text to the textlog, but not the text state
--- @param string The text to append
--- @param newPage If <code>true</code>, starts a new page before appending the
--- text to the text log.
-function appendTextLog(string, newPage)
-	textState:appendTextLog(string, newPage)
+---Appends text to the textlog, but not the main textbox. Allows you to manually
+-- add lines to the textlog, which can be useful if your VN has text that's not
+-- displayed in the main textbox.
+-- @param str The text to append (may be either a string or a StyledText
+--        object).
+-- @bool[opt=false] newPage If <code>true</code>, starts a new page in the
+--      textlog before appending the text.
+function appendTextLog(str, newPage)
+	textState:appendTextLog(str, newPage)
 end
 
----Changes the name of the person currently speaking
+---Changes the name of currently speaking character.
+-- @string name The character's display name.
+-- @tparam[opt=nil] TextStyle textStyle Default text style to use for text added
+--        to the main textbox while this character is speaking.
+-- @tparam[opt=nil] TextStyle nameStyle Default text style to use for the
+--        display of this character's name.
 function say(name, textStyle, nameStyle)
 	if speaker.name ~= name then
 		speaker.name = name
@@ -223,8 +294,8 @@ function say(name, textStyle, nameStyle)
 	speaker.resetEOL = false
 end
 
----Changes the name of the person currently speaking. Resets the speaker to
--- default at the end of the paragraph.
+---Like <code>say</code>, but resets the speaking character at the end of the
+-- current paragraph.
 -- @see say
 function sayLine(...)
 	local result = say(...)
@@ -232,141 +303,276 @@ function sayLine(...)
 	return result
 end
 
----Registers a <code>paragraph.stringifier</code> function to convert
--- <code>$variables</code> inside text to a call to <code>sayLine</code>.
--- In addition, a global <code>say_XXX</code> function is created that calls
--- the <code>say</code> function to change the active speaker.
--- Example: <code>registerSpeaker("bal", "Balthasar")
+---Registers a stringifier function to replace occurrences of $<code>id</code>
+-- with a call to <code>sayLine</code>.<br/>
+-- In addition, this function creates a global <code>say_XXX</code> function,
+-- replacing XXX with <code>id</code>, to change the active speaker for multiple
+-- lines at once.<br/>
+-- Example use: <code>registerSpeaker("bal", "Balthasar")
 -- $bal This line is now said with my name, Balthasar.</code>
--- @param id The value of the text after the <code>$</code>-sign that triggers
---        the say function.
+-- @string id Unique identifier string for the speaker.
+-- @param ... All other parameters are passed to <code>sayLine</code>.
 function registerSpeaker(id, ...)
 	local args = getTableOrVarArg(...)
 	if type(args[1]) == "function" then
-		paragraph.stringifiers[id] = function()
+		registerStringifier(id, function()
 			return args[1](unpack(args, 2))
-		end
+		end)
 		_G["say_" .. id] = function()
 			return args[1](unpack(args, 2))
 		end
 	else
-		paragraph.stringifiers[id] = function()
+		registerStringifier(id, function()
 			return sayLine(unpack(args))
-		end
+		end)
 		_G["say_" .. id] = function()
 			return say(unpack(args))
 		end
 	end	
 end
 
----Creates a new StyledText object from the given string and TextStyle
--- @param text The text part of the StyledText
--- @param style The base style for the StyledText
--- @return A new StyledText object
+---Parses the given string, turning it into a StyledText object by evaluating
+-- any embedded stringifiers and/or text tags.
+-- @string text The string to parse.
+-- @treturn StyledText A StyledText object.
+-- @since 4.0
+function parseText(text)
+	return Text.parseText(text)
+end
+
+---Creates a new StyledText object from the given string and TextStyle.
+-- @string text The text part of the StyledText.
+-- @tparam TextStyle style The base style for the StyledText.
+-- @treturn StyledText A new StyledText object.
 function createStyledText(text, style)
     return Text.createStyledText(text or "", style)
 end
 
----Creates a new TextStyle object from the given table
--- @param s A table with attribute/value pairs for the new TextStyle
+---Creates a new TextStyle object from the given table.
+-- @tab styleProperties A table with attribute/value pairs for the new TextStyle.
 -- <br/>List of TextStyle properties: <ul>
---  <li><strong>fontName</strong> The filename (without the .ttf) of the font to use</li>
+--  <li><strong>fontName</strong> The filename (without the .ttf) of the font to use.</li>
 --  <li><strong>fontStyle</strong> <code>&quot;plain&quot;, &quot;bold&quot;, &quot;italic&quot; or &quot;bolditalic&quot;</code></li>
 --  <li><strong>fontSize</strong> Determines the text size</li>
 --  <li><strong>anchor</strong> Controls text alignment, corresponds to numpad directions (4=left, 6=right, 7=top left)</li>
---  <li><strong>color</strong> Text ARGB color packed into a single integer (red=0xFFFF0000, green=0xFF00FF00, blue=0xFF0000FF, etc)</li>
+--  <li><strong>color</strong> Text ARGB color packed into a single integer (red=0xFFFF0000, green=0xFF00FF00, blue=0xFF0000FF, etc.)</li>
 --  <li><strong>underline</strong> Set to <code>true</code> to make the text underlined</li>
 --  <li><strong>outlineSize</strong> Thickness of the text outline (stroke)</li>
---  <li><strong>outlineColor</strong> Outline ARGB color packed into a single integer (white=0xFFFFFFFF, black=0xFF000000, etc)</li>
---  <li><strong>shadowColor</strong> Shadow ARGB color packed into a single integer (50% black=0x80000000, etc)</li>
+--  <li><strong>outlineColor</strong> Outline ARGB color packed into a single integer (white=0xFFFFFFFF, black=0xFF000000, etc.)</li>
+--  <li><strong>shadowColor</strong> Shadow ARGB color packed into a single integer (50% black=0x80000000, etc.)</li>
 --  <li><strong>shadowDx</strong> Shadow x-offset</li>
 --  <li><strong>shadowDy</strong> Shadow y-offset</li>
+--  <li><strong>speed</strong> Relative text speed (2.0 for double speed, 0.5 for half speed, etc.)</li>
 -- </ul>
 --
--- @return A newly condtructed TextStyle object, or <code>nil</code> in the
---         case of an error.
-function createStyle(s)
-	return Text.createStyle(s)
+-- @treturn TextStyle A newly created TextStyle object, or <code>nil</code> if
+--          an error occurs.
+function createStyle(styleProperties)
+	return Text.createStyle(styleProperties)
 end
 
----Creates a new TextStyle object, overriding attributes in <code>s</code> with
--- those in <code>e</code>
--- @param s An existing TextStyle object
--- @param e A table with attribute/value pairs for the new TextStyle
--- @return A newly condtructed TextStyle object, or <code>nil</code> in the
---         case of an error.
-function extendStyle(s, e)
-	if e == nil then
-		return s
-	end
-	if s == nil then
-		return createStyle(e)
-	end
-	return s:extend(createStyle(e))
-end
-
----Changes the current style for the <code>text</code> and
--- <code>appendText</code> functions.<br/>
--- Usage: <code>text text text [style{color=0xFFFF0000}] text text</code><br/>
--- For a list of all TextStyle properties (besides color), see: createStyle<br/>
---
+---Creates a new TextStyle object from <code>style</code>, but overriding it
+-- with the attributes in <code>extendProperties</code>.
+-- @tparam TextStyle style The TextStyle object to use as a base.
+-- @tab extendProperties A table with attribute/value pairs for the new
+--      TextStyle. See <code>createStyle</code> for the list of possible
+--      attributes.
+-- @treturn TextStyle A newly created TextStyle object, or <code>nil</code> if
+--          an error occurs.
 -- @see createStyle
-function style(s)
-	local i = #styleStack	
-	if s == nil then
-		styleStack[i] = nil
-        return nil
+function extendStyle(style, extendProperties)
+	if extendProperties == nil then
+		return style
+	end
+	if style == nil then
+		return createStyle(extendProperties)
+	end
+	return style:extend(createStyle(extendProperties))
+end
+
+---Changes the text speed modifier. Resets at the end of a paragraph, when
+-- changing text modes or by calling the <code>textSpeed</code> function
+-- without any arguments.
+-- @number[opt=1.0] speed The text speed multiplication factor.
+function textSpeed(speed)
+	speed = speed or 1
+	if speed < 0 then
+		speed = 999999
+	else
+		speed = math.max(0.001, speed)
+	end
+
+	textState:setTextSpeed(speed)
+end
+
+-- @treturn bool <code>true</code> if the currently displayed text has been read
+--          before.
+function isLineRead()
+	return lineRead
+end
+
+---Waits until the text in the main textbox (or other TextDrawable) has finished
+-- appearing.
+-- @tparam[opt=nil] TextDrawable textDrawable An optional TextDrawable to wait
+--        for. If not specified, the text drawable of the main textbox is used.
+-- @tab[opt=nil] triggers An optional table containing functions that should be
+--               called at specific text positions.
+function waitForTextVisible(textDrawable, triggers)
+	textDrawable = textDrawable or textState:getTextDrawable()
+	
+	local i0 = 0
+	while textDrawable ~= nil and not textDrawable:isDestroyed() do
+		if triggers ~= nil then
+			local i1 = math.min(textDrawable:getMaxVisibleChars(), math.floor(textDrawable:getVisibleChars()))
+			for i=i0,i1 do
+				if triggers[i] ~= nil then
+					triggers[i]()
+				end
+			end
+			i0 = i1 + 1
+		end
+		
+		if textDrawable:getFinalLineFullyVisible() then
+			break
+		end
+		
+		yield()
+	end
+end
+
+---Shows the textlog screen.
+function textLog()
+	local screen = nil
+
+	return setMode("textLog", function()
+		pushImageState()
+		screen = Screens.textLog.new()
+		screen:run()
+		setMode(nil)
+	end, function()
+		if screen ~= nil then
+			screen:destroy()
+			screen = nil
+			popImageState()
+		end	
+	end)
+end
+
+---Stringifiers
+-------------------------------------------------------------------------------- @section stringifiers
+
+local stringifiers = {}
+
+---Registers the specified function to be used whenever <code>id</code> needs to
+-- be stringified.
+-- @string id The word to register a custom stringifier function for.
+-- @func func A function that returns a string or StyledText object.
+-- @since 4.0
+function registerStringifier(id, func)
+	stringifiers[id] = func
+end
+
+---Gets called during execution of a text line to replace words starting with
+-- a dollar sign. If a stringify handler function is registered for the word,
+-- that function is evaluated.
+-- Otherwise, if <code>word</code> is a valid variable in the local context,
+-- its value is converted to a string representation.
+-- @param word The characters following the dollar sign
+-- @param level The relative level to search for local variables, depends on
+--        the depth of the call tree before stringify is called.
+-- @since 4.0
+function stringify(word, level)
+	level = level or 3
+
+	local value = stringifiers[word]
+	if value == nil and paragraph ~= nil and paragraph.stringifiers ~= nil then
+		--Backwards compatibility with NVList 3.x
+		value = paragraph.stringifiers[word]
+	end
+	if value == nil then
+		value = getDeepField(getLocalVars(level + 1), word) or getDeepField(getfenv(level), word)
 	end
 	
-	if type(s) ~= "userdata" then
-		s = createStyle(s)
+	--Evaluate functions fully
+	while type(value) == "function" do
+		value = value()
 	end
-	styleStack[i] = extendStyle(styleStack[i], s)
-	return styleStack[i]
+	
+	--Early exit when value is nil	
+	if value == nil then
+		return
+	end
+	
+	--Convert value to StyledText
+	value = createStyledText(value)
+	
+	--Don't append when nil or empty string
+	if value == nil or value:length() == 0 then
+		return
+	end
+	
+	return value
 end
 
----Returns the top of the current style state. The style stack can be
--- manipulated with <code>pushStyle</code>, <code>popStyle</code>,
--- <code>style</code>.
-function getCurrentStyle()
-	return styleStack[#styleStack]
+---Text tags
+-------------------------------------------------------------------------------- @section textTags
+
+local tagHandlers = {}
+
+if not prefs.vnds and not nvlist3 then
+	Text.registerBasicTagHandlers(tagHandlers)
 end
 
----Adds a new entry to the top of the style stack that's a copy of
--- <code>getCurrentStyle</code>. 
-function pushStyle()
-	local st = getCurrentStyle()
-	table.insert(styleStack, st)
-	return st
+---Registers text tag handler functions (open/close) for a specific text tag.
+-- @since 4.0
+function registerTextTagHandler(tag, openFunc, closeFunc)
+	tagHandlers[tag] = openFunc
+	tagHandlers["/" .. tag] = closeFunc
 end
 
----Pops the top entry from the style stack.
-function popStyle()
-	return table.remove(styleStack)
-end
+-- Gets called when an open tag is encountered within text.
+-- @since 4.0
+function textTagOpen(tag, values, level)
+	values = values or {}
+	level = level or 3
 
----Sets the text speed to the default speed multiplied by the specified factor.
--- Resets at the end of a paragraph, when changing text modes or by calling the
--- textSpeed function without any arguments.
--- @param s The number to multiply the default text speed by
-function textSpeed(s)
-	s = s or 1
-	if s < 0 then
-		s = 999999
-	else
-		s = math.max(0.001, s)
+	local func = tagHandlers[tag]
+	if func == nil then
+		return
+	end
+	
+	--Resolve argument strings to their proper types/values
+	local newValues = {}
+	for k,v in pairs(values) do
+		v = getDeepField(getLocalVars(level + 1), v)
+		  or getDeepField(getfenv(level), v)
+		  or Text.resolveConstant(v)
+		newValues[k] = v
 	end
 
-	textState:setTextSpeed(s)
+	return func(tag, newValues)
 end
 
----Fades out the main textbox
+-- Gets called whenever a close tag is encountered within text.
+-- @since 4.0
+function textTagClose(tag)
+	local func = tagHandlers["/" .. (tag or "")]
+	if func == nil then
+		return
+	end
+	return func(tag, values)
+end
+
+---Text box manipulation
+-------------------------------------------------------------------------------- @section textBox
+
+---Fades away the main textbox.
 function textoff(...)
 	textAlpha = 0
 	textfade(0, ...)	
 end
 
----Fades in the main textbox
+---Fades in the main textbox.
 function texton(...)
 	textAlpha = 1
 	textfade(textAlpha, ...)
@@ -429,7 +635,7 @@ function setTextMode(m, clear)
 		end
 		
 		--Fade to textAlpha
-		textfade(textAlpha, 1)
+		textfade(textAlpha, 0)
 	end
 end
 
@@ -443,213 +649,30 @@ function setTextModeADV()
 	setTextMode(TextMode.ADV)
 end
 
+---Returns the current text mode.
 function getTextMode()
 	return textMode
 end
 
--- @return <code>true</code> if the text mode is NVL
+--- @return <code>true</code> if the text mode is NVL
 function isTextModeNVL()
 	return getTextMode() == TextMode.NVL
 end
 
--- @return <code>true</code> if the text mode is NVL
+--- @return <code>true</code> if the text mode is NVL
 function isTextModeADV()
 	return getTextMode() == TextMode.ADV
 end
 
--- @return <code>true</code> if the current text line has been read before.
-function isLineRead()
-	return lineRead
+---Returns a named drawable from the current text layer, or <code>nil</code> if
+-- a drawable with that name doesn't (yet) exist.
+function getTextLayerDrawable(name)
+	local drawables = getTextLayerDrawables()
+	if drawables == nil then
+		return nil
+	end
+	return drawables[name]
 end
-
---- Waits until all characters in a text drawable have become visible
--- @param textDrawable An optional text drawable to wait for. This function
--- waits on the main text box if this parameter is <code>nil</code> or
--- unspecified.
-function waitForTextVisible(textDrawable)
-	textDrawable = textDrawable or textState:getTextDrawable()
-	while textDrawable ~= nil and not textDrawable:isDestroyed()
-			and not textDrawable:getFinalLineFullyVisible() do
-		
-		yield()
-	end
-end
-
----Runs the textLog mode
-function textLog()
-	local screen = nil
-
-	return setMode("textLog", function()
-		pushImageState()
-		screen = Screens.textLog.new()
-		screen:run()
-		setMode(nil)
-	end, function()
-		if screen ~= nil then
-			screen:destroy()
-			screen = nil
-			popImageState()
-		end	
-	end)
-end
-
----Registers text tag handler functions (open/close) for a specific text tag
-function registerTextTagHandler(tag, openFunc, closeFunc)
-	paragraph.tagHandlers[tag] = openFunc
-	paragraph.tagHandlers["/" .. tag] = closeFunc
-end
-
--- ----------------------------------------------------------------------------
---  Paragraph Functions
--- ----------------------------------------------------------------------------
-
-paragraph = {
-	stringifiers={},
-	tagHandlers={}
-}
-
-local paragraphFilename = nil
-local paragraphLineNum = 0
-local paragraphAppends = 0
-
----Gets called at the beginning of each text line.
--- @param filename The filename in which the paragraph resides
--- @param lineNum The zero-based text line index of the paragraph
-function paragraph.start(filename, lineNum)
-	paragraphFilename = filename
-	paragraphLineNum = lineNum or 0
-	
-	--Update lineRead for this line
-	lineRead = seenLog:isTextLineRead(paragraphFilename, paragraphLineNum)
-	
-	--Handle paragraph start differently based on text mode
-	if isTextModeADV() then
-		clearText()
-	elseif isTextModeNVL() then
-		if android then
-			local textBox = textState:getTextDrawable()
-			if textBox ~= nil and textBox:getTextHeight() >= .5 * textBox:getHeight() then
-				clearText() --Auto-page to compensate for much larger text size on Android
-			end
-		end
-		
-		local curText = getText()
-		if curText ~= nil and curText:length() > 0 then
-			local lastChar = curText:getChar(curText:length()-1)
-			if lastChar ~= 0x20 and lastChar ~= 0x0A then			
-				appendText("\n\n")
-			end
-		end	
-	end
-
-	paragraphAppends = 0	
-end
-
----Gets called during execution of a text line to add pieces of text between
--- commands.
--- @param string The text to append
-function paragraph.append(string)
-	if paragraphAppends == 0 then
-	    updateSpeakerName()
-		if speaker.textStyle ~= nil then
-			style(speaker.textStyle)
-		end
-	end	
-	paragraphAppends = paragraphAppends + 1
-
-	appendText(string)
-	
-	--Now wait until all text has faded in, otherwise commands following this
-	--one will start while the text is still fading in.
-	waitForTextVisible()
-end
-
----Gets called at the end of each text line
-function paragraph.finish()
-	--Now wait until all text has faded in, otherwise the waitClick can be called
-	--prematurely
-	waitForTextVisible()
-
-	--Turn off skip mode if applicable
-	if getSkipMode() == SkipMode.PARAGRAPH then
-		setSkipMode(0)
-	end
-	
-	--Wait for click
-	waitClick()	
-	
-	--Reset speaker
-	if speaker.resetEOL then
-		say()
-	end
-	
-	--Clear style stack
-	styleStack = {}
-	
-	--Reset textbox's text speed
-	textSpeed()
-	
-	--Register line as read
-	if paragraphFilename ~= nil and paragraphLineNum >= 1 then
-		seenLog:setTextLineRead(paragraphFilename, paragraphLineNum)
-	end
-	lineRead = true
-end
-
----Gets called during execution of a text line to replace words starting with
--- a dollar sign. If a handler function is registered for the word in the
--- <code>paragraph.stringifiers</code> table, that function is evaluated.
--- Otherwise, if <code>word</code> is a valid variable in the local context,
--- its value is converted to a string and appended to the current paragraph.
--- @param word The characters following the dollar sign
-function paragraph.stringify(word)
-	local value = paragraph.stringifiers[word]
-	if value == nil then
-		value = getDeepField(getLocalVars(3), word) or getDeepField(getfenv(2), word)
-	end
-	
-	--Evaluate functions fully
-	while type(value) == "function" do
-		value = value()
-	end
-	
-	--Early exit when value is nil	
-	if value == nil then
-		return
-	end
-	
-	--Convert value to StyledText
-	value = createStyledText(value)
-	
-	--Don't append when nil or empty string
-	if value == nil or value:length() == 0 then
-		return
-	end
-	
-	paragraph.append(value)
-end
-
---[[
-function paragraph.tagOpen(tag, values)
-	local func = paragraph.tagHandlers[tag]
-	if func == nil then
-		return
-	end
-	return func(tag, values)
-end
-
-function paragraph.tagClose(tag)
-	local func = paragraph.tagHandlers["/" .. (tag or "")]
-	if func == nil then
-		return
-	end
-	return func(tag, values)
-end
-]]
-
--- ----------------------------------------------------------------------------
---  Layer constructors
--- ----------------------------------------------------------------------------
 
 ---Returns the current constructor function for the specified text mode
 -- @param mode The text mode to get the constructor for
@@ -840,6 +863,4 @@ function customTextBox(mode, t, baseFunc)
 	end)
 end
 
--- ----------------------------------------------------------------------------
---  
--- ----------------------------------------------------------------------------
+-------------------------------------------------------------------------------- section end 

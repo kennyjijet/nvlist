@@ -26,6 +26,7 @@ import nl.weeaboo.vn.ITextState;
 import nl.weeaboo.vn.ITimer;
 import nl.weeaboo.vn.IVideoState;
 import nl.weeaboo.vn.impl.lua.AbstractKeyCodeMetaFunction;
+import nl.weeaboo.vn.impl.lua.LuaEventHandler;
 import nl.weeaboo.vn.impl.lua.LuaMediaPreloader;
 import nl.weeaboo.vn.impl.lua.LuaNovel;
 import nl.weeaboo.vn.vnds.VNDSLib;
@@ -46,11 +47,11 @@ public class Novel extends LuaNovel {
 			SoundFactory sndfac, ISoundState ss, VideoFactory vidfac, IVideoState vs, GUIFactory guifac,
 			ITextState ts, NovelNotifier n, IInput in, ShaderFactory shfac, SystemLib syslib, SaveHandler sh,
 			ScriptLib scrlib, TweenLib tl, IPersistentStorage sharedGlobals, IStorage globals,
-			ISeenLog seenLog, IAnalytics analytics, ITimer tmr,
+			ISeenLog seenLog, IAnalytics analytics, ITimer tmr, LuaEventHandler eh,
 			IFileSystem fs, IKeyConfig kc, boolean isVNDS)
 	{
 		super(nc, imgfac, is, fxlib, sndfac, ss, vidfac, vs, guifac, ts, n, in, shfac, syslib, sh, scrlib, tl,
-				sharedGlobals, globals, seenLog, analytics, tmr);
+				sharedGlobals, globals, seenLog, analytics, tmr, eh);
 		
 		this.fs = fs;
 		this.keyConfig = kc;
@@ -138,7 +139,7 @@ public class Novel extends LuaNovel {
 			t = t.getCause();
 		}
 
-		StringBuilder message = new StringBuilder("Script Error");
+		StringBuilder message = new StringBuilder("Script error");
 		StackTraceElement[] stack = t.getStackTrace();
 		if (stack != null) {
 			StackTraceElement bestEntry = null;
@@ -159,7 +160,7 @@ public class Novel extends LuaNovel {
 		message.append(" :: ");
 		message.append(msg);
 		
-		getNotifier().e(message.toString(), t);		
+		getNotifier().e(message.toString(), t);	
 		
 		setWait(60);
 	}

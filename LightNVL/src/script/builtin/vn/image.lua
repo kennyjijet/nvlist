@@ -1,9 +1,5 @@
--------------------------------------------------------------------------------
--- image.lua
--------------------------------------------------------------------------------
--- Provides the 'built-in' VN image functions.
--------------------------------------------------------------------------------
-
+---Functions to show and manipulate images on the screen.
+--  
 module("vn.image", package.seeall)
 
 -- ----------------------------------------------------------------------------
@@ -50,8 +46,9 @@ local function getSpriteSlotPosition(i, slot, y)
 	return x, y, z
 end
 
----Creates an image
--- @param tex A texture object or a path to a valid image file
+---Creates an image and adds it to the current image layer.
+-- @param tex A texture object or a path to a valid image file (relative to
+--        <code>res/img</code>).
 -- @param x Can be either a string or a number. If it's a number, it specifies
 --        the leftmost x-coordinate of the image. If it's a string, it can be
 --        one of:<br/>
@@ -65,14 +62,14 @@ end
 --        These refer to predefined sprite positions from left to right.
 -- @param y If x is given as a string, the desired y-coordinate of the bottom
 --        of the sprite. If x is a number, the topmost y-coordinate. 
--- @param props Optional argument containing a table containing initial values
+-- @param properties Optional argument containing a table containing initial values
 --        for the new image's properties. 
--- @return The newly created image
-function img(tex, x, y, props)
+-- @treturn ImageDrawable The newly created image.
+function img(tex, x, y, properties)
 	if type(x) == "table" then
-		props = x
+		properties = x
 	elseif type(y) == "table" then
-		props = y
+		properties = y
 	end
 
 	local i = Image.createImage(getImageLayer(), tex)
@@ -87,8 +84,8 @@ function img(tex, x, y, props)
 	end
 	
 	--Handle properties given in a table
-	if type(props) == "table" then
-		for k,v in pairs(props) do
+	if type(properties) == "table" then
+		for k,v in pairs(properties) do
 			setProperty(i, k, v)	
 		end
 	end	
@@ -96,96 +93,95 @@ function img(tex, x, y, props)
 	return i
 end
 
----Creates an image and fades it in
+---Like <code>img</code>, gradually fades in the new image instead of instantly
+-- displaying it.
+-- @param tex A texture object or a path to a valid image file (relative to
+--        <code>res/img</code>).
+-- @param x Can be either a string or a number. If it's a number, it specifies
+--        the leftmost x-coordinate of the image. If it's a string, it can be
+--        one of:<br/>
+--        <ul>
+--          <li>l</li>
+--          <li>lc</li>
+--          <li>c</li>
+--          <li>rc</li>
+--          <li>r</li>
+--        </ul>
+--        These refer to predefined sprite positions from left to right.
+-- @param y If x is given as a string, the desired y-coordinate of the bottom
+--        of the sprite. If x is a number, the topmost y-coordinate. 
+-- @param properties Optional argument containing a table with overrides for
+--        the new image's properties. 
+-- @treturn ImageDrawable The newly created image.
 -- @see img
-function imgf(...)
-	local i = img(...)
+function imgf(tex, x, y, properties)
+	local i = img(tex, x, y, properties)
 	i:setAlpha(0)
 	fadeTo(i, 1)
 	return i	
 end
 
----Removes an image after first fading it out
--- @param i The image to remove
--- @param fadeTime The duration of the fade-out effect (in frames).
-function rmf(i, fadeTime)
-    local fadeSpeed = nil
-    if fadeTime ~= nil and fadeTime > 0 then
-        fadeSpeed = 1.0 / fadeTime
-    end    
-	fadeTo(i, 0, fadeSpeed)
-	rm(i)
-end
-
----Removes and image immediately
--- @param i The image to remove
-function rm(i)
-	if i ~= nil and not i:isDestroyed() then
-		i:destroy()
+---Destroys an image or drawable, removing it from the screen.
+-- @param image The image to remove.
+function rm(image)
+	if image ~= nil and not image:isDestroyed() then
+		image:destroy()
 	end
 end
 
----Removes the background image previously created with <code>bg</code>
-function rmbg(...)
-	local bg = getBackground()
-	setImageStateAttribute("background", nil)
-	if bg == nil then
-		return
-	end
-	return rm(bg, ...)
+---Like <code>rm</code>, but fades out the image gradually before destroying it.
+-- @param image The image to remove.
+-- @number fadeTimeFrames The duration of the fade-out effect in frames.
+-- @see rm
+function rmf(image, fadeTimeFrames)
+	fadeTo(image, 0, fadeTimeFrames)
+	rm(image)
 end
 
----Removes the background image after first fading it out
-function rmbgf(...)
-	local bg = getBackground()
-	setImageStateAttribute("background", nil)
-	if bg == nil then
-		return
-	end
-	return rmf(bg, ...)
-end
-
----Changed the current background
--- @param tex A texture object or a path to a valid image file
--- @param props A table of property overrides to pass to <code>img</code>
---        internally.
--- @return The newly created background
-function bg(tex, props)
+---Changes the current background image.
+-- @param tex A texture object or a path to a valid image file (relative to
+--        <code>res/img</code>).
+-- @tab properties Optional argument containing a table with overrides for
+--      the new image's properties. 
+-- @treturn ImageDrawable The new background image.
+function bg(tex, properties)
 	local background = getBackground()
     if background ~= nil and not background:isDestroyed() then
         background:destroy()
     end
     
-    props = extend({z=30000}, props or {})
-	background = img(tex, props)
+    properties = extend({z=30000}, properties or {})
+	background = img(tex, properties)
 	
 	setImageStateAttribute("background", background)	
 	return background
 end
 
----Crossfades to a new background
--- @param tex A texture object or a path to a valid image file
--- @param fadeTime The fade time (in frames) of the crossfade. Defaults to 30
---        (0.5 seconds).
--- @param props A table of property overrides to pass to <code>bg</code>
---        internally.
--- @return The newly created background
-function bgf(tex, fadeTime, props)
-	fadeTime = fadeTime or 30
+---Like <code>bg</code>, but gradually fades to the new background instead of
+-- instantly changing it.
+-- @param tex A texture object or a path to a valid image file (relative to
+--        <code>res/img</code>).
+-- @number[opt=30] fadeTimeFrames The duration of the fade-out effect in frames.
+-- @tab[opt={}] properties Optional argument containing a table with overrides
+--              for the new image's properties. 
+-- @treturn ImageDrawable The new background image.
+-- @see bg
+function bgf(tex, fadeTimeFrames, properties)
+	fadeTimeFrames = fadeTimeFrames or 30
 
 	local background = getBackground()
 	if background == nil or background:isDestroyed() then	
-		background = bg(tex, props)
-		if fadeTime > 0 then
+		background = bg(tex, properties)
+		if fadeTimeFrames > 0 then
 			background:setAlpha(0)
-			fadeTo(background, 1, 1.0 / fadeTime)
+			fadeTo(background, 1, fadeTimeFrames)
 		end
 	else
-		local newbg = img(tex, props)
-		if fadeTime > 0 then		
+		local newbg = img(tex, properties)
+		if fadeTimeFrames > 0 then		
 			newbg:setAlpha(0)
 			newbg:setZ(background:getZ() - 1)
-			fadeTo(newbg, 1, 1.0 / fadeTime)
+			fadeTo(newbg, 1, fadeTimeFrames)
 		end
 		newbg:setZ(background:getZ())		
 	    background:destroy()
@@ -196,9 +192,9 @@ function bgf(tex, fadeTime, props)
 	return background
 end
 
----Returns the current background
--- @return The current background image, or <code>nil</code> if there's no
---         background currently set.
+---Returns the current background image.
+-- @treturn ImageDrawable The current background image, or <code>nil</code> if
+--          no background image currently exists.
 function getBackground()
 	local imageLayer = getImageLayer()
 	local background = getImageStateAttribute("background")
@@ -209,50 +205,108 @@ function getBackground()
 	return background
 end
 
----Converts the input argument to a texture object if possible
--- @param arg The value to convert to a texture object
--- @param suppressErrors If <code>true</code> suppress any errors
-function tex(arg, suppressErrors)
-	if type(arg) == "string" then
-		return Image.getTexture(arg, suppressErrors)
+---Replaces the current background with the <code>bg</code>.
+-- @tparam ImageDrawable bg The new background image.
+function setBackground(bg)
+	local old = getImageStateAttribute("background")
+	if old ~= nil and old ~= bg then
+	    rmbg()
 	end
-	return arg
+	setImageStateAttribute("background", bg)		
 end
 
----Creates a new texture with the specified width/height and color.
+---Removes and destroys the background image previously created with
+-- <code>bg</code>.
+function rmbg()
+	local bg = getBackground()
+	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
+	return rm(bg)
+end
+
+---Like <code>rmbg</code>, but fades out the background image gradually before
+-- destroying it.
+-- @number fadeTimeFrames The duration of the fade-out effect in frames.
+-- @see rmbg
+function rmbgf(fadeTimeFrames)
+	local bg = getBackground()
+	setImageStateAttribute("background", nil)
+	if bg == nil then
+		return
+	end
+	return rmf(bg, fadeTimeFrames)
+end
+
+---Creates a texture object from an image file. 
+-- @param filename The path to a valid image file (relative to
+--        <code>res/img</code>). When a texture is passed instead of a filename,
+--        the function will just return that texture.
+-- @bool[opt=false] suppressErrors If <code>true</code> suppresses any errors
+--                  that occur during loading.
+-- @treturn Texture The created Texture object, or <code>nil</code> if something
+--          went wrong.  
+function tex(filename, suppressErrors)
+	if type(filename) == "string" then
+		return Image.getTexture(filename, suppressErrors)
+	end
+	return filename
+end
+
+---Creates a texture object with the specified color.
 -- @param argb The ARGB color packed into a single int (<code>0xFFFF0000</code>
 --        is red, <code>0xFF0000FF</code> is blue, etc.)
--- @param w The width for the generated texture
--- @param w The height for the generated texture
--- @return A new texture (w,h) with all pixels colored <code>argb</code>
+-- @int w The width for the generated texture.
+-- @int h The height for the generated texture.
+-- @treturn Texture A new texture (w,h) with all pixels colored
+--          <code>argb</code>.
 function colorTex(argb, w, h)
 	return Image.createColorTexture(argb, w, h)
 end
 
----Creates a new on-screen button
--- @param filename Path to a valid image
--- @return The newly created button
+---Creates a new on-screen button.
+-- @string filename Path to an image file (relative to <code>res/img</code>).
+-- @treturn ButtonDrawable The newly created button.
 function button(filename)
 	return Image.createButton(getImageLayer(), filename)
 end
 
----Creates a new textbox
--- @param text The initial text to display (optional)
--- @return The newly created textbox
+---Creates a new TextDrawable, used to display dynamic text on the screen.
+-- @string[opt=""] text The initial text to display.
+-- @treturn TextDrawable The newly created text drawable.
 function textimg(text)
 	return Image.createText(getImageLayer(), text)
 end
 
----Takes a screenshot to be used later to create an image drawable
--- @param layer The layer in which to take the screenshot. Any layers
+---Creates a new layer.
+-- @tparam Layer parentLayer The parent layer for the new layer.
+-- @treturn Layer The newly created layer.
+function createLayer(parentLayer)
+	parentLayer = parentLayer or getImageLayer()
+	return Image.createLayer(parentLayer)
+end
+
+---Creates a new camera object.
+-- @tparam Layer layer The layer to create the camera on.
+-- @treturn Camera The newly created camera object.
+function createCamera(layer)
+	layer = layer or getImageLayer()
+	return Image.createCamera(layer)
+end
+
+---Takes a screenshot to be used later (usually to create an ImageDrawable by
+-- passing the screenshot to <code>img</code>).
+-- @tparam Layer layer The layer in which to take the screenshot. Any layers
 --        underneath it will be visible in the screenshot. Passing
---        <code>nil</code> for the layer param takes a screenshot of everything.
--- @param z The z-index in the selected layer to take the screenshot at.
--- @param clip Whether or not to honor the layer's clipping bounds.
--- @param volatile Allow optimizations which may cause the screenshot's pixels
---        to disappear at any time.
--- @return A screenshot object to be used as an argument to the <code>img</code>
---         function later.
+--        <code>nil</code> for this parameter takes a screenshot of all layers.
+-- @int[opt=-999] z The z-index in the selected layer to take the screenshot at.
+-- @bool[opt=true] clip If <code>false</code>, ignores the layer's clipping
+--                 bounds.
+-- @bool[opt=false] volatile Allow optimizations which may cause the
+--                  screenshot's pixels to disappear at any time.
+-- @treturn Screenshot A screenshot object to be used as an argument for the
+--          <code>img</code> function later.
 function screenshot(layer, z, clip, volatile)
 	local ss = nil
 	while ss == nil do
@@ -272,12 +326,15 @@ end
 ---Takes a screenshot and makes an image out of it. Very useful for creating
 -- complex fade effects by making it possible to fade out the entire screen
 -- as a single image.
--- @param layer The layer in which to take the screenshot
--- @param z The z-index to take the screenshot at.
--- @param clip Whether or not to honor the layer's clipping bounds.
--- @param volatile Allow optimizations which may cause the screenshot's pixels
---        to disappear at any time.
--- @return The newly created image
+-- @tparam Layer layer The layer in which to take the screenshot. Any layers
+--        underneath it will be visible in the screenshot. Passing
+--        <code>nil</code> for this parameter takes a screenshot of all layers.
+-- @int[opt=-999] z The z-index in the selected layer to take the screenshot at.
+-- @bool[opt=true] clip If <code>false</code>, ignores the layer's clipping
+--                 bounds.
+-- @bool[opt=false] volatile Allow optimizations which may cause the
+--                  screenshot's pixels to disappear at any time.
+-- @treturn ImageDrawable The image created from the screenshot.
 function screen2image(layer, z, clip, volatile)
 	layer = layer or getImageLayer()
 	z = z or -999
@@ -287,29 +344,98 @@ function screen2image(layer, z, clip, volatile)
 	return i
 end
 
----Creates a new camera object
--- @param layer The layer to create the camera on.
--- @return The newly created camera object.
-function createCamera(layer)
-	layer = layer or getImageLayer()
-	return Image.createCamera(layer)
+---Gradually changes the alpha of <code>i</code> to <code>targetAlpha</code>.
+-- @tparam Drawable i The image to change the alpha of.
+-- @number targetAlpha The end alpha for <code>i</code>.
+-- @number durationFrames The duration of the movement in frames (gets
+--         multiplied with <code>effectSpeed</code> internally)
+function fadeTo(i, targetAlpha, durationFrames)
+	durationFrames = durationFrames or 20
+	
+	local startAlpha = i:getAlpha()
+	local frame = 1
+	while frame + effectSpeed <= durationFrames do
+		local f = frame / durationFrames
+		i:setAlpha(startAlpha + (targetAlpha - startAlpha) * f)
+		frame = frame + effectSpeed
+		yield()
+	end
+	
+    i:setAlpha(targetAlpha)
 end
 
----Creates a new layer
--- @param layer The parent layer for the newly created layer. 
--- @return The newly created layer, or <code>null</code> if a layer with the
--- given id already exists.
-function createLayer(layer)
-	layer = layer or getImageLayer()
-	return Image.createLayer(layer)
+---Gradually moves <code>i</code> to <code>(x, y)</code>.
+-- @tparam Drawable i The image to move.
+-- @number x The end x-position for <code>i</code>
+-- @number y The end y-position for <code>i</code>
+-- @number durationFrames The duration of the movement in frames (gets
+--         multiplied with <code>effectSpeed</code> internally)
+-- @tparam Interpolator interpolator A function or interpolator object mapping
+--         an input in the range <code>(0, 1)</code> to an output in the range
+--         <code>(0, 1)</code>.
+function translateTo(i, x, y, durationFrames, interpolator)
+	x = x or i:getX()
+	y = y or i:getY()
+	durationFrames = durationFrames or 60
+	interpolator = Interpolators.get(interpolator, Interpolators.SMOOTH)
+		
+	local startX = i:getX()
+	local startY = i:getY()
+	
+	local frame = 1
+	while not i:isDestroyed() and frame + effectSpeed <= durationFrames do
+		local f = interpolator:remap(frame / durationFrames)
+		i:setPos(startX + (x-startX) * f, startY + (y-startY) * f)
+		frame = frame + effectSpeed
+		yield()
+	end
+	i:setPos(x, y)
 end
 
----Returns the root layer
-function getRootLayer()
-	return imageState:getRootLayer()
+---Gradually moves <code>i</code> by <code>(dx, dy)</code>, relative to its
+-- current position.
+-- @tparam Drawable i The image to move.
+-- @number dx The end x-position for <code>i</code>
+-- @number dy The end y-position for <code>i</code>
+-- @number durationFrames The duration of the movement in frames (gets
+--         multiplied with <code>effectSpeed</code> internally)
+-- @tparam Interpolator interpolator A function or interpolator object mapping
+--         an input in the range <code>(0, 1)</code> to an output in the range
+--         <code>(0, 1)</code>.
+function translateRelative(i, dx, dy, durationFrames, interpolator)
+	if i == nil then
+		i = {}
+	elseif type(i) ~= "table" then
+		i = {i}
+	end
+	dx = dx or 0
+	dy = dy or 0
+
+	local threads = {}
+	for _,d in pairs(i) do
+		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, durationFrames, interpolator))
+	end		
+	join(threads)
 end
 
----Returns the current image layer
+---Asks NVList to preload one or more images. In most cases NVList does a pretty
+-- good job preloading images by itself, but in rare cases a little helpcan
+-- improve performance.
+-- tparam string ... Any number of filenames of images to preload.
+function preload(...)
+	return Image.preload(...)
+end
+
+---Changes the current image layer. Functions that create Drawables such as
+-- <code>img</code> typically create them in the image layer.
+-- @tparam Layer layer The layer to use as image layer.
+function setImageLayer(layer)
+	setImageStateAttribute("layer", layer)
+end
+
+---Returns the current image layer.
+-- @treturn Layer The current image layer.
+-- @see setImageLayer
 function getImageLayer()
 	local layer = getImageStateAttribute("layer")
 	if layer == nil or layer:isDestroyed() then
@@ -319,40 +445,22 @@ function getImageLayer()
 	return layer
 end
 
----Changes the current image layer
-function setImageLayer(l)
-	setImageStateAttribute("layer", l)
-end
-
----Returns the <code>overlay</code> layer which is usually the topmost layer.
+---Returns the overlay layer which lies on top of (most) other layers and can
+-- be used for effects that need to cover most things on the screen, including
+-- the text box.
+-- @treturn Layer The overlay layer.
 function getOverlayLayer()
 	return imageState:getOverlayLayer()
 end
 
----Saves the current images onto a stack to be restored later with
--- <code>popLayerState</code>. Completely clears the <code>layer</code>
--- of all images.
--- @param layer The layer to push the state of.
--- @param z Optional parameter, if specified only pushes images with
---          <code>image.z &gt;= z</code>. 
-function pushLayerState(layer, z)
-	layer = layer or getImageLayer()
-	if z ~= nil then
-		layer:push(z)
-	else
-		layer:push()
-	end
+---Returns the root layer which (recursively) contains all other layers.
+-- @treturn Layer The root layer.
+function getRootLayer()
+	return imageState:getRootLayer()
 end
 
----Pops the top of the layer's state stack, overwriting the current set of
--- active images.
-function popLayerState(layer)
-	layer = layer or getImageLayer()
-	layer:pop()
-end
-
----Stores a copy of the current image state on a stack then clears the current
--- image state.
+---Stores a copy of the current layers, then restores the image state to the
+-- initial set of layers. 
 function pushImageState()
 	imageState:push() --pushLayerState()
 	
@@ -360,7 +468,8 @@ function pushImageState()
 	setTextMode(0)
 end
 
----The inverse of pushImageState, restores the image state to the stored copy.
+---The inverse of <code>pushImageState</code>, restores the layers to the way
+-- they were when <code>pushImageState</code> was last used. 
 -- @see pushImageState
 function popImageState()
 	setTextMode(0)
@@ -370,12 +479,51 @@ function popImageState()
 	setTextMode(t.textMode)
 end
 
----Suggests the filenames givens as arguments should be preloaded
-function preload(...)
-	return Image.preload(...)
+---Sets an attribute that gets pushed/popped together with the image state when
+-- <code>pushImageState</code>/<code>popImageState</code> is called.
+-- @string key The name of the attribute to set.
+-- @param val The new value to store for the given name.
+function setImageStateAttribute(key, val)
+	local meta = imageStateMeta[#imageStateMeta]
+	meta[key] = val
 end
 
----Runs the view CG mode
+---Returns the value of an attribute stored with
+-- <code>setImageStateAttribute</code>.
+-- @string key The name of the attribute to get the value of.
+-- @return The current value of the attribute specified by <code>key</code>.
+-- @see setImageStateAttribute
+function getImageStateAttribute(key)
+	local meta = imageStateMeta[#imageStateMeta]
+	return meta[key]
+end
+
+---Saves the contents of a layer, restore the contents with
+-- <code>popLayerState</code> at a later time. After the layer's contents have
+-- been saved with this function, the layer is completely cleared.
+-- @tparam Layer layer The layer to save the contents of.
+-- @int[opt=nil] z If specified, doesn't clear drawables with
+--               <code>drawable.z &lt;= z</code> after saving the layer's
+--               contents.
+function pushLayerState(layer, z)
+	layer = layer or getImageLayer()
+	if z ~= nil then
+		layer:push(z)
+	else
+		layer:push()
+	end
+end
+
+---Restores the layer's contents, as previously saved with
+-- <code>pushLayerState</code>.
+-- @see pushLayerState
+function popLayerState(layer)
+	layer = layer or getImageLayer()
+	layer:pop()
+end
+
+---Enters CG view mode, which temporarily hides the text box until the text
+-- continue key is pressed.
 function viewCG()
 	local textLayer = getTextLayer()
 	local textDrawable = textState:getTextDrawable()
@@ -408,109 +556,4 @@ function viewCG()
 	end, function()
 		popImageState()
 	end)
-end
-
----Sets an attribute that gets pushed/popped upon calls to
--- <code>pushImageState, popImageState</code>
--- @param key The name for the attribute to set
--- @param val The new value for the attribute 
--- @see getImageStateAttribute
-function setImageStateAttribute(key, val)
-	local meta = imageStateMeta[#imageStateMeta]
-	meta[key] = val
-end
-
----Returns the value of an attribute that gets pushed/popped together with the
--- image state.
--- @param key The name of the attribute to get the value of
--- @return The current value of the attribute specified by <code>key</code>
--- @see setImageStateAttribute
-function getImageStateAttribute(key)
-	local meta = imageStateMeta[#imageStateMeta]
-	return meta[key]
-end
-
--- ----------------------------------------------------------------------------
---  Transitions
--- ----------------------------------------------------------------------------
-
----Gradually changes the alpha of <code>i</code> to <code>targetAlpha</code>.
--- @param i The image to change the alpha of.
--- @param targetAlpha The end alpha for <code>i</code>
--- @param speed The change in alpha each frame (will be multiplied with
---        <code>effectSpeed</code> internally), should always be positive.
-function fadeTo(i, targetAlpha, speed)
-	speed = math.abs(speed or 0.05)
-	
-	local alpha = i:getAlpha()		
-	if alpha > targetAlpha then
-		while alpha - speed * effectSpeed > targetAlpha do
-			alpha = alpha - speed * effectSpeed
-			i:setAlpha(alpha)
-			yield()
-		end
-	elseif alpha < targetAlpha then
-		alpha = i:getAlpha()
-		while alpha + speed * effectSpeed < targetAlpha do
-			alpha = alpha + speed * effectSpeed
-			i:setAlpha(alpha)
-			yield()
-		end
-	end
-	
-    i:setAlpha(targetAlpha)
-	--yield()
-end
-
----Gradually changes the position of <code>i</code> to <code>(x, y)</code>.
--- @param i The image to change the position of.
--- @param x The end x-pos for <code>i</code>
--- @param y The end y-pos for <code>i</code>
--- @param frames The number of frames the transition should last (gets
---        multiplied with effectSpeed internally)
--- @param interpolator A function or interpolator object mapping an input
---        in the range <code>(0, 1)</code> to an output in the range
---        <code>(0, 1)</code>.
-function translateTo(i, x, y, frames, interpolator)
-	x = x or i:getX()
-	y = y or i:getY()
-	frames = frames or 60
-	interpolator = Interpolators.get(interpolator, Interpolators.SMOOTH)
-		
-	local startX = i:getX()
-	local startY = i:getY()
-	
-	local frame = 1
-	while not i:isDestroyed() and frame + effectSpeed <= frames do
-		local f = interpolator:remap(frame / frames)
-		i:setPos(startX + (x-startX) * f, startY + (y-startY) * f)
-		frame = frame + effectSpeed
-		yield()
-	end
-	i:setPos(x, y)
-end
-
----Gradually offsets the position(s) of <code>i</code> by <code>(dx, dy)</code>.
--- @param i A drawable or table of drawables to move
--- @param dx The amount to move in the x-direction
--- @param dy The amount to move in the y-direction
--- @param frames The number of frames the transition should last (gets
---        multiplied with effectSpeed internally)
--- @param interpolator A function or interpolator object mapping an input
---        in the range <code>(0, 1)</code> to an output in the range
---        <code>(0, 1)</code>.
-function translateRelative(i, dx, dy, frames, interpolator)
-	if i == nil then
-		i = {}
-	elseif type(i) ~= "table" then
-		i = {i}
-	end
-	dx = dx or 0
-	dy = dy or 0
-
-	local threads = {}
-	for _,d in pairs(i) do
-		table.insert(threads, newThread(translateTo, d, d:getX()+dx, d:getY()+dy, frames, interpolator))
-	end		
-	join(threads)
 end

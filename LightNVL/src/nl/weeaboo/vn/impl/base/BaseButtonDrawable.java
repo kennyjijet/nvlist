@@ -16,12 +16,15 @@ import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderEnv;
+import nl.weeaboo.vn.impl.lua.LuaEventHandler;
 import nl.weeaboo.vn.layout.LayoutUtil;
 import nl.weeaboo.vn.math.IPolygon;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.math.Polygon;
 import nl.weeaboo.vn.math.Vec2;
+
+import org.luaj.vm2.LuaFunction;
 
 public abstract class BaseButtonDrawable extends BaseImageDrawable implements IButtonDrawable {
 
@@ -34,6 +37,9 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		mts.setAnchor(5);
 		DEFAULT_STYLE = mts.immutableCopy();
 	}
+	
+	private final ITextRenderer textRenderer;
+	private final LuaEventHandler eventHandler;
 	
 	private boolean rollover;
 	private boolean keyArmed, mouseArmed;
@@ -51,13 +57,17 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	private ITexture disabledTexture;
 	private ITexture disabledPressedTexture;
 	private double alphaEnableThreshold;
+	private LuaFunction clickHandler;
 
-	private ITextRenderer textRenderer;
 	private StyledText stext;
 	private TextStyle defaultStyle;
 	private double verticalAlign;
 	
-	protected BaseButtonDrawable(ITextRenderer tr) {
+	protected BaseButtonDrawable(ITextRenderer tr, LuaEventHandler eh) {
+		tr.setDefaultStyle(DEFAULT_STYLE);
+		textRenderer = tr;
+		eventHandler = eh;
+		
 		enabled = true;
 		activationKeys = new HashSet<Integer>();
 		alphaEnableThreshold = 0.9;
@@ -65,9 +75,6 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 		stext = StyledText.EMPTY_STRING;
 		defaultStyle = DEFAULT_STYLE;
 		verticalAlign = .5;
-		
-		tr.setDefaultStyle(defaultStyle);
-		textRenderer = tr;
 	}
 	
 	//Functions
@@ -181,6 +188,8 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			setSelected(!isSelected());
 		}
 		pressEvents++;
+
+		eventHandler.addEvent(clickHandler);
 	}
 	
 	@Override
@@ -538,6 +547,10 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	public void setRenderEnv(RenderEnv env) {
 		super.setRenderEnv(env);
 		textRenderer.setRenderEnv(env);
+	}
+	
+	public void setClickHandler(LuaFunction func) {
+		clickHandler = func;
 	}
 	
 }

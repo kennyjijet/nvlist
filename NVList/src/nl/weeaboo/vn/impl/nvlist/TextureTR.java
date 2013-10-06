@@ -38,6 +38,11 @@ public class TextureTR extends TextureTextRenderer<TextLayout> {
 	}
 	
 	@Override
+	public float increaseVisibleChars(float textSpeed) {
+		return TextDrawable.increaseVisibleChars(this, getLayout(), getStartLine(), getVisibleChars(), textSpeed);
+	}
+	
+	@Override
 	protected void destroyTexture(ITexture texture) {
 		//We don't know for sure if we can dispose the texture itself, let the GC figure it out
 	}

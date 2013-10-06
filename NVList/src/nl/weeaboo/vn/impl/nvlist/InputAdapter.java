@@ -1,7 +1,5 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import java.awt.event.MouseEvent;
-
 import nl.weeaboo.game.desktop.AWTUserInput;
 import nl.weeaboo.game.input.VKey;
 import nl.weeaboo.io.EnvironmentSerializable;
@@ -113,13 +111,13 @@ public class InputAdapter extends EnvironmentSerializable implements IInput {
 
 	@Override
 	public boolean isCancelHeld() {
-		return input.isMouseHeld(MouseEvent.BUTTON3, false)
+		return input.isMouseHeld(3, false)
 			|| isKeyHeld(VKey.BUTTON3.toKeyCode(1), false);
 	}
 	
 	@Override
 	public boolean consumeCancel() {
-		return input.consumeMouse(MouseEvent.BUTTON3)
+		return input.consumeMouse(3)
 			|| consumeKey(VKey.BUTTON3.toKeyCode(1));
 	}
 	

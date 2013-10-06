@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 
 import nl.weeaboo.common.Area2D;
@@ -93,6 +94,7 @@ public class Renderer extends BaseRenderer {
 		glDraw.pushBlendMode();
 		glDraw.pushColor();
 		
+		gl.glShadeModel(GL2.GL_SMOOTH); //Required for TriangleGrid		
 		gl.glEnable(GL2ES1.GL_SCISSOR_TEST);
 		glDraw.setTexture(null);
 		glDraw.setBlendMode(GLBlendMode.DEFAULT);

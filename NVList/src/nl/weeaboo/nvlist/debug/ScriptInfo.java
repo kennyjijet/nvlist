@@ -28,7 +28,7 @@ class ScriptInfo {
 			InputStream in = scriptLib.openScriptFile(path);
 			if (in != null) {
 				try {
-					LVNParser parser = new LVNParser();
+					LVNParser parser = scriptLib.getLVNParser();
 					file = parser.parseFile(path, in);
 				} finally {
 					in.close();

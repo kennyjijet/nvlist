@@ -21,6 +21,11 @@ class GlyphTR extends AbstractTextRenderer<TextLayout> {
 	}
 	
 	@Override
+	public float increaseVisibleChars(float textSpeed) {
+		return TextDrawable.increaseVisibleChars(this, getLayout(), getStartLine(), getVisibleChars(), textSpeed);
+	}
+	
+	@Override
 	public void draw(IDrawBuffer d, short z, boolean clipEnabled, BlendMode blendMode, int argb,
 			double dx, double dy)
 	{

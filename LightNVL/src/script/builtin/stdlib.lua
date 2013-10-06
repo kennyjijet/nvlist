@@ -1,4 +1,7 @@
 
+---Standard library of utility functions
+-- @module stdlib
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -94,11 +97,6 @@ function getTableOrVarArg(...)
 	return result
 end
 
-function table.pack(...)
-  return { n = select("#", ...), ... }
-end
-
-
 ---Calls the update method on each argument, then calls <code>join</code>.
 -- @see join
 function update1join(...)
@@ -132,6 +130,19 @@ function join(...)
 	end
 end
 
+---Trims the whitespace from the edges of the given string. 
+function trim(str)
+	return str:match("^%s*(.-)%s*$")
+end
+
+---Splits <code>str</code> based on the regular expression <code>pattern</code>.
+function split(str, pattern)
+    local result = {}
+    local pattern = string.format("([^%s]+)", pattern)
+    str:gsub(pattern, function(c) table.insert(result, c) end)
+    return result
+end
+
 ---Returns the script file and line.
 -- @param callOffset Offset in the call stack to determine the script file and line of.
 function getScriptPos(callOffset)
@@ -144,24 +155,6 @@ function getScriptPos(callOffset)
 		end
 	end
 	return "undefined:0"
-end
-
----Returns a Lua closure wrapping the Java implementation of the yield function.
-function yieldClosure(...)
-	return yield(...)
-end
-
----Trims the whitespace from the edges of the given string. 
-function trim(str)
-	return str:match("^%s*(.-)%s*$")
-end
-
----Splits <code>str</code> based on the regular expression <code>pattern</code>.
-function split(str, pattern)
-    local result = {}
-    local pattern = string.format("([^%s]+)", pattern)
-    str:gsub(pattern, function(c) table.insert(result, c) end)
-    return result
 end
 
 ---Returns a 'deep' field from table <code>t</code>. The given <code>name</code>
@@ -179,6 +172,7 @@ end
 
 ---Returns the value of the local (or upval) variable at the specified level
 -- @param level The depth in the callstack to get the locals from (1=current function)
+-- @param max The maximum number of local variables to return.
 function getLocalVars(level, max)
 	level = level or 2
 	max = max or 999

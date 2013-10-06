@@ -3,6 +3,7 @@ package nl.weeaboo.nvlist.build.android;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.FOLDER;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.ICON;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.LVL_KEY_BASE64;
+import static nl.weeaboo.nvlist.build.android.AndroidConfig.OUYA_ICON;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.SPLASH_IMAGE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.TITLE;
 import static nl.weeaboo.nvlist.build.android.AndroidConfig.VERSION_CODE;
@@ -74,7 +75,8 @@ public class AndroidProjectCompiler {
 		
 		File iconF = new File(gameFolder, config.get(ICON));
 		File splashF = new File(gameFolder, config.get(SPLASH_IMAGE));
-		handlers.put("res/drawable", Handlers.drawableHandler(iconF, splashF));
+		File ouyaIconF = new File(gameFolder, config.get(OUYA_ICON));
+		handlers.put("res/drawable", Handlers.drawableHandler(iconF, splashF, ouyaIconF));
 	}
 	
 	//Functions

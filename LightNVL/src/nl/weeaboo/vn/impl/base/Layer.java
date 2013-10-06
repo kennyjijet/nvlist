@@ -103,12 +103,10 @@ public final class Layer extends BaseDrawable implements ILayer {
 		if (isDestroyed()) return;
 
 		Collection<IDrawable> removed = getState().clear();
-		if (!removed.isEmpty()) {
-			for (IDrawable d : removed) {
-				onRemoved(d);
-			}
-			markChanged();
+		for (IDrawable d : removed) {
+			onRemoved(d);
 		}
+		markChanged();
 	}
 	
 	@Override
@@ -197,6 +195,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 			for (IDrawable d : removed) {
 				onRemoved(d);
 			}
+			markChanged();
 		}
 	}
 

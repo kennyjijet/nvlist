@@ -16,6 +16,7 @@ enhancements:
   to be used for an Android port.
 - Android: Added a GLES 2.0 rendering backend with support for bitmaptweens and
   shaders.
+- Android: Support for JNG images.
   
 bugfixes:
 - setScale() erroneously stopped accepting non-positive values.

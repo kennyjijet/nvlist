@@ -56,11 +56,6 @@ function removeEvents(event)
 	end
 end
 
----Returns the thread events must be called on
-function getEventThread(mainThread)
-	return mainThread
-end
-
 ---Should be called by the system once every frame. Runs tasks and events on
 -- the main thread.
 function update()

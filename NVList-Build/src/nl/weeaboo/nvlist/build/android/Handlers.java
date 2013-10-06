@@ -205,7 +205,9 @@ final class Handlers {
 		};
 	}
 	
-	public static final FileHandler drawableHandler(final File iconFile, final File splashFile) {
+	public static final FileHandler drawableHandler(final File iconFile, final File splashFile,
+			final File ouyaIconFile)
+	{
 		return new FileHandler() {
 			@Override
 			public void process(String relpath, File srcF, File dstF) throws IOException {
@@ -227,6 +229,9 @@ final class Handlers {
 						return;
 					} else if (relpath.endsWith("splash.png") && splashFile.exists()) {
 						writeImageScaled(splashFile, Math.round(256*scale), Math.round(256*scale), false, dstF);
+						return;
+					} else if (relpath.contains("drawable-xhdpi") && relpath.endsWith("ouya_icon.png") && ouyaIconFile.exists()) {
+						writeImageScaled(ouyaIconFile, 732, 412, true, dstF);
 						return;
 					}
 				}

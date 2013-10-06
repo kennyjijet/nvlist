@@ -1,9 +1,5 @@
--------------------------------------------------------------------------------
--- movie.lua
--------------------------------------------------------------------------------
--- Provides the 'built-in' VN video functions.
--------------------------------------------------------------------------------
-
+---Video support.
+-- 
 module("vn.video", package.seeall)
 
 -- ----------------------------------------------------------------------------
@@ -14,9 +10,10 @@ module("vn.video", package.seeall)
 --  Functions
 -- ----------------------------------------------------------------------------
 
----Starts playing a cutscene, pauses main thread while it plays
--- @param filename Path to a valid video file. Supported video formats are
---        platform dependent.
+---Plays a full-screen video, pauses the main thread while it plays.
+-- @string filename Path to a valid video file (relative to
+--         <code>res/video</code>). Supported video formats are platform
+--         dependent.
 function movie(filename)
 	Video.movie(filename)
 	yield()

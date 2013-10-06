@@ -106,10 +106,11 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 		List<Event> results = new ArrayList<Event>();
 		
 		InputStream raw = null;
+		DataInputStream din = null;
 		try {
 			raw = new BufferedInputStream(openInputStream(filename), 8<<10);
 			while (true) {
-				DataInputStream din = new DataInputStream(raw);
+				din = new DataInputStream(raw);
 				int version = din.readInt();
 				int length = din.readInt();
 
@@ -150,6 +151,7 @@ public abstract class BaseLoggingAnalytics implements IAnalytics {
 			//Ignore
 		} finally {
 			if (raw != null) raw.close();
+			if (din != null) din.close();
 		}
 		
 		return results;
