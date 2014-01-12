@@ -70,6 +70,7 @@ public abstract class AbstractTextRenderer<L> implements ITextRenderer {
 	@Override
 	public float increaseVisibleChars(float textSpeed) {
 		visibleChars += textSpeed;
+		onVisibleTextChanged();
 		return textSpeed;
 	}
 	

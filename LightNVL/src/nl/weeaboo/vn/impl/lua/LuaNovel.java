@@ -129,6 +129,7 @@ public abstract class LuaNovel extends BaseNovel {
 	private transient IConfig prefs;
 	private transient String lastCallSite;
 	private transient int wait;
+	private transient boolean luaRunning;
 	
 	protected LuaNovel(INovelConfig gc, BaseImageFactory imgfac, IImageState is, BaseImageFxLib imgfxlib,
 			BaseSoundFactory sndfac, ISoundState ss, BaseVideoFactory vidfac, IVideoState vs, BaseGUIFactory guifac,
@@ -169,6 +170,7 @@ public abstract class LuaNovel extends BaseNovel {
 		if (luaRunState != null) {
 			luaRunState.destroy();
 			luaRunState = null;
+			luaRunning = false;
 		}
 		mainThread = null;
 		mainThreadUserdata = null;
@@ -182,6 +184,10 @@ public abstract class LuaNovel extends BaseNovel {
 	
 	public void restart(LuaSerializer ls, IConfig prefs, String mainFuncName) {
 		reset();
+		
+		String[] prefsClasses = {NovelPrefs.class.getName(), "nl.weeaboo.vn.vnds.VNDSUtil"};
+		prefsGetterFunction = new PrefsMetaFunction(false, prefsClasses);
+		//prefsSetterFunction = new PrefsMetaFunction(true, prefsClasses);
 		
 		onPrefsChanged(prefs);
 		
@@ -320,7 +326,8 @@ public abstract class LuaNovel extends BaseNovel {
 		
 		boolean changed = false;
 
-		luaRunState.registerOnThread();		
+		luaRunState.registerOnThread();
+		luaRunning = true;
 		LuaValue globals = luaRunState.getGlobalEnvironment();
 		globals.rawset(S_EFFECTSPEED, valueOf(getEffectSpeed(input)));
 		globals.rawset(S_MAINTHREAD, mainThreadUserdata != null ? mainThreadUserdata : NIL);
@@ -582,10 +589,7 @@ public abstract class LuaNovel extends BaseNovel {
 	protected void initPrefsTable(LuaTable table) throws LuaException {
 		LuaTable mt = new LuaTable();
 		
-		prefsGetterFunction = new PrefsMetaFunction(false, NovelPrefs.class);
 		mt.rawset(LuaValue.INDEX, prefsGetterFunction);
-
-		//prefsSetterFunction = new PrefsMetaFunction(true, NovelPrefs.class);
 		//mt.rawset(LuaValue.NEWINDEX, prefsSetterFunction);
 		
 		table.setmetatable(mt);
@@ -593,7 +597,9 @@ public abstract class LuaNovel extends BaseNovel {
 	
 	@Override
 	public void onPrefsChanged(IConfig config) {
-		if (config == null) return;
+		if (config == null) {
+			return;
+		}
 		
 		prefs = config;
 		if (prefsGetterFunction != null) {
@@ -607,9 +613,13 @@ public abstract class LuaNovel extends BaseNovel {
 		
 		int fps = config.get(FPS);
 				
-		setScriptDebug(config.get(SCRIPT_DEBUG));
-		setAutoRead(config.get(AUTO_READ), fps * config.get(AUTO_READ_WAIT) / 1000);
-
+		try {
+			setScriptDebug(config.get(SCRIPT_DEBUG));
+			setAutoRead(config.get(AUTO_READ), fps * config.get(AUTO_READ_WAIT) / 1000);
+		} catch (LuaException le) {
+			onScriptError(le);
+		}
+		
 		BaseScriptLib scriptLib = getScriptLib();
 		if (scriptLib != null) {
 			scriptLib.setEngineVersion(config.get(ENGINE_TARGET_VERSION));
@@ -619,39 +629,48 @@ public abstract class LuaNovel extends BaseNovel {
 		if (preloader != null) {
 			preloader.setLookAhead(config.get(PRELOADER_LOOK_AHEAD));
 			preloader.setMaxItemsPerLine(config.get(PRELOADER_MAX_PER_LINE));
-		}		
+		}
 		
-		luaCall("onPrefsChanged", NONE);
+		if (luaRunning) {
+			try {
+				luaCall("onPrefsChanged", NONE);
+			} catch (LuaException e) {
+				onScriptError(e);
+			}
+		}
 	}
 	
 	public void onExit() throws LuaException { luaCall("onExit"); }
-	protected void setMode(String funcName) { luaCall("edt.addEvent", funcName); }	
+	protected void setMode(String funcName) throws LuaException { luaCall("edt.addEvent", funcName); }	
 	public void openTextLog() throws LuaException { setMode("textLog"); }
 	public void openViewCG() throws LuaException { setMode("viewCG"); }	
 	public void openSaveScreen() throws LuaException { setMode("saveScreen"); }	
 	public void openLoadScreen() throws LuaException { setMode("loadScreen"); }
 	
 	public Varargs eval(String code) throws LuaException {
+		if (!luaRunning) throw new LuaException("Lua isn't running");
 		if (luaRunState == null) throw new LuaException("LuaRunState is null");
 		
 		luaRunState.registerOnThread();
 		return LuaUtil.eval(luaRunState, mainThread, code);
 	}
 	
-	protected Varargs luaCall(String function, Object... args) {
+	protected Varargs luaCall(String function, Object... args) throws LuaException {
+		if (!luaRunning) throw new LuaException("Lua isn't running");
+		if (luaRunState == null) throw new LuaException("LuaRunState is null");
+
 		Varargs result = NONE;
 		if (mainThread != null) {
 			luaRunState.registerOnThread();
-			try {
-				result = mainThread.call(function, args);
-			} catch (LuaException e) {
-				onScriptError(e);
-			}
+			result = mainThread.call(function, args);
 		}
 		return result;
 	}
 	
-	public void printStackTrace(PrintStream pout) {
+	public void printStackTrace(PrintStream pout) throws LuaException {
+		if (!luaRunning) throw new LuaException("Lua isn't running");
+		if (luaRunState == null) throw new LuaException("LuaRunState is null");
+
 		luaRunState.registerOnThread();
 		luaRunState.printStackTrace(pout);
 	}
@@ -667,6 +686,10 @@ public abstract class LuaNovel extends BaseNovel {
 	
 	public String getCurrentCallSite() {
 		return lastCallSite;
+	}
+	
+	public boolean isLuaRunning() {
+		return luaRunning;
 	}
 	
 	public String[] getStackTrace() {
@@ -700,7 +723,7 @@ public abstract class LuaNovel extends BaseNovel {
 		bootstrapScripts = bootstrap;
 	}
 	
-	protected void setLuaGlobal(String key, LuaValue value) {
+	protected void setLuaGlobal(String key, LuaValue value) throws LuaException {
 		LuaValue globals = (luaRunState != null ? luaRunState.getGlobalEnvironment() : null);
 		linkedProperties.writeToLua(globals, key, value);
 	}
@@ -709,15 +732,15 @@ public abstract class LuaNovel extends BaseNovel {
 		wait = w;
 	}
 	
-	protected void setWaitClick(boolean wait) {
+	protected void setWaitClick(boolean wait) throws LuaException {
 		luaCall("setWaitClick", wait);
 	}
 	
-	protected void setScriptDebug(boolean debug) {
+	protected void setScriptDebug(boolean debug) throws LuaException {
 		setLuaGlobal("scriptDebug", valueOf(debug));
 	}
 	
-	protected void setAutoRead(boolean enable, int delay) {
+	protected void setAutoRead(boolean enable, int delay) throws LuaException {
 		setLuaGlobal("autoRead", valueOf(enable));
 		setLuaGlobal("autoReadWait", valueOf(delay));
 		
@@ -738,12 +761,12 @@ public abstract class LuaNovel extends BaseNovel {
 		private transient IConfig prefs;
 		private transient Map<String, Preference<?>> all;
 		
-		public PrefsMetaFunction(boolean setter, Class<?>... preferenceHolders) {			
+		public PrefsMetaFunction(boolean setter, String... preferenceHolders) {			
 			set = setter;
 
 			preferenceHolderClasses = new String[preferenceHolders.length];
 			for (int n = 0; n < preferenceHolders.length; n++) {
-				preferenceHolderClasses[n] = preferenceHolders[n].getName();
+				preferenceHolderClasses[n] = preferenceHolders[n];
 			}
 						
 			initTransients();
@@ -772,6 +795,8 @@ public abstract class LuaNovel extends BaseNovel {
 									String key = pref.getKey();
 									if (key.startsWith("vn.")) {
 										key = key.substring(3); //Remove "vn." prefix
+									} else if (key.startsWith("vnds.")) {
+										key = key.substring(5); //Remove "vnds." prefix
 									}
 									all.put(key, pref);
 								}
@@ -790,12 +815,15 @@ public abstract class LuaNovel extends BaseNovel {
 		
 		@Override
 		public Varargs invoke(Varargs args) {
-			if (prefs == null) return NIL;
-
-			String key = args.tojstring(2);
+			String key = args.tojstring(2);			
+			if (prefs == null) {
+				return NIL;
+			}
 			
 			Preference<?> pref = all.get(key);
-			if (pref == null) return NIL;
+			if (pref == null) {
+				return NIL;
+			}
 			
 			if (set) {
 				doSet(prefs, pref, args.arg(3));

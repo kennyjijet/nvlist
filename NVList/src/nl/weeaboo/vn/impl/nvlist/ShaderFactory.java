@@ -7,7 +7,7 @@ import nl.weeaboo.gl.shader.GLShader;
 import nl.weeaboo.gl.shader.IShaderStore;
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.IHardwarePS;
+import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 import nl.weeaboo.vn.impl.base.BaseShaderFactory;
 
@@ -30,7 +30,7 @@ public class ShaderFactory extends BaseShaderFactory implements Serializable {
 	}
 	
 	@Override
-	public IHardwarePS createGLSLShader(String filename) {
+	public IPixelShader createGLSLShader(String filename) {
 		GLShader sh = getGLShader(filename);
 		if (sh == null) {
 			notifier.d("Unable to find shader file: " + filename);

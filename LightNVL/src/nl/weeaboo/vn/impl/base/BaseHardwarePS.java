@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.vn.IHardwarePS;
+import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IRenderer;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.RenderEnv;
 
-public abstract class BaseHardwarePS extends BaseShader implements IHardwarePS, Serializable {
+public abstract class BaseHardwarePS extends BaseShader implements IPixelShader, Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
 

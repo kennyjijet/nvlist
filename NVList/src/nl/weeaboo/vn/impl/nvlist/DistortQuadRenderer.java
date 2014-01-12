@@ -8,7 +8,9 @@ import javax.media.opengl.GL2ES1;
 
 import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
+import nl.weeaboo.gl.jogl.JoglGLDraw;
 import nl.weeaboo.gl.jogl.JoglGLManager;
+import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.DistortQuadHelper;
 import nl.weeaboo.vn.math.Matrix;
@@ -25,9 +27,9 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 
 	//Functions
 	@Override
-	protected void preRender(ITexture tex, Matrix transform) {
+	protected void preRender(ITexture tex, Matrix transform, IPixelShader ps) {
 		GLManager glm = renderer.getGLManager();
-		GLDraw glDraw = glm.getGLDraw();
+		JoglGLDraw glDraw = JoglGLManager.getGLDraw(glm);
 		GL2ES1 gl = JoglGLManager.getGL(glm);
 
 		if (tex != null) {
@@ -38,12 +40,17 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 			glDraw.setTexture(null);
 		}
 		
-		gl.glPushMatrix();		
-		gl.glMultMatrixf(transform.toGLMatrix(), 0);
+		glDraw.pushMatrix();		
+		glDraw.multMatrixf(transform.toGLMatrix(), 0);
 		
         gl.glEnableClientState(GL2ES1.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL2ES1.GL_TEXTURE_COORD_ARRAY);		
-        gl.glEnableClientState(GL2ES1.GL_COLOR_ARRAY);		
+        gl.glEnableClientState(GL2ES1.GL_COLOR_ARRAY);
+
+		glDraw.useDefaultShader();
+        if (ps != null) {
+        	ps.preDraw(renderer);
+        }
 	}
 	
 	@Override
@@ -58,15 +65,20 @@ public class DistortQuadRenderer extends DistortQuadHelper {
 	}
 	
 	@Override
-	protected void postRender() {
+	protected void postRender(IPixelShader ps) {
 		GLManager glm = renderer.getGLManager();
+		GLDraw glDraw = glm.getGLDraw();
 		GL2ES1 gl = JoglGLManager.getGL(glm);
 
+        if (ps != null) {
+        	ps.postDraw(renderer);
+        }
+		
 		gl.glDisableClientState(GL2ES1.GL_VERTEX_ARRAY);	        
         gl.glDisableClientState(GL2ES1.GL_TEXTURE_COORD_ARRAY);	        
         gl.glDisableClientState(GL2ES1.GL_COLOR_ARRAY);
 	
-		gl.glPopMatrix();		
+		glDraw.popMatrix();		
 	}
 	
 	//Getters

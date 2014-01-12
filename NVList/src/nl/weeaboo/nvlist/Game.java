@@ -435,7 +435,11 @@ public class Game extends AWTGame {
 			}
 			
 			if (input.consumeKey(KeyEvent.VK_F2)) {
-				novel.printStackTrace(System.out);
+				try {
+					novel.printStackTrace(System.out);
+				} catch (LuaException e) {
+					GameLog.w("Error printing stack trace", e);
+				}
 			} else if (input.consumeKey(KeyEvent.VK_F3)) {
 				ntf.addMessage(this, "Generating preloader data");
 				generatePreloaderData();

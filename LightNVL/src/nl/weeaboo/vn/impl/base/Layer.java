@@ -17,7 +17,8 @@ import nl.weeaboo.vn.RenderEnv;
 @LuaSerializable
 public final class Layer extends BaseDrawable implements ILayer {
 
-	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final long serialVersionUID = BaseImpl.serialVersionUID;	
+	private static final IDrawable[] EMPTY = new IDrawable[0];
 	
 	public static final Comparator<IDrawable> zFrontToBackComparator = new Comparator<IDrawable>() {
 		public int compare(IDrawable d1, IDrawable d2) {
@@ -326,7 +327,7 @@ public final class Layer extends BaseDrawable implements ILayer {
 	@Override
 	public IDrawable[] getContents(IDrawable[] out) {
 		if (isDestroyed()) {
-			return new IDrawable[0];
+			return EMPTY;
 		}
 		
 		removeDestroyed();
@@ -334,19 +335,30 @@ public final class Layer extends BaseDrawable implements ILayer {
 	}
 	
 	@Override
+	public IDrawable[] getContentsRecursive() {		
+		if (isDestroyed()) {
+			return EMPTY;
+		}		
+		removeDestroyed();
+		
+		List<IDrawable> result = new ArrayList<IDrawable>();
+		for (IDrawable child : getContents()) {
+			result.add(child);
+			if (child instanceof ILayer) {
+				IDrawable[] subContents = ((ILayer)child).getContentsRecursive();
+				for (IDrawable d : subContents) {
+					result.add(d);
+				}
+			}
+		}
+		return result.toArray(new IDrawable[result.size()]);
+	}
+	
+	@Override
 	public boolean contains(IDrawable d) {
 		if (isDestroyed() || d == null || d.isDestroyed()) return false;
 		
 		return getState().contains(d);
-	}
-	
-	protected boolean containsRecursive(IDrawable d) {
-		if (isDestroyed() || d == null || d.isDestroyed()) return false;
-
-		for (LayerContents state : sstack) {
-			if (state.contains(d)) return true;
-		}
-		return false;
 	}
 	
 	@Override

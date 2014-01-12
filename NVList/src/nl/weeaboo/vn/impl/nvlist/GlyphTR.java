@@ -32,7 +32,7 @@ class GlyphTR extends AbstractTextRenderer<TextLayout> {
 		DrawBuffer dd = DrawBuffer.cast(d);
 		dd.drawText(z, clipEnabled, blendMode, argb, getLayout(),
 				getStartLine(), getEndLine(), getVisibleChars(),
-				dx + getPadLeft(), dy, null);
+				dx + getPadLeft(), dy);
 		
 		//System.out.println(getMaxWidth() + "x" + getMaxHeight() + " " + getTextLeading() + " " + getTextWidth());
 	}

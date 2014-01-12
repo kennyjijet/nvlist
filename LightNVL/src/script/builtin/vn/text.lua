@@ -71,7 +71,7 @@ local function textfade(targetAlpha, fadeDurationFrames, predicate)
 			elseif baseAlpha[d] ~= nil then
 				a = a * baseAlpha[d]
 			end
-			table.insert(threads, newThread(fadeTo, d, a, fadeDurationFrames))
+			table.insert(threads, newThread(fadeTo4, d, a, fadeDurationFrames))
 		end
 	end
 	update1join(threads)
@@ -224,7 +224,9 @@ end
 ---Appends text to the main textbox.
 -- @param str The text to append (may be either a string or a StyledText
 --        object).
-function appendText(str)
+-- @tab[opt=nil] meta A table with metadata for this piece of text (autoPage,
+--      etc.)
+function appendText(str, meta)
 	local styled = nil
 	local logStyled = nil
 	if lineRead and prefs.textReadStyle ~= nil then
@@ -235,11 +237,34 @@ function appendText(str)
 		logStyled = styled
 	end
 
-	textState:appendText(styled)
-    appendTextLog(logStyled)
-
 	local textBox = textState:getTextDrawable()
-	if quickRead and textBox ~= nil then
+	if textBox == nil then
+		textState:appendText(styled)
+	    appendTextLog(logStyled)
+		return
+	end
+	
+	local oldText = textBox:getText()
+	local oldLineCount = textBox:getLineCount()
+	if oldLineCount > 0 then
+		textState:appendText(styled)
+		if meta.autoPage and textBox:getLineCount() > textBox:getEndLine() then
+			textBox:setVisibleChars(0)
+			local index = 0
+			while index < styled:length() and styled:charAt(index) == 0x0A do
+				index = index + 1
+			end
+			textState:setText(styled:substring(index))
+			appendTextLog(logStyled:substring(index), true)
+		else
+			appendTextLog(logStyled)
+		end
+	else
+		textState:appendText(styled)
+    	appendTextLog(logStyled)
+	end
+
+	if quickRead then
 		textBox:setVisibleChars(999999)
 	end
 end

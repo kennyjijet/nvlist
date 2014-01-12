@@ -2,7 +2,6 @@ package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.impl.base.BaseRenderCommand;
 
 public class RenderTextCommand extends BaseRenderCommand {
@@ -13,11 +12,10 @@ public class RenderTextCommand extends BaseRenderCommand {
 	public final int lineStart, lineEnd;
 	public final double visibleChars;
 	public final double x, y;
-	public final IPixelShader ps;
 	
 	protected RenderTextCommand(short z, boolean clipEnabled, BlendMode blendMode,
 		int argb, TextLayout textLayout, int lineStart, int lineEnd, double visibleChars,
-		double x, double y, IPixelShader ps)
+		double x, double y)
 	{
 		super(id, z, clipEnabled, blendMode, argb, (byte)textLayout.hashCode());
 		
@@ -27,7 +25,6 @@ public class RenderTextCommand extends BaseRenderCommand {
 		this.visibleChars = visibleChars;
 		this.x = x;
 		this.y = y;
-		this.ps = ps;
 	}
 
 }

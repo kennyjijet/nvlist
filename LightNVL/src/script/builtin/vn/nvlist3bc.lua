@@ -21,9 +21,31 @@ function text(str)
 	paragraph.finish()
 end
 
+function appendText(str)
+	local styled = nil
+	local logStyled = nil
+	local currentStyle = getCurrentStyle()
+	if lineRead and prefs.textReadStyle ~= nil then
+		styled = createStyledText(str, extendStyle(prefs.textReadStyle, currentStyle))
+		logStyled = createStyledText(str, currentStyle)
+	else
+		styled = createStyledText(str, currentStyle)
+		logStyled = styled
+	end
+
+	textState:appendText(styled)
+    appendTextLog(logStyled)
+
+	local textBox = textState:getTextDrawable()
+	if quickRead and textBox ~= nil then
+		textBox:setVisibleChars(999999)
+	end
+end
+
 function fadeTo(i, targetAlpha, speed)
 	speed = math.abs(speed or 0.05)
 	
+	local alpha = i:getAlpha()
 	if alpha > targetAlpha then
 		while alpha - speed * effectSpeed > targetAlpha do
 			alpha = alpha - speed * effectSpeed
@@ -31,7 +53,6 @@ function fadeTo(i, targetAlpha, speed)
 			yield()
 		end
 	elseif alpha < targetAlpha then
-		alpha = i:getAlpha()
 		while alpha + speed * effectSpeed < targetAlpha do
 			alpha = alpha + speed * effectSpeed
 			i:setAlpha(alpha)
@@ -95,7 +116,7 @@ function style(textStyle)
         return nil
 	end
 	
-	if type(s) ~= "userdata" then
+	if type(textStyle) ~= "userdata" then
 		textStyle = createStyle(textStyle)
 	end
 	styleStack[i] = extendStyle(styleStack[i], textStyle)

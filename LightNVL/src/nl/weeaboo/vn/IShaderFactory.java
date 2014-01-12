@@ -7,7 +7,7 @@ public interface IShaderFactory {
 	/**
 	 * @return A newly created IPixelShader which runs on the GPU.
 	 */
-	public IHardwarePS createGLSLShader(String filename);
+	public IPixelShader createGLSLShader(String filename);
 	
 	// === Getters =============================================================
 

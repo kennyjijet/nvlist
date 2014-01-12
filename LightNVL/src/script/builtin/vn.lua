@@ -624,7 +624,6 @@ local submodules = {
 	"text",
 	"tween",
 	"video",
-	"nvlist3bc"
 }
 for _,module in ipairs(submodules) do
 	require("builtin/vn/" .. module)
@@ -652,7 +651,8 @@ end
 function flattenModule(env)	
 	flattenSingle(env, package.loaded.vn)
 	for _,module in ipairs(submodules) do
-		flattenSingle(env, package.loaded.vn[module])		
+		flattenSingle(env, package.loaded.vn[module])
 	end
+	require("builtin/vn/nvlist3bc")	
 	_G.vn = nil --Delete the now flattened table
 end

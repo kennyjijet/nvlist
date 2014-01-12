@@ -3,7 +3,6 @@ package nl.weeaboo.vn.impl.nvlist;
 import nl.weeaboo.textlayout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
-import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.RenderEnv;
 import nl.weeaboo.vn.impl.base.BaseDrawBuffer;
 
@@ -22,10 +21,10 @@ public class DrawBuffer extends BaseDrawBuffer {
 	
 	public void drawText(short z, boolean clipEnabled, BlendMode blendMode, int argb,
 			TextLayout textLayout, int lineStart, int lineEnd, double visibleChars,
-			double x, double y, IPixelShader ps)
+			double x, double y)
 	{		
 		draw(new RenderTextCommand(z, clipEnabled, blendMode, argb, textLayout,
-				lineStart, lineEnd, visibleChars, x, y, ps));
+				lineStart, lineEnd, visibleChars, x, y));
 	}
 	
 	//Getters

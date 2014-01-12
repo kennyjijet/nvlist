@@ -50,6 +50,8 @@ public class DebugLuaPanel extends JPanel {
 						logPane.append(StringUtil.fromUTF8(bytes, 0, bytes.length));
 					} catch (IOException ioe) {
 						logPane.append(LogPane.STYLE_WARNING, "Error printing stack trace", ioe);
+					} catch (LuaException le) {
+						logPane.append(LogPane.STYLE_WARNING, "Error printing stack trace", le);
 					}
 				}
 			}

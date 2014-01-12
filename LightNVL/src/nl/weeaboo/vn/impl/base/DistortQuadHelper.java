@@ -48,7 +48,7 @@ public abstract class DistortQuadHelper {
 			tex = null;
 		}
 
-		preRender(tex, transform);
+		preRender(tex, transform, ps);
 		try {
 			uv = BaseRenderer.combineUV(uv, tex != null ? tex.getUV() : IDrawBuffer.DEFAULT_UV);
 			for (int row = 0; row < grid.getHeight(); row++) {
@@ -57,13 +57,13 @@ public abstract class DistortQuadHelper {
 				renderStrip(vs, ts, cs, count);
 			}
 		} finally {
-			postRender();
+			postRender(ps);
 		}
 	}
 	
-	protected abstract void preRender(ITexture tex, Matrix transform);
+	protected abstract void preRender(ITexture tex, Matrix transform, IPixelShader ps);
 	protected abstract void renderStrip(FloatBuffer vertices, FloatBuffer texcoords, IntBuffer colors, int count);
-	protected abstract void postRender();
+	protected abstract void postRender(IPixelShader ps);
 
     protected int setupTriangleStrip(IDistortGrid grid, int row, int argb,
     		Area2D bounds, Area2D uv, Rect2D clampBounds)

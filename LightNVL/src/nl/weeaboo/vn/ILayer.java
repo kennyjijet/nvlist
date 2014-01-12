@@ -46,10 +46,16 @@ public interface ILayer extends IDrawable {
 	
 	/**
 	 * @return <code>out</code>, or if it's <code>null</code> or too small, a
-	 *         new array containing all active images.
+	 *         new array containing all active drawables in this layer.
 	 * @see #getContents()
 	 */
 	public IDrawable[] getContents(IDrawable[] out);
+	
+	/**
+	 * @return All active drawables contained in this layer and all of its
+	 *         sub-layers.
+	 */
+	public IDrawable[] getContentsRecursive();
 	
 	/**
 	 * Checks whether the specified drawable is contained in the top stack

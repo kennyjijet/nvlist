@@ -124,7 +124,12 @@ public abstract class BaseRenderer implements IRenderer {
 		long renderStatsTimestamp = 0;
 		for (int n = cstart; n < cend; n++) {
 			BaseRenderCommand cmd = cmds[n];
-			
+
+			//Flush quad batch if needed
+			if (cmd.id != QuadRenderCommand.id) {
+				flushQuadBatch();
+			}
+
 			//Clipping changed
 			if (cmd.clipEnabled != clipping) {
 				flushQuadBatch();
@@ -144,11 +149,6 @@ public abstract class BaseRenderer implements IRenderer {
 				flushQuadBatch();
 				foreground = cmd.argb;
 				setColor(foreground);
-			}
-
-			//Flush quad batch if needed
-			if (cmd.id != QuadRenderCommand.id) {
-				flushQuadBatch();				
 			}
 			
 			//Perform command-specific rendering
@@ -233,7 +233,7 @@ public abstract class BaseRenderer implements IRenderer {
 			Area2D bounds, Area2D uv, IPixelShader ps,
 			IDistortGrid grid, Rect2D clampBounds);
 	
-	public abstract void renderTriangleGrid(TriangleGrid grid);
+	public abstract void renderTriangleGrid(TriangleGrid grid, IPixelShader ps);
 	
 	public abstract void renderScreenshot(IScreenshot out, Rect glScreenRect);
 

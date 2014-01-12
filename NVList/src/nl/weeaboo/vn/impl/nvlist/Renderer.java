@@ -78,7 +78,6 @@ public class Renderer extends BaseRenderer {
 		quadBatch = new SpriteBatch(1024);
 	}
 	
-	//Functions
 	public static Renderer cast(IRenderer r) {
 		if (r == null) return null;
 		if (r instanceof Renderer) return (Renderer)r;
@@ -90,7 +89,7 @@ public class Renderer extends BaseRenderer {
 		gl = JoglGLManager.getGL(glm);
 		glDraw = glm.getGLDraw();
 		
-		gl.glPushMatrix();
+		glDraw.pushMatrix();
 		glDraw.pushBlendMode();
 		glDraw.pushColor();
 		
@@ -114,7 +113,7 @@ public class Renderer extends BaseRenderer {
 		glDraw.setTexture(null, true);
 		glDraw.popBlendMode();
 		glDraw.popColor();
-		gl.glPopMatrix();		
+		glDraw.popMatrix();		
 	}
 		
 	@Override
@@ -154,7 +153,7 @@ public class Renderer extends BaseRenderer {
 			glDraw.setTexture(null);
 		}		
 	}
-	
+		
 	@Override
 	public void renderQuad(ITexture itex, Matrix t, Area2D bounds, Area2D uv, IPixelShader ps) {
 		renderSetTexture(itex);
@@ -178,17 +177,16 @@ public class Renderer extends BaseRenderer {
 		if (!allowBuffer) {
 			flushQuadBatch();
 		}
+				
+		double x = bounds.x;
+		double y = bounds.y;
+		double w = bounds.w;
+		double h = bounds.h;
 		
-		if (ps != null) ps.preDraw(this);
+		if (ps != null) {
+			ps.preDraw(this);
+		}
 		
-		renderQuad(allowBuffer, t, bounds.x, bounds.y, bounds.w, bounds.h, u, v, uw, vh);
-			
-		if (ps != null) ps.postDraw(this);
-	}
-	
-	private void renderQuad(boolean allowBuffer, Matrix t, double x, double y, double w, double h,
-			double u, double v, double uw, double vh)
-	{
 		if (t.hasShear()) {
 			if (allowBuffer) {
 				quadBatch.setColor(glDraw.getColor());
@@ -198,6 +196,7 @@ public class Renderer extends BaseRenderer {
 				tempFloat[1] = tempFloat[3] = (float)(y  );
 				tempFloat[5] = tempFloat[7] = (float)(y+h);
 				t.transform(tempFloat, 0, 8);
+				
 				quadBatch.draw(tempFloat, (float)u, (float)v, (float)uw, (float)vh);
 
 				buffered++;				
@@ -205,10 +204,10 @@ public class Renderer extends BaseRenderer {
 					flushQuadBatch();
 				}
 			} else {
-				gl.glPushMatrix();		
-				gl.glMultMatrixf(t.toGLMatrix(), 0);
+				glDraw.pushMatrix();		
+				glDraw.multMatrixf(t.toGLMatrix(), 0);
 				glDraw.fillRect(x, y, w, h, u, v, uw, vh);
-				gl.glPopMatrix();
+				glDraw.popMatrix();
 			}
 		} else {
 			double sx = t.getScaleX();
@@ -228,20 +227,20 @@ public class Renderer extends BaseRenderer {
 				}
 			} else {			
 				glDraw.fillRect(x, y, w, h, u, v, uw, vh);
-			}
-			
+			}			
 			//System.out.printf("%.2f, %.2f, %.2f, %.2f\n", x, y, w, h);
-		}		
+		}
+		
+		if (ps != null) {
+			ps.postDraw(this);
+		}
 	}
 	
 	void renderText(GLManager glm, TextLayout layout, double x, double y,
-			int startLine, int endLine, double visibleChars, IPixelShader ps)
+			int startLine, int endLine, double visibleChars)
 	{
-		if (ps != null) ps.preDraw(this);
+		flushQuadBatch();
 		
-		//GL2ES1 gl = glm.getGL();		
-		//gl.glPushMatrix();
-
 		glDraw.pushBlendMode();
 		glDraw.setBlendMode(GLBlendMode.DEFAULT);
 		pr.setLineOffset(startLine);
@@ -249,10 +248,6 @@ public class Renderer extends BaseRenderer {
 		pr.setVisibleChars((float)visibleChars);
 		pr.drawLayout(glm, layout, Math.round((float)x), Math.round((float)y));
 		glDraw.popBlendMode();
-		
-		//gl.glPopMatrix();
-		
-		if (ps != null) ps.postDraw(this);		
 	}
 	
 	@Override
@@ -308,7 +303,11 @@ public class Renderer extends BaseRenderer {
 	}
 	
 	@Override
-	public void renderTriangleGrid(TriangleGrid grid) {
+	public void renderTriangleGrid(TriangleGrid grid, IPixelShader ps) {
+		if (ps != null) {
+			ps.preDraw(this);
+		}
+		
 		final int rows = grid.getRows();
 		final int cols = grid.getCols();
 		final int texCount = grid.getTextures();
@@ -351,7 +350,11 @@ public class Renderer extends BaseRenderer {
 			gl.glClientActiveTexture(GL_TEXTURE0 + n);
 			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
-	    gl.glDisableClientState(GL_VERTEX_ARRAY);		
+	    gl.glDisableClientState(GL_VERTEX_ARRAY);
+	    
+		if (ps != null) {
+			ps.postDraw(this);
+		}	    
 	}
 	
 	@Override
@@ -359,7 +362,7 @@ public class Renderer extends BaseRenderer {
 		if (cmd.id == RenderTextCommand.id) {
 			RenderTextCommand rtc = (RenderTextCommand)cmd;
 			renderText(glm, rtc.textLayout, rtc.x, rtc.y,
-					rtc.lineStart, rtc.lineEnd, rtc.visibleChars, rtc.ps);
+					rtc.lineStart, rtc.lineEnd, rtc.visibleChars);
 			return true;
 		}
 		return false;
@@ -397,7 +400,6 @@ public class Renderer extends BaseRenderer {
 		glDraw.translate(dx, dy);
 	}
 	
-	//Getters	
 	public GLManager getGLManager() {
 		if (!rendering) return null;
 		return glm;
@@ -407,7 +409,5 @@ public class Renderer extends BaseRenderer {
 	public DrawBuffer getDrawBuffer() {
 		return drawBuffer;
 	}
-
-	//Setters
 	
 }

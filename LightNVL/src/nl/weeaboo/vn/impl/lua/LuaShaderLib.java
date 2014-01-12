@@ -3,7 +3,7 @@ package nl.weeaboo.vn.impl.lua;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.lua2.lib.LuaLibrary;
 import nl.weeaboo.lua2.lib.LuajavaLib;
-import nl.weeaboo.vn.IHardwarePS;
+import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.IShaderFactory;
 import nl.weeaboo.vn.impl.base.BaseNotifier;
 
@@ -51,7 +51,7 @@ public class LuaShaderLib extends LuaLibrary {
 	
 	protected Varargs createGLSLShader(Varargs args) {
 		String filename = args.checkjstring(1);
-		IHardwarePS shader = fac.createGLSLShader(filename);
+		IPixelShader shader = fac.createGLSLShader(filename);
 		return LuajavaLib.toUserdata(shader, shader.getClass());
 	}
 	

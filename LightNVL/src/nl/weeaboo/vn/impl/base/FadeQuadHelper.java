@@ -74,11 +74,11 @@ public abstract class FadeQuadHelper {
 				premultiplyAlpha(color0), premultiplyAlpha(color1),
 				interpolator);
 		
-		renderTriangleStrip(tex, transform, vs, ts, cs, 8+2*segments);	
+		renderTriangleStrip(tex, transform, ps, vs, ts, cs, 8+2*segments);	
 	}
 	
-	protected abstract void renderTriangleStrip(ITexture tex, Matrix transform, FloatBuffer vertices,
-			FloatBuffer texcoords, IntBuffer colors, int count);
+	protected abstract void renderTriangleStrip(ITexture tex, Matrix transform, IPixelShader ps,
+			FloatBuffer vertices, FloatBuffer texcoords, IntBuffer colors, int count);
 	
     protected void setupTriangleStrip(Area2D bounds, Area2D uv, boolean horizontal, float start, float end,
     		int premultColor0, int premultColor1, IInterpolator interpolator)

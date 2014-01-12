@@ -38,6 +38,7 @@ import nl.weeaboo.gl.GLInfo;
 import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.vn.IDrawBuffer;
+import nl.weeaboo.vn.IPixelShader;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.BaseRenderer;
 import nl.weeaboo.vn.impl.base.BlendQuadHelper;
@@ -62,19 +63,21 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 
 	//Functions
 	@Override
-	protected void renderQuad(ITexture tex, Area2D uv, Matrix transform, int mixColorARGB, Rect2D bounds) {
+	protected void renderQuad(ITexture tex, Area2D uv, Matrix transform, int mixColorARGB, Rect2D bounds,
+			IPixelShader ps)
+	{
 		GLManager glm = renderer.getGLManager();
 		GLDraw glDraw = glm.getGLDraw();
 		glDraw.pushColor();
 		glDraw.mixColor(mixColorARGB);
 		uv = BaseRenderer.combineUV(uv, (tex != null ? tex.getUV() : IDrawBuffer.DEFAULT_UV));
-		renderer.renderQuad(tex, transform, bounds.toArea2D(), uv, null);
+		renderer.renderQuad(tex, transform, bounds.toArea2D(), uv, ps);
 		glDraw.popColor();	
 	}
 
 	@Override
 	protected void renderMultitextured(ITexture tex0, Rect2D bounds0, ITexture tex1, Rect2D bounds1,
-			Area2D uv, Matrix transform, float tex0Factor)
+			Area2D uv, Matrix transform, IPixelShader ps, float tex0Factor)
 	{
 		GLManager glm = renderer.getGLManager();
 		GLDraw glDraw = glm.getGLDraw();
@@ -131,13 +134,13 @@ public class BlendQuadRenderer extends BlendQuadHelper {
 		gl.glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 		
 		//Render triangle grid
-		gl.glPushMatrix();
-		gl.glMultMatrixf(transform.toGLMatrix(), 0);		
+		glDraw.pushMatrix();
+		glDraw.multMatrixf(transform.toGLMatrix(), 0);		
 		TriangleGrid grid = TriangleGrid.layout2(
 				bounds0.toArea2D(), uv0, TextureWrap.CLAMP,
-				bounds1.toArea2D(), uv1, TextureWrap.CLAMP);			
-		renderer.renderTriangleGrid(grid);
-	    gl.glPopMatrix();
+				bounds1.toArea2D(), uv1, TextureWrap.CLAMP);
+		renderer.renderTriangleGrid(grid, ps);
+	    glDraw.popMatrix();
 		
 		//Reset texture
 		gl.glActiveTexture(GL_TEXTURE1);

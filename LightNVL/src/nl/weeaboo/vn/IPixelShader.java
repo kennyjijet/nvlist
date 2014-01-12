@@ -2,12 +2,13 @@ package nl.weeaboo.vn;
 
 public interface IPixelShader extends IShader {
 
-	// === Functions ===========================================================
 	public void preDraw(IRenderer r);
 	public void postDraw(IRenderer r);
 	
-	// === Getters =============================================================
+	public void removeParam(String name);
 	
-	// === Setters =============================================================
-
+	public void setParam(String name, ITexture tex);
+	public void setParam(String name, float value);
+	public void setParam(String name, float[] values, int off, int len);
+	
 }

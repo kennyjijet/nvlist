@@ -83,6 +83,11 @@ public interface IButtonDrawable extends IImageDrawable {
 	 */
 	public Collection<Integer> getActivationKeys();
 		
+    /**
+     * @see #setAlphaEnableThreshold(double)
+     */
+    public double getAlphaEnableThreshold();
+        
 	/**
 	 * @see #setText(StyledText) 
 	 */
@@ -142,6 +147,12 @@ public interface IButtonDrawable extends IImageDrawable {
 	 */
 	public void setKeyboardFocus(boolean f);
 
+    /**
+     * Changes the alpha enable threshold. When the alpha of this button is
+     * below the specified threshold, it will not respond to presses.
+     */
+    public void setAlphaEnableThreshold(double ae);
+    
 	/**
 	 * @see #setText(StyledText)
 	 */

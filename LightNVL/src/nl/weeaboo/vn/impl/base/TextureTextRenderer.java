@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.impl.base;
 
 import nl.weeaboo.common.Area2D;
+import nl.weeaboo.common.FastMath;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDrawBuffer;
@@ -158,8 +159,9 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 				destroyTexture(texture);
 			}
 			
-			textureW = Math.max(textureW, lw);
-			textureH = Math.max(textureH, lh);
+			//Round sizes up to avoid to worst-case possibility of resizing for just one extra pixel
+			textureW = Math.max(textureW, FastMath.align(lw, 16));
+			textureH = Math.max(textureH, FastMath.align(lh, 16));
 			
 			texture = createTexture(textureW, textureH, 1, 1);
 			invalidateTextureContents();

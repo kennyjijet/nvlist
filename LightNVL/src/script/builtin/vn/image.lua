@@ -117,7 +117,7 @@ end
 function imgf(tex, x, y, properties)
 	local i = img(tex, x, y, properties)
 	i:setAlpha(0)
-	fadeTo(i, 1)
+	fadeTo4(i, 1)
 	return i	
 end
 
@@ -134,7 +134,7 @@ end
 -- @number fadeTimeFrames The duration of the fade-out effect in frames.
 -- @see rm
 function rmf(image, fadeTimeFrames)
-	fadeTo(image, 0, fadeTimeFrames)
+	fadeTo4(image, 0, fadeTimeFrames)
 	rm(image)
 end
 
@@ -174,14 +174,14 @@ function bgf(tex, fadeTimeFrames, properties)
 		background = bg(tex, properties)
 		if fadeTimeFrames > 0 then
 			background:setAlpha(0)
-			fadeTo(background, 1, fadeTimeFrames)
+			fadeTo4(background, 1, fadeTimeFrames)
 		end
 	else
 		local newbg = img(tex, properties)
 		if fadeTimeFrames > 0 then		
 			newbg:setAlpha(0)
 			newbg:setZ(background:getZ() - 1)
-			fadeTo(newbg, 1, fadeTimeFrames)
+			fadeTo4(newbg, 1, fadeTimeFrames)
 		end
 		newbg:setZ(background:getZ())		
 	    background:destroy()
@@ -363,6 +363,8 @@ function fadeTo(i, targetAlpha, durationFrames)
 	
     i:setAlpha(targetAlpha)
 end
+
+fadeTo4 = fadeTo
 
 ---Gradually moves <code>i</code> to <code>(x, y)</code>.
 -- @tparam Drawable i The image to move.

@@ -24,6 +24,7 @@ import org.xml.sax.SAXException;
 public class VNDSUtil {
 
 	public static final Preference<Boolean> VNDS = newPreference("vnds", false, "VNDS", "Run the engine in VNDS mode");	
+	public static final Preference<Boolean> TEXT_STREAM = newPreference("vnds.textStream", false, "Text Stream", "Activates continuous text stream mode, causing lines to be appended to the text box while they fit instead of clearing the text box for each line.");	
 	
 	public static boolean isVNDSGame(File folder) {
 		File infoF = new File(folder, "info.txt");

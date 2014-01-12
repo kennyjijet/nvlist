@@ -6,12 +6,9 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
-import javax.media.opengl.GL2;
-
 import nl.weeaboo.gl.GLDraw;
 import nl.weeaboo.gl.GLManager;
 import nl.weeaboo.gl.GLUtil;
-import nl.weeaboo.gl.jogl.JoglGLManager;
 import nl.weeaboo.gl.shader.GLShader;
 import nl.weeaboo.gl.tex.GLTexRect;
 import nl.weeaboo.gl.tex.GLTexture;
@@ -181,8 +178,7 @@ public class BitmapTween extends BaseBitmapTween {
 			Renderer rr = Renderer.cast(r);
 			GLManager glm = rr.getGLManager();
 			GLDraw glDraw = glm.getGLDraw();
-			GL2 gl = JoglGLManager.getGL(glm).getGL2();
-						
+
 			GLTexture oldTexture = glDraw.getTexture();
 			glDraw.setTexture(null);
 			
@@ -197,8 +193,8 @@ public class BitmapTween extends BaseBitmapTween {
 			remapTex = remapTex.glTryLoad(glm);
 			
 			//Force load shader
+			GLShader oldShader = glDraw.getShader();			
 			shader.glTryLoad(glm);
-			GLShader oldShader = glDraw.getShader();
 			glDraw.setShader(shader);
 			
 			//Initialize shader
@@ -208,10 +204,10 @@ public class BitmapTween extends BaseBitmapTween {
 			shader.setTextureUniform(glm, "remap", 3, texId(remapTex));
 			
 			//Render geometry
-			gl.glPushMatrix();
-			gl.glMultMatrixf(transform.toGLMatrix(), 0);
-			rr.renderTriangleGrid(grid);
-			gl.glPopMatrix();
+			glDraw.pushMatrix();
+			glDraw.multMatrixf(transform.toGLMatrix(), 0);
+			rr.renderTriangleGrid(grid, null);
+			glDraw.popMatrix();
 
 			//Disable shader
 			glDraw.setShader(oldShader);

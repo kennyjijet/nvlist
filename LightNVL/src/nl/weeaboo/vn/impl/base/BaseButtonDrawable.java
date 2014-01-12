@@ -399,6 +399,11 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 	public double getTextHeight() {
 		return textRenderer.getTextHeight();
 	}
+    
+    @Override
+    public double getAlphaEnableThreshold() {
+        return alphaEnableThreshold;
+    }
 	
 	//Setters
 	@Override
@@ -542,6 +547,14 @@ public abstract class BaseButtonDrawable extends BaseImageDrawable implements IB
 			markChanged();
 		}
 	}
+    
+    @Override
+    public void setAlphaEnableThreshold(double ae) {
+        if (alphaEnableThreshold != ae) {
+            alphaEnableThreshold = ae;
+   			markChanged();
+        }
+    }
 	
 	@Override
 	public void setRenderEnv(RenderEnv env) {

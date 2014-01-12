@@ -724,7 +724,7 @@ function ChoiceScreen:fadeButtons(visible, fadeDurationFrames)
 	
 	local threads = {}
 	for _,b in ipairs(self.buttons) do
-		table.insert(threads, newThread(fadeTo, b, targetAlpha, fadeDurationFrames))
+		table.insert(threads, newThread(fadeTo4, b, targetAlpha, fadeDurationFrames))
 	end
 	update1join(threads)
 end
