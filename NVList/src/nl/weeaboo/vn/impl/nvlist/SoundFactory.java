@@ -8,7 +8,7 @@ import java.util.List;
 
 import nl.weeaboo.io.EnvironmentSerializable;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.sound.SoundDesc;
+import nl.weeaboo.media.sound.SoundDesc;
 import nl.weeaboo.sound.SoundManager;
 import nl.weeaboo.sound.SoundManager.SoundInput;
 import nl.weeaboo.vn.IAnalytics;

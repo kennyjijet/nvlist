@@ -87,7 +87,7 @@ public class ScreenshotItem extends GameMenuAction {
 		int w = ss.getPixelsWidth();
 		int h = ss.getPixelsHeight();
 		if (argb == null || w <= 0 || h <= 0) {
-			throw new IOException("Screenshot doesn't contain any pixels: argb=" + argb + ", w=" + w + ", h=" + h);
+			throw new IOException("Screenshot doesn't contain any pixels: argb.length=" + (argb != null ? argb.length : 0) + ", w=" + w + ", h=" + h);
 		}
 		
 		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_BGR);

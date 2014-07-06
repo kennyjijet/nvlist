@@ -31,15 +31,13 @@
 
   <script language="javascript">
     <![CDATA[
-        importPackage(java.io);
-    
-        project.setProperty("project-name-url", escape(project.getProperty("project-name")));
-        
-        if (project.getProperty("gamedata.dir") == ".") {
-            project.setProperty("jar-lib-basedir", "");
-        } else {
-            project.setProperty("jar-lib-basedir", "/" + escape(project.getProperty("basedir")) + "/");
-        }
+      project.setProperty("project-name-url", escape(project.getProperty("project-name")));
+	
+	  if (project.getProperty("gamedata.dir") == ".") {
+		  project.setProperty("jar-lib-basedir", "");
+	  } else {
+		  project.setProperty("jar-lib-basedir", "/" + escape(project.getProperty("basedir")) + "/");
+	  }
     ]]>
   </script>
   

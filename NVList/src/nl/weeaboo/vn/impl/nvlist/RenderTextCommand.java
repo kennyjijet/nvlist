@@ -1,6 +1,6 @@
 package nl.weeaboo.vn.impl.nvlist;
 
-import nl.weeaboo.textlayout.TextLayout;
+import nl.weeaboo.styledtext.layout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.impl.base.BaseRenderCommand;
 

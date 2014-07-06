@@ -13,7 +13,7 @@
 	<classpathentry kind="lib" path="lib/luajpp2.jar" sourcepath="/LuaJPP2/src"/>
 	<classpathentry kind="lib" path="lib/jktx-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/vnds.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java6"/>
 	<classpathentry kind="lib" path="lib/lightnvl.jar" sourcepath="/LightNVL/src"/>
 	<classpathentry kind="lib" path="lib/jogl-all.jar"/>
 	<classpathentry kind="output" path="bin"/>

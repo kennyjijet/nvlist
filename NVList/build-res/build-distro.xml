@@ -103,16 +103,12 @@
       <!-- Create a .bmp version of the splash screen -->
       <script language="javascript">
         <![CDATA[
-          importPackage(java.awt.image);
-          importPackage(java.io);
-          importPackage(Packages.javax.imageio);
-    
           var splashFolder = project.getProperty("build-res.dir")
-          var img = ImageIO.read(new File(splashFolder, project.getProperty("splashscreen")));
+          var img = javax.imageio.ImageIO.read(new java.io.File(splashFolder, project.getProperty("splashscreen")));
           if (img != null) {
-            var opaque = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+            var opaque = new java.awt.image.BufferedImage(img.getWidth(), img.getHeight(), java.awt.image.BufferedImage.TYPE_3BYTE_BGR);
             opaque.getGraphics().drawImage(img, 0, 0, opaque.getWidth(), opaque.getHeight(), null);
-            ImageIO.write(opaque, "bmp", new File(splashFolder+"/splash.bmp"));
+            javax.imageio.ImageIO.write(opaque, "bmp", new java.io.File(splashFolder+"/splash.bmp"));
           }
         ]]>
       </script>

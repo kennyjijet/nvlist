@@ -28,7 +28,7 @@ import nl.weeaboo.gl.tex.GLTexture;
 import nl.weeaboo.gl.tex.GLWritableTexture;
 import nl.weeaboo.gl.text.ParagraphRenderer;
 import nl.weeaboo.io.BufferUtil;
-import nl.weeaboo.textlayout.TextLayout;
+import nl.weeaboo.styledtext.layout.TextLayout;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IDistortGrid;
 import nl.weeaboo.vn.IPixelShader;

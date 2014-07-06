@@ -8,8 +8,8 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
+import nl.weeaboo.media.sound.SoundDesc;
 import nl.weeaboo.sound.ISound;
-import nl.weeaboo.sound.SoundDesc;
 import nl.weeaboo.sound.SoundManager;
 import nl.weeaboo.sound.SoundManager.SoundInput;
 import nl.weeaboo.vn.SoundType;

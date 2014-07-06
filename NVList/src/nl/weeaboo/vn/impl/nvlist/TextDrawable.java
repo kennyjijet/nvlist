@@ -1,10 +1,10 @@
 package nl.weeaboo.vn.impl.nvlist;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.textlayout.LayoutUtil;
-import nl.weeaboo.textlayout.LineElement;
-import nl.weeaboo.textlayout.LineLayout;
-import nl.weeaboo.textlayout.TextLayout;
+import nl.weeaboo.styledtext.layout.LayoutUtil;
+import nl.weeaboo.styledtext.layout.LineElement;
+import nl.weeaboo.styledtext.layout.LineLayout;
+import nl.weeaboo.styledtext.layout.TextLayout;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.ITextRenderer;

@@ -11,9 +11,9 @@ import nl.weeaboo.game.desktop.AWTParagraphRenderer;
 import nl.weeaboo.gl.tex.GLWritableTexture;
 import nl.weeaboo.gl.text.GlyphManager;
 import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.textlayout.LineElement;
-import nl.weeaboo.textlayout.ParagraphLayouter;
-import nl.weeaboo.textlayout.TextLayout;
+import nl.weeaboo.styledtext.layout.LineElement;
+import nl.weeaboo.styledtext.layout.ParagraphLayouter;
+import nl.weeaboo.styledtext.layout.TextLayout;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.impl.base.TextureTextRenderer;
 
