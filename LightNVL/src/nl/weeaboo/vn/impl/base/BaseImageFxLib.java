@@ -17,10 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect;
-import nl.weeaboo.imagefx.ImageBlur;
-import nl.weeaboo.imagefx.ImageBlur.BlurImage;
-import nl.weeaboo.imagefx.ImageFxUtil;
-import nl.weeaboo.imagefx.ImageResize;
+import nl.weeaboo.image.ImageBlur;
+import nl.weeaboo.image.ImageBlur.BlurImage;
+import nl.weeaboo.image.ImageFxUtil;
+import nl.weeaboo.image.ImageResize;
 import nl.weeaboo.vn.IImageFactory;
 import nl.weeaboo.vn.IImageFxLib;
 import nl.weeaboo.vn.ITexture;

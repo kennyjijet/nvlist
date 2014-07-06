@@ -343,6 +343,8 @@ public final class Layer extends BaseDrawable implements ILayer {
 		
 		List<IDrawable> result = new ArrayList<IDrawable>();
 		for (IDrawable child : getContents()) {
+			if (child == null) break;
+			
 			result.add(child);
 			if (child instanceof ILayer) {
 				IDrawable[] subContents = ((ILayer)child).getContentsRecursive();

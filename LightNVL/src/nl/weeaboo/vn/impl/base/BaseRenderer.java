@@ -100,21 +100,17 @@ public abstract class BaseRenderer implements IRenderer {
 		//Setup clipping/translate
 		final Rect2D bounds = layer.getBounds();
 		final Rect2D layerClip2D;
-		if (bounds == null) {
-			layerClip2D = parentClip2D;
-		} else {
-			double bx0 = bounds.x * env.scale;
-			double by0 = bounds.y * env.scale;
-			double bx1 = (bounds.x+bounds.w) * env.scale;
-			double by1 = (bounds.y+bounds.h) * env.scale;
+		double bx0 = bounds.x * env.scale;
+		double by0 = bounds.y * env.scale;
+		double bx1 = (bounds.x+bounds.w) * env.scale;
+		double by1 = (bounds.y+bounds.h) * env.scale;
 
-			layerClip2D = new Rect2D(
-				parentClip2D.x + Math.max(0, Math.min(parentClip2D.w, bx0)),
-				parentClip2D.y + Math.max(0, Math.min(parentClip2D.h, parentClip2D.h-by1)),
-				Math.max(0, Math.min(parentClip2D.w-bx0, bx1-bx0)),
-				Math.max(0, Math.min(parentClip2D.h-by0, by1-by0))
-			);
-		}		
+		layerClip2D = new Rect2D(
+			parentClip2D.x + Math.max(0, Math.min(parentClip2D.w, bx0)),
+			parentClip2D.y + Math.max(0, Math.min(parentClip2D.h, parentClip2D.h-by1)),
+			Math.max(0, Math.min(parentClip2D.w-bx0, bx1-bx0)),
+			Math.max(0, Math.min(parentClip2D.h-by0, by1-by0))
+		);
 		final Rect layerClip = roundClipRect(layerClip2D);
 		
 		setClipRect(layerClip);

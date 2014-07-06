@@ -149,7 +149,7 @@ public abstract class TextureTextRenderer<L> extends AbstractTextRenderer<L> {
 		int lw = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutWidth()));
 		int lh = Math.max(1, 2*PAD + (int)Math.ceil(getLayoutHeight()));
 		int lwMax = Math.max(lw, 2*PAD + (int)Math.ceil(getMaxWidth() * getDisplayScale()));
-		int lhMax = Math.max(lh, 2*PAD + (int)Math.ceil(getLayoutMaxHeight()));
+		int lhMax = Math.max(lh, 2*PAD + getLayoutMaxHeight());
 		boolean textureOK = texture != null //Texture exists
 			&& textureW >= lw && textureH >= lh //Texture not too small
 			&& textureW <= lwMax && textureH <= lhMax; //Texture not pointlessly large

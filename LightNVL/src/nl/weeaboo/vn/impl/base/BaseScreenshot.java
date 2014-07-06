@@ -16,7 +16,7 @@ public abstract class BaseScreenshot implements IScreenshot {
 	
 	private boolean cancelled;	
 	private transient int[] pixels;
-	private int pixelsWidth, pixelsHeight;;
+	private int pixelsWidth, pixelsHeight;
 	private transient ITexture volatilePixels;
 	private int screenWidth, screenHeight;
 	protected boolean isAvailable;

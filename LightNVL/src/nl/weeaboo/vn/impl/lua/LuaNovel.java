@@ -123,7 +123,8 @@ public abstract class LuaNovel extends BaseNovel {
 	private LuaFunctionLink mainThread;
 	private LuaUserdata mainThreadUserdata;
 	private LuaLinkedProperties linkedProperties;
-	private PrefsMetaFunction prefsGetterFunction, prefsSetterFunction;
+	private PrefsMetaFunction prefsGetterFunction;
+	private PrefsMetaFunction prefsSetterFunction;
 	private LuaEventHandler eventHandler;
 	
 	private transient IConfig prefs;
@@ -186,7 +187,7 @@ public abstract class LuaNovel extends BaseNovel {
 		reset();
 		
 		String[] prefsClasses = {NovelPrefs.class.getName(), "nl.weeaboo.vn.vnds.VNDSUtil"};
-		prefsGetterFunction = new PrefsMetaFunction(false, prefsClasses);
+		prefsGetterFunction = new PrefsMetaFunction(getNotifier(), false, prefsClasses);
 		//prefsSetterFunction = new PrefsMetaFunction(true, prefsClasses);
 		
 		onPrefsChanged(prefs);
@@ -254,6 +255,10 @@ public abstract class LuaNovel extends BaseNovel {
 		for (int n = 0; n < luaInitializersLen; n++) {
 			luaInitializers.add((LuaInitializer)in.readObject());
 		}
+		
+		prefsGetterFunction = (PrefsMetaFunction)in.readObject();
+		prefsSetterFunction = (PrefsMetaFunction)in.readObject();
+		eventHandler = (LuaEventHandler)in.readObject();
 	}
 	
 	@Override
@@ -281,6 +286,10 @@ public abstract class LuaNovel extends BaseNovel {
 		for (LuaInitializer li : luaInitializers) {
 			out.writeObject(li);
 		}
+		
+		out.writeObject(prefsGetterFunction);
+		out.writeObject(prefsSetterFunction);
+		out.writeObject(eventHandler);
 	}
 	
 	protected InputStream compileScriptFile(String filename, InputStream in, long modificationTime)
@@ -596,39 +605,38 @@ public abstract class LuaNovel extends BaseNovel {
 	}
 	
 	@Override
-	public void onPrefsChanged(IConfig config) {
-		if (config == null) {
-			return;
-		}
+	public void onPrefsChanged(IConfig c) {
+		if (c == null) throw new IllegalArgumentException("Config may not be null");
 		
-		prefs = config;
+		prefs = c;
+		
 		if (prefsGetterFunction != null) {
-			prefsGetterFunction.setPrefs(config);
+			prefsGetterFunction.setPrefs(prefs);
 		}
 		if (prefsSetterFunction != null) {
-			prefsSetterFunction.setPrefs(config);
+			prefsSetterFunction.setPrefs(prefs);
 		}
 
-		super.onPrefsChanged(config);		
+		super.onPrefsChanged(prefs);		
 		
-		int fps = config.get(FPS);
+		int fps = prefs.get(FPS);
 				
 		try {
-			setScriptDebug(config.get(SCRIPT_DEBUG));
-			setAutoRead(config.get(AUTO_READ), fps * config.get(AUTO_READ_WAIT) / 1000);
+			setScriptDebug(prefs.get(SCRIPT_DEBUG));
+			setAutoRead(prefs.get(AUTO_READ), fps * prefs.get(AUTO_READ_WAIT) / 1000);
 		} catch (LuaException le) {
 			onScriptError(le);
 		}
 		
 		BaseScriptLib scriptLib = getScriptLib();
 		if (scriptLib != null) {
-			scriptLib.setEngineVersion(config.get(ENGINE_TARGET_VERSION));
+			scriptLib.setEngineVersion(prefs.get(ENGINE_TARGET_VERSION));
 		}
 		
 		LuaMediaPreloader preloader = getPreloader();
 		if (preloader != null) {
-			preloader.setLookAhead(config.get(PRELOADER_LOOK_AHEAD));
-			preloader.setMaxItemsPerLine(config.get(PRELOADER_MAX_PER_LINE));
+			preloader.setLookAhead(prefs.get(PRELOADER_LOOK_AHEAD));
+			preloader.setMaxItemsPerLine(prefs.get(PRELOADER_MAX_PER_LINE));
 		}
 		
 		if (luaRunning) {
@@ -753,15 +761,19 @@ public abstract class LuaNovel extends BaseNovel {
 	@LuaSerializable
 	private static class PrefsMetaFunction extends VarArgFunction implements Serializable {
 		
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 2L;
 		
+		private final INotifier notifier;
 		private final String[] preferenceHolderClasses;
 		private final boolean set;
 		
 		private transient IConfig prefs;
 		private transient Map<String, Preference<?>> all;
 		
-		public PrefsMetaFunction(boolean setter, String... preferenceHolders) {			
+		public PrefsMetaFunction(INotifier ntf, boolean setter, String... preferenceHolders) {
+			if (ntf == null) throw new IllegalArgumentException("Notifier must not be null");
+			
+			notifier = ntf;
 			set = setter;
 
 			preferenceHolderClasses = new String[preferenceHolders.length];
@@ -783,6 +795,7 @@ public abstract class LuaNovel extends BaseNovel {
 			
 			int m = Modifier.PUBLIC | Modifier.STATIC;
 			for (String className : preferenceHolderClasses) {
+				notifier.d("Registering preferences for class: " + className);
 				try {
 					Class<?> clazz = Class.forName(className);
 					for (Field field : clazz.getFields()) {
@@ -799,29 +812,32 @@ public abstract class LuaNovel extends BaseNovel {
 										key = key.substring(5); //Remove "vnds." prefix
 									}
 									all.put(key, pref);
+									notifier.d("Registered preference in Lua: " + key);
 								}
 							} catch (IllegalArgumentException e) {
-								//Too bad...
+								notifier.d("Error retrieving attribute from preference holder: " + field, e);
 							} catch (IllegalAccessException e) {
-								//Too bad...
+								notifier.d("Error retrieving attribute from preference holder: " + field, e);
 							}
 						}
 					}		
 				} catch (ClassNotFoundException cnfe) {
-					//Ignore
+					notifier.w("Error loading preference holder class: " + className, cnfe);
 				}
 			}
 		}
 		
 		@Override
 		public Varargs invoke(Varargs args) {
-			String key = args.tojstring(2);			
+			String key = args.tojstring(2);
 			if (prefs == null) {
+				notifier.d("Lua code tries to access preference while preferences are not yet available, key=" + key);
 				return NIL;
 			}
 			
 			Preference<?> pref = all.get(key);
 			if (pref == null) {
+				notifier.d("Lua code tries to access non-existent preference, key=" + key);
 				return NIL;
 			}
 			
@@ -838,8 +854,12 @@ public abstract class LuaNovel extends BaseNovel {
 			prefs.set(pref, CoerceLuaToJava.coerceArg(val, pref.getType()));
 		}
 		
-		public void setPrefs(IConfig p) {
-			prefs = p;
+		public void setPrefs(IConfig c) {
+			if (c == null) throw new IllegalArgumentException("Config must not be null");
+			
+			notifier.d("Installing preferences in PrefsMetaFunction (" + this + ")");
+			
+			prefs = c;
 		}
 		
 	}

@@ -51,8 +51,6 @@ public class LuaEventHandler implements Serializable {
 	}
 	
 	private void flushEvent(LuaLink mainThread, Event e) throws LuaException {
-		System.out.println("ABC");
-		
 		if (e.func instanceof LuaClosure) {
 			mainThread.pushCall((LuaClosure)e.func, e.args);
 		} else {

@@ -615,6 +615,7 @@ module("vn", package.seeall)
 local submodules = {
 	"anim",
 	"gui",
+	"gui2",
 	"image",
 	"imagefx",
 	"save",

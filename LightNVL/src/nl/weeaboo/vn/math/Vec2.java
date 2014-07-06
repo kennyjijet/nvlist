@@ -8,7 +8,7 @@ import java.io.ObjectOutput;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
 @LuaSerializable
-public final class Vec2 implements Externalizable {
+public final class Vec2 implements Cloneable, Externalizable {
 
 	public double x, y;
 	
