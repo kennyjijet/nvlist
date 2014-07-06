@@ -141,7 +141,7 @@ public class Build {
 	}
 	
 	public static void createEmptyProject(File engineFolder, File projectFolder) throws IOException {
-		createEmptyProject(engineFolder, projectFolder);
+		createEmptyProject(engineFolder, projectFolder, null);
 	}
 	public static void createEmptyProject(File engineFolder, File projectFolder, FileCopyListener cl)
 			throws IOException

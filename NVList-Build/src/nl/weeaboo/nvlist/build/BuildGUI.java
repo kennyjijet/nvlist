@@ -209,7 +209,7 @@ public class BuildGUI extends LogoPanel {
 					public void onProgress(File file, long written, long total) {
 						if (batchTotal > 0) {
 							progress = batchWritten + written;
-							setProgress(Math.max(0, Math.min(100, Math.round(100 * progress / batchTotal))));
+							setProgress(Math.max(0, Math.min(100, Math.round(100f * progress / batchTotal))));
 						}
 					}
 					

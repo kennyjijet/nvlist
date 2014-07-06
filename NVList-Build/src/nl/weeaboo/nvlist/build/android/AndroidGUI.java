@@ -177,6 +177,7 @@ public class AndroidGUI extends LogoPanel {
 			while (e != null) {
 				if (sb.length() > 0) sb.append(" :: ");
 				sb.append(e.toString());
+				e = e.getCause();
 			}
 			AwtUtil.showError(sb.toString());
 		}
