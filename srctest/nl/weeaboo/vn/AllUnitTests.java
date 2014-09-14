@@ -9,6 +9,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	BaseEntityTest.class,
+	DistortGridTest.class,
 	MathTest.class,
 	ScreenshotTest.class,
 	ScreenTest.class})

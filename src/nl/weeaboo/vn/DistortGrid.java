@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import nl.weeaboo.lua2.io.LuaSerializable;
 
+/**
+ * Represents a two-dimensional {@code (width, height)} grid of X/Y offsets.
+ */
 @LuaSerializable
 public final class DistortGrid implements Serializable {
 
@@ -27,6 +30,7 @@ public final class DistortGrid implements Serializable {
 	}
 
 	private DistortGrid(DistortGrid other) {
+		sharedBuffer = true;
 		other.sharedBuffer = true;
 		data = other.data;
 		width = other.width;
@@ -44,6 +48,9 @@ public final class DistortGrid implements Serializable {
 	}
 
 	//Getters
+	/**
+	 * @return The stored X-offset, or {@code 0} if the given {@code (x, y)} coordinate is out of bounds.
+	 */
 	public float getDistortX(int x, int y) {
 		if (x < 0 || y < 0 || x > width || y > height) {
 			return 0;
@@ -51,6 +58,9 @@ public final class DistortGrid implements Serializable {
 		return data[y * scansize + x * 2];
 	}
 
+	/**
+	 * @return The stored X-offset, or {@code 0} if the given {@code (x, y)} coordinate is out of bounds.
+	 */
 	public float getDistortY(int x, int y) {
 		if (x < 0 || y < 0 || x > width || y > height) {
 			return 0;
@@ -67,7 +77,17 @@ public final class DistortGrid implements Serializable {
 	}
 
 	//Setters
+	/**
+	 * Sets the XY-offset for the given grid position.
+	 * 
+	 * @throws ArrayIndexOutOfBoundsException If the given coordinates are outside the bounds of this distort
+	 *         grid.
+	 */
 	public void setDistort(int x, int y, float dx, float dy) {
+		if (x < 0 || y < 0 || x >= width || y >= height) {
+			throw new ArrayIndexOutOfBoundsException("(" + x + ", " + y + ")");
+		}
+
 		if (sharedBuffer) {
 			float[] oldData = data;
 			data = new float[getRequiredElements(width, height)];
