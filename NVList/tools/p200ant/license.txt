@@ -1,2 +1,0 @@
-Source: http://www.matthiasmann.de/content/view/20/26/
-License: BSD

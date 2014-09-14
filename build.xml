@@ -1,0 +1,140 @@
+<project name="LightNVL2" basedir="." default="main">
+
+<!-- Initialize Properties -->
+	
+  <property name="build.sysclasspath" value="ignore"/>
+  <property name="project-name" value="lightnvl2"/>
+  <property name="vnds-files" value="**/vnds/**"/>
+  
+  <path id="classpath">
+    <fileset dir="." includes="lib/**/*.jar" />
+  </path>
+
+  <pathconvert property="jar-classpath-raw" pathsep=" " dirsep="/" refid="classpath">
+    <map from="${basedir}/" to="" />
+  </pathconvert>
+  <property name="jar-classpath" value=". ${jar-classpath-raw}" />
+
+<!-- Macros -->
+  
+  <macrodef name="luadoc">
+    <attribute name="scriptdir" default="script" />
+    <attribute name="outputdir" default="doc/script-reference" />
+
+    <sequential>
+      <mkdir dir="script-temp"/>
+      <copy todir="script-temp">
+        <fileset dir="@{scriptdir}" excludes="${vnds-files}" />
+      </copy>
+    
+      <delete dir="@{outputdir}" />
+      <mkdir dir="@{outputdir}" />
+      <exec executable="lua">
+        <arg value="tools/ldoc/ldoc.lua"/>
+        <arg line="-d @{outputdir} --config tools/ldoc-config/config.ld script-temp/"/>
+      </exec>
+      
+      <copy todir="@{outputdir}" file="tools/ldoc-config/logo.png" />
+      <delete dir="script-temp"/>
+    </sequential>
+  </macrodef>
+  
+<!-- Targets -->
+
+  <target name="clean-jar">
+    <delete file="${project-name}*.jar" quiet="true"/>
+    <delete file="vnds.jar" quiet="true"/>
+  </target>
+
+  <target name="clean" depends="clean-jar">
+    <delete dir="bin"/>
+    <delete dir="doc"/>
+    <delete dir="script-temp"/>
+    <delete file="documentation.zip"/>
+  </target>
+
+  <target name="compile">  
+    <mkdir dir="bin"/>
+
+    <javac srcdir="src" destdir="bin"
+      source="1.6" target="1.6"
+      encoding="UTF-8" debug="true" includeantruntime="false">
+      
+      <classpath refid="classpath" />
+    </javac>
+
+    <!-- Copy resources (embedded images, scripts, etc.) to bin dir -->
+    <copy todir="bin" overwrite="true">
+      <fileset dir="src" excludes="**/*.java" />
+    </copy>
+    <copy todir="bin/script" overwrite="true">
+      <fileset dir="script" />
+    </copy>
+    
+    <!-- Compile Lua scripts to /bin -->
+    <echo>Compiling Lua</echo>
+    <apply executable="java" dir="bin/script" relative="true" forwardslash="true"
+        force="true" verbose="true" parallel="true" failonerror="true">
+      
+      <arg value="-jar"/>
+      <arg value="${basedir}/lib/luajpp2.jar"/>
+      <arg value="-w"/>
+
+      <fileset dir="bin/script" includes="**/*.lua" />
+      <identitymapper />
+    </apply> 
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${project-name}.jar" basedir="bin" includes="**" excludes="${vnds-files}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+      </manifest>
+    </jar>    
+    <zip destfile="vnds.jar" basedir="bin" includes="${vnds-files}">
+      <fileset dir="res-vnds" />
+    </zip>
+  </target>
+  	
+  <target name="ldoc">
+    <mkdir dir="doc"/>
+    <luadoc />
+  </target>
+    
+  <target name="doc">
+    <mkdir dir="doc"/>    
+    <delete dir="doc/engine-internals"/>
+    
+    <javadoc destdir="doc/engine-internals" classpathref="classpath"
+        noindex="true" encoding="UTF-8" additionalparam="-notimestamp">
+        
+      <fileset dir="src" includes="**/*.java" excludes="${vnds-files}" />
+      <link href="http://java.sun.com/javase/6/docs/api/" />
+    </javadoc>
+  	    
+    <luadoc />
+    
+  	<delete file="documentation.zip" />
+    <zip destfile="documentation.zip" update="true">
+      <mappedresources>
+        <fileset dir="manual"/>
+        <globmapper from="*" to="documentation/manual/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="doc/engine-internals"/>
+        <globmapper from="*" to="documentation/engine-internals/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="doc/script-reference"/>
+        <globmapper from="*" to="documentation/script-reference/*"/>
+      </mappedresources>
+      <mappedresources>
+        <fileset dir="script" excludes="${vnds-files}"/>
+        <globmapper from="*" to="documentation/script-sourcecode/*"/>
+      </mappedresources>
+    </zip>    
+  </target>
+    
+  <target name="main" depends="jar"/>
+
+</project>

@@ -1,7 +1,0 @@
-
-The 'movie' function can be used to play a video.
-
-@movie("videoclip")
-
-Finished playing video.
-
