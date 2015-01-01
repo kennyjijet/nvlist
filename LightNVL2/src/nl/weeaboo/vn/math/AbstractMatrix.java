@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import nl.weeaboo.common.FastMath;
+import nl.weeaboo.common.StringUtil;
 
 abstract class AbstractMatrix implements Serializable {
 
@@ -41,7 +42,7 @@ abstract class AbstractMatrix implements Serializable {
 
 	@Override
 	public String toString() {
-		return String.format("%s[%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]",
+		return String.format(StringUtil.LOCALE, "%s[%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]",
 				getClass().getSimpleName(), m00, m01, m02, m10, m11, m12);
 	}
 

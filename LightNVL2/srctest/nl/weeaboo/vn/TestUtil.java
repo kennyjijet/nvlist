@@ -2,6 +2,7 @@ package nl.weeaboo.vn;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,12 +13,16 @@ import java.util.logging.LogManager;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.filesystem.IFileSystem;
+import nl.weeaboo.filesystem.LocalFileSystem;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.vn.impl.ImagePart;
 import nl.weeaboo.vn.impl.RenderEnv;
+import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.impl.TransformablePart;
 import nl.weeaboo.vn.math.Vec2;
+import nl.weeaboo.vn.script.IScriptContext;
 
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -33,6 +38,16 @@ public final class TestUtil {
 	private TestUtil() {
 	}
 
+	public static Screen newScreen(TestPartRegistry pr, Scene scene) {
+        int w = BASIC_ENV.getWidth();
+        int h = BASIC_ENV.getHeight();
+	    return new Screen(scene, new Rect2D(0, 0, w, h), pr.drawable, BASIC_ENV);
+	}
+
+	public static IScriptContext newScriptContext() {
+	    return null;
+	}
+
 	public static Entity newImage(TestPartRegistry pr, Scene scene) {
 		TransformablePart transformable = new TransformablePart();
 		ImagePart image = new ImagePart(transformable);
@@ -42,6 +57,10 @@ public final class TestUtil {
 		e.setPart(pr.transformable, transformable);
 		e.setPart(pr.image, image);
 		return e;
+	}
+
+	public static IFileSystem newReadOnlyFileSystem() {
+	    return new LocalFileSystem(new File("res/"), true);
 	}
 
 	public static void configureLogger() {

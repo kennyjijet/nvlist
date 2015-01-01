@@ -32,8 +32,7 @@ public class AwtRendererTest {
 		final TestPartRegistry pr = new TestPartRegistry();
 		World world = new World(pr);
 		Scene scene = world.createScene();
-		Rect2D screenBounds = new Rect2D(0, 0, env.getWidth(), env.getHeight());
-		final Screen screen = new Screen(scene, screenBounds, pr.drawable, env);
+		final Screen screen = TestUtil.newScreen(pr, scene);
 
 		Random random = new Random();
 

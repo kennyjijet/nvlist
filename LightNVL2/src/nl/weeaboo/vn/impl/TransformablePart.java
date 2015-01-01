@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl;
 
+import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.AlignUtil;
@@ -44,7 +45,7 @@ public class TransformablePart extends DrawablePart implements ITransformablePar
 			mm.translate(dx, dy);
 			transform = mm.immutableCopy();
 		}
-		return new Polygon(transform, 0, 0, getUnscaledWidth(), getUnscaledHeight());
+		return Polygon.rotatedRect(transform, 0, 0, getUnscaledWidth(), getUnscaledHeight());
 	}
 
 	protected void invalidateCollisionShape() {
@@ -195,8 +196,8 @@ public class TransformablePart extends DrawablePart implements ITransformablePar
 
 	@Override
 	public void setScale(double sx, double sy) {
-		BaseImpl.checkRange(sx, "sx");
-		BaseImpl.checkRange(sy, "sy");
+	    Checks.checkRange(sx, "sx");
+	    Checks.checkRange(sy, "sy");
 
 		super.setSize(sx * getUnscaledWidth(), sy * getUnscaledHeight());
 	}

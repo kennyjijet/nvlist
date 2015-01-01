@@ -102,21 +102,8 @@ public class Layer implements ILayer, ILayerHolder {
 
 	@Override
 	public void add(Entity e) {
-		DrawablePart part = e.getPart(drawablePart);
-		Layer oldLayer = part.parentLayer;
-
 		e.moveToScene(scene);
-		part.parentLayer = this;
-
-		if (oldLayer != null) {
-			oldLayer.invalidateStreams();
-		}
-		invalidateStreams();
-	}
-
-	@Override
-	public void clearContents() {
-		scene.clear();
+		DrawablePart.moveToLayer(e.getPart(drawablePart), this);
 	}
 
 	@Override
@@ -177,6 +164,11 @@ public class Layer implements ILayer, ILayerHolder {
 				subLayer.draw(buffer, baseSubLayerId+n);
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+	    return String.format("Layer(%08x)", hashCode());
 	}
 
 	//Getters

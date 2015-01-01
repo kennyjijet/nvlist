@@ -4,8 +4,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Arrays;
 
 import nl.weeaboo.common.FastMath;
+import nl.weeaboo.common.StringUtil;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
 @LuaSerializable
@@ -45,13 +47,13 @@ public final class Vec2 implements Cloneable, Externalizable {
 
 	@Override
 	public String toString() {
-		return String.format("%s[%.2f, %.2f]",
+		return String.format(StringUtil.LOCALE, "%s[%.2f, %.2f]",
 				getClass().getSimpleName(), x, y);
 	}
 
 	@Override
 	public int hashCode() {
-		return (int)(Double.doubleToLongBits(x) ^ Double.doubleToLongBits(y));
+	    return Arrays.hashCode(new double[] {x, y});
 	}
 
 	@Override

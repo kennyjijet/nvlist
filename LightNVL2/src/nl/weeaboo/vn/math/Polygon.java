@@ -15,9 +15,6 @@ public class Polygon implements IShape, Serializable {
 	private final double[] pointsY;
 	private final Rect2D bounds;
 
-	public Polygon(Matrix transform, double x, double y, double w, double h) {
-		this(coords(transform, x, y, w, h));
-	}
 	public Polygon(double... coords) {
 		this(xcoords(coords), ycoords(coords));
 	}
@@ -50,13 +47,13 @@ public class Polygon implements IShape, Serializable {
 	}
 
 	//Functions
-	private static double[] coords(Matrix transform, double x, double y, double w, double h) {
+	public static Polygon rotatedRect(Matrix transform, double x, double y, double w, double h) {
 		Vec2 p0 = transform.transform(x,   y  );
 		Vec2 p1 = transform.transform(x+w, y  );
 		Vec2 p2 = transform.transform(x+w, y+h);
 		Vec2 p3 = transform.transform(x,   y+h);
 
-		return new double[] { p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y };
+		return new Polygon(new double[] { p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y });
 	}
 	private static double[] xcoords(double[] coords) {
 		double[] result = new double[coords.length/2];

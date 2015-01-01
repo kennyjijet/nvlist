@@ -64,8 +64,6 @@ public final class AlignUtil {
 		Vec2 p = new Vec2(alignAnchorX(base.w, 0, anchor), alignAnchorY(base.h, 0, anchor));
 		Vec2 offset = new Vec2(alignAnchorX(w, 0, anchor), alignAnchorY(h, 0, anchor));
 
-		//System.out.println(base + " " + p + " " + offset);
-
 		offset.x -= p.x + base.x;
 		if (w != 0) offset.x /= w;
 

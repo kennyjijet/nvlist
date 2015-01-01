@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
 import nl.weeaboo.vn.awt.AwtDecodingScreenshot;
@@ -94,7 +93,7 @@ public class ScreenshotTest {
 		World world = new World(pr);
 		Scene scene = world.createScene();
 
-		Screen screen = new Screen(scene, new Rect2D(0, 0, 800, 600), pr.drawable, TestUtil.BASIC_ENV);
+		Screen screen = TestUtil.newScreen(pr, scene);
 		ILayer root = screen.getRootLayer();
 
 		WritableScreenshot s = new WritableScreenshot((short)0, false);

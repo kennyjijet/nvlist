@@ -28,14 +28,17 @@ public final class MutableMatrix extends AbstractMatrix {
 		m00 += m.m00; m01 += m.m01; m02 += m.m02;
 		m10 += m.m10; m11 += m.m11; m12 += m.m12;
 	}
+
 	public void sub(AbstractMatrix m) {
 		m00 -= m.m00; m01 -= m.m01; m02 -= m.m02;
 		m10 -= m.m10; m11 -= m.m11; m12 -= m.m12;
 	}
+
 	public void mul(double s) {
 		m00 *= s; m01 *= s; m02 *= s;
 		m10 *= s; m11 *= s; m12 *= s;
 	}
+
 	public void mul(AbstractMatrix m) {
 		double r00 = m00 * m.m00 + m01 * m.m10;
 		double r01 = m00 * m.m01 + m01 * m.m11;
@@ -53,6 +56,7 @@ public final class MutableMatrix extends AbstractMatrix {
 		m02 += x * m00 + y * m01;
 		m12 += x * m10 + y * m11;
 	}
+
     public void rotate(double angle) {
 		double cos = fastCos((float)angle);
 		double sin = fastSin((float)angle);
@@ -69,12 +73,12 @@ public final class MutableMatrix extends AbstractMatrix {
 		m10 = a;
 		m11 = b;
     }
-    public void scale(double s) {
-    	scale(s, s);
-    }
+
     public void scale(double sx, double sy) {
     	m00 *= sx;
-    	m11 *= sy;
+    	m10 *= sx;
+        m11 *= sy;
+        m01 *= sy;
     }
 
 	//Getters
@@ -85,19 +89,13 @@ public final class MutableMatrix extends AbstractMatrix {
 		return new MutableMatrix(1, 0, x, 0, 1, y);
 	}
 	public static MutableMatrix scaleMatrix(double x, double y) {
-		return new MutableMatrix(1, 0, x, 0, 1, y);
+		return new MutableMatrix(x, 0, 0, 0, y, 0);
 	}
 	public static MutableMatrix rotationMatrix(double angle) {
 		double cos = fastCos((float)angle);
 		double sin = fastSin((float)angle);
 
 		return new MutableMatrix(cos, -sin, 0, sin, cos, 0);
-	}
-
-	//Setters
-	public void setTranslation(double tx, double ty) {
-		m02 = tx;
-		m12 = ty;
 	}
 
 }

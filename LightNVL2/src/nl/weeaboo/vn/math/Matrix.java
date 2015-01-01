@@ -48,12 +48,19 @@ public final class Matrix extends AbstractMatrix {
 			m10 * m.m02 + m11 * m.m12 + m12);
 	}
 
+	/**
+	 * @return {@code this} * {@link Matrix#translationMatrix(double, double)}
+	 */
 	public Matrix translatedCopy(double x, double y) {
 		return new Matrix(
 			m00, m01, x * m00 + y * m01 + m02,
 			m10, m11, x * m10 + y * m11 + m12);
 	}
-    public Matrix rotatedCopy(double angle) {
+
+    /**
+     * @return {@code this} * {@link Matrix#rotationMatrix(double)}
+     */
+	public Matrix rotatedCopy(double angle) {
 		double cos = fastCos((float)angle);
 		double sin = fastSin((float)angle);
 
@@ -61,10 +68,14 @@ public final class Matrix extends AbstractMatrix {
     		cos * m00 + sin * m01, -sin * m00 + cos * m01, m02,
     		cos * m10 + sin * m11, -sin * m10 + cos * m11, m12);
     }
-    public Matrix scaledCopy(double sx, double sy) {
+
+    /**
+     * @return {@code this} * {@link Matrix#scaledCopy(double, double)}
+     */
+	public Matrix scaledCopy(double sx, double sy) {
     	return new Matrix(
-    		m00 * sx, m01, m02,
-    		m10, m11 * sy, m12);
+    		m00 * sx, m01 * sy, m02,
+    		m10 * sx, m11 * sy, m12);
     }
 
     @Override
@@ -86,10 +97,10 @@ public final class Matrix extends AbstractMatrix {
 		return new Matrix(1, 0, x, 0, 1, y);
 	}
 	public static Matrix scaleMatrix(double x, double y) {
-		if (x == 0 && y == 0) {
+		if (x == 1 && y == 1) {
 			return IDENTITY_MATRIX;
 		}
-		return new Matrix(1, 0, x, 0, 1, y);
+		return new Matrix(x, 0, 0, 0, y, 0);
 	}
 	public static Matrix rotationMatrix(double angle) {
 		if (angle == 0) {

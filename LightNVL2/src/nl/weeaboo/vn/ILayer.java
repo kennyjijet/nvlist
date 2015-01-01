@@ -2,24 +2,7 @@ package nl.weeaboo.vn;
 
 import java.io.Serializable;
 
-import nl.weeaboo.game.entity.Entity;
-
-public interface ILayer extends IDestructible, IRenderable, Serializable {
-
-	/**
-	 * Attaches the specified entity to this layer and removes it from its old layer.
-	 */
-	public void add(Entity e);
-
-	/**
-	 * Removes all entities from this layer.
-	 */
-	public void clearContents();
-
-	/**
-	 * @return {@code true} if the specified entity is currently attached to this layer.
-	 */
-	public boolean contains(Entity e);
+public interface ILayer extends IDestructible, IEntityContainer, IRenderable, Serializable {
 
 	/**
 	 * @return {@code true} if the specified layer is a descendant of this layer.

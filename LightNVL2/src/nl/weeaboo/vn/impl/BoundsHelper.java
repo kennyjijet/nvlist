@@ -2,6 +2,7 @@ package nl.weeaboo.vn.impl;
 
 import java.io.Serializable;
 
+import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.lua2.io.LuaSerializable;
 
@@ -39,8 +40,8 @@ class BoundsHelper implements Serializable {
 
 	// Setters
 	public void setPos(double x, double y) {
-		BaseImpl.checkRange(x, "x");
-		BaseImpl.checkRange(y, "y");
+		Checks.checkRange(x, "x");
+		Checks.checkRange(y, "y");
 
 		if (this.x != x || this.y != y) {
 			this.x = x;
@@ -51,8 +52,8 @@ class BoundsHelper implements Serializable {
 	}
 
 	public void setSize(double w, double h) {
-		BaseImpl.checkRange(w, "w", 0);
-		BaseImpl.checkRange(h, "h", 0);
+	    Checks.checkRange(w, "w", 0);
+	    Checks.checkRange(h, "h", 0);
 
 		if (this.w != w || this.h != h) {
 			this.w = w;

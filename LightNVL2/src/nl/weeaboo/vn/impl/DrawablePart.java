@@ -13,12 +13,16 @@ import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.entity.IDrawablePart;
 import nl.weeaboo.vn.math.Matrix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @LuaSerializable
 public class DrawablePart extends Part implements IDrawablePart, Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final Logger LOG = LoggerFactory.getLogger(DrawablePart.class);
 
-	Layer parentLayer;
+	private Layer parentLayer;
 
 	private final BoundsHelper boundsHelper = new BoundsHelper();
 	private boolean visible = true;
@@ -71,6 +75,24 @@ public class DrawablePart extends Part implements IDrawablePart, Serializable {
 	}
 
 	protected void onRenderEnvChanged() {
+	}
+
+	public static void moveToLayer(DrawablePart part, Layer newLayer) {
+		if (part == null) {
+			return;
+		}
+
+		Layer oldLayer = part.parentLayer;
+		part.parentLayer = newLayer;
+
+		if (oldLayer != null) {
+			oldLayer.invalidateStreams();
+		}
+		if (newLayer != null) {
+			newLayer.invalidateStreams();
+		}
+
+		LOG.debug("Moved drawable part: {} -> {}", oldLayer, newLayer);
 	}
 
 	//Getters
