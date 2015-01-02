@@ -10,16 +10,20 @@ public class AwtTexture implements ITexture {
 	private static final long serialVersionUID = 1L;
 
 	private final BufferedImage image;
+	private final int[] argb;
 
 	public AwtTexture(int w, int h) {
-		image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		argb = new int[w * h];
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
 				int r = 64 + 127 * x / (w - 1);
 				int g = 64 + 127 * y / (h - 1);
-				image.setRGB(x, y, 0xFF000000|(r<<16)|(g<<8));
+				argb[y * w + x] = 0xFF000000|(r<<16)|(g<<8);
 			}
 		}
+
+        image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        image.setRGB(0, 0, w, h, argb, 0, w);
 	}
 
 	@Override
@@ -49,6 +53,10 @@ public class AwtTexture implements ITexture {
 
 	public BufferedImage getImage() {
 		return image;
+	}
+
+	public int[] getARGB() {
+	    return argb;
 	}
 
 }

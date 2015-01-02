@@ -80,11 +80,14 @@ public class ImagePart extends Part implements IImagePart {
 	@Override
 	public void setTexture(ITexture i, double imageAlignX, double imageAlignY) {
 		if (texture != i || drawable.getAlignX() != imageAlignX || drawable.getAlignY() != imageAlignY) {
-			texture = i;
+            double sx = drawable.getScaleX();
+            double sy = drawable.getScaleY();
+
+            texture = i;
 
 			markChanged();
 			updateUnscaledSize();
-
+			drawable.setScale(sx, sy); // Maintain relative scale, but not the exact size
 			drawable.setAlign(imageAlignX, imageAlignY);
 		}
 	}

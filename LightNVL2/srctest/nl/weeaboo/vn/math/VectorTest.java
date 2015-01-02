@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class VectorTest {
 
-	private static final double E = MathTestUtil.EPSILON;
+	private static final double E = TestUtil.EPSILON;
 
 	@Test
 	public void vectorTest() {

@@ -2,8 +2,13 @@ package nl.weeaboo.vn.awt;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -23,6 +28,7 @@ import nl.weeaboo.vn.TestUtil;
 import nl.weeaboo.vn.entity.IImagePart;
 import nl.weeaboo.vn.entity.ITransformablePart;
 import nl.weeaboo.vn.impl.Screen;
+import nl.weeaboo.vn.math.Vec2;
 import nl.weeaboo.vn.render.impl.DrawBuffer;
 
 public class AwtRendererTest {
@@ -56,6 +62,7 @@ public class AwtRendererTest {
 
 		final AwtRenderer r = new AwtRenderer(env, null);
 		final RenderPanel renderPanel = new RenderPanel(r, env);
+		final Vec2 baseSpeed = new Vec2(2, 1.5);
 
 		Timer timer = new Timer(10, new ActionListener() {
 
@@ -63,20 +70,30 @@ public class AwtRendererTest {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
+			    Vec2 speed = new Vec2(baseSpeed);
+			    speed.scale(Math.pow(2, renderPanel.speed));
+
+			    Vec2 mp = new Vec2(renderPanel.mousePos.x, renderPanel.mousePos.y);
+                mp.x = (mp.x - env.getRealX()) * env.getWidth() / env.getRealWidth();
+			    mp.y = (mp.y - env.getRealY()) * env.getHeight() / env.getRealHeight();
+
 				for (Entity e : entities) {
 					ITransformablePart tp = e.getPart(pr.transformable);
 					Rect2D r = tp.getBounds();
 
-					double x = tp.getX() + 4;
+					double x = tp.getX() + speed.x;
 					if (x >= env.getWidth() + r.w/2) {
 						x = -r.w / 2;
 					}
-					double y = tp.getY() + 3;
+					double y = tp.getY() + speed.y;
 					if (y >= env.getHeight() + r.h/2) {
 						y = -r.h / 2;
 					}
 					tp.setPos(x, y);
 					tp.setRotation(tp.getRotation() + 1 + .01 * e.getId());
+
+					// Change color on mouse-over
+					tp.setColorRGB(tp.contains(mp.x, mp.y) ? 0xFF0000 : 0xFFFFFF);
 				}
 
 				buf.reset();
@@ -102,10 +119,40 @@ public class AwtRendererTest {
 
 		private final AwtRenderer renderer;
 
+		private Point mousePos = new Point(0, 0);
+		private int speed = 0;
+
 		public RenderPanel(AwtRenderer r, IRenderEnv env) {
 			renderer = r;
 
+			setFocusable(true);
 			setPreferredSize(new Dimension(env.getScreenWidth(), env.getScreenHeight()));
+
+			addMouseMotionListener(new MouseMotionListener() {
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                }
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    mousePos.setLocation(e.getPoint());
+                }
+			});
+
+			addKeyListener(new KeyAdapter() {
+			    @Override
+                public void keyPressed(KeyEvent e) {
+			        switch (e.getKeyCode()) {
+                    case KeyEvent.VK_ADD:
+                        speed++;
+                        break;
+                    case KeyEvent.VK_SUBTRACT:
+                        speed--;
+                        break;
+			        }
+
+			        speed = Math.max(-4, Math.min(4, speed));
+			    }
+			});
 		}
 
 		@Override

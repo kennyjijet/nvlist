@@ -11,7 +11,7 @@ import org.junit.Test;
 public class MatrixTest {
 
     private static final float GL_EPSILON = 0.0001f;
-    private static final double EPSILON = MathTestUtil.EPSILON;
+    private static final double EPSILON = TestUtil.EPSILON;
 
     @Test
     public void equalsTest() {

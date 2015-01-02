@@ -25,4 +25,46 @@ public final class RenderUtil {
 		return new Area2D(texUV.x + uv.x * texUV.w, texUV.y + uv.y * texUV.h, texUV.w * uv.w, texUV.h * uv.h);
 	}
 
+	public static int interpolateColors(int c0, int c1, float w) {
+        if (w >= 1) return c0;
+        if (w <= 0) return c1;
+
+        int a = interpolateColor((c0>>24) & 0xFF, (c1>>24) & 0xFF, w);
+        int r = interpolateColor((c0>>16) & 0xFF, (c1>>16) & 0xFF, w);
+        int g = interpolateColor((c0>>8 ) & 0xFF, (c1>>8 ) & 0xFF, w);
+        int b = interpolateColor((c0    ) & 0xFF, (c1    ) & 0xFF, w);
+        return (a<<24)|(r<<16)|(g<<8)|(b);
+    }
+
+    private static int interpolateColor(int a, int b, float w) {
+        return Math.max(0, Math.min(255, Math.round(b - (b-a) * w)));
+    }
+
+    public static int premultiplyAlpha(int argb) {
+        int a = (argb >> 24) & 0xFF;
+        int r = Math.max(0, Math.min(255, a * ((argb>>16)&0xFF) / 255));
+        int g = Math.max(0, Math.min(255, a * ((argb>> 8)&0xFF) / 255));
+        int b = Math.max(0, Math.min(255, a * ((argb    )&0xFF) / 255));
+        return (a<<24)|(r<<16)|(g<<8)|(b);
+    }
+
+    public static int unPremultiplyAlpha(int argb) {
+        int a = (argb >> 24) & 0xFF;
+        if (a == 0) {
+            return 0;
+        }
+
+        int r = Math.max(0, Math.min(255, 255 * ((argb>>16)&0xFF) / a));
+        int g = Math.max(0, Math.min(255, 255 * ((argb>> 8)&0xFF) / a));
+        int b = Math.max(0, Math.min(255, 255 * ((argb    )&0xFF) / a));
+        return (a<<24)|(r<<16)|(g<<8)|(b);
+    }
+
+    public static int toABGR(int argb) {
+        return (argb&0xFF000000) | ((argb<<16)&0xFF0000) | (argb&0xFF00) | ((argb>>16)&0xFF);
+    }
+    public static int toARGB(int abgr) {
+        return (abgr&0xFF000000) | ((abgr<<16)&0xFF0000) | (abgr&0xFF00) | ((abgr>>16)&0xFF);
+    }
+
 }

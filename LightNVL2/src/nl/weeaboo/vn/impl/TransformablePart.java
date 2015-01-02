@@ -84,13 +84,15 @@ public class TransformablePart extends DrawablePart implements ITransformablePar
 	@Override
 	public double getScaleX() {
 		double uw = getUnscaledWidth();
-		return (uw != 0 ? getWidth() / uw : 0);
+		double w = getWidth();
+		return (uw != 0 ? w / uw : 1);
 	}
 
 	@Override
 	public double getScaleY() {
 		double uh = getUnscaledHeight();
-		return (uh != 0 ? getHeight() / uh : 0);
+		double h = getHeight();
+		return (uh != 0 ? h / uh : 1);
 	}
 
 	@Override

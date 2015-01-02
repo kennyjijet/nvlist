@@ -11,14 +11,14 @@ import nl.weeaboo.styledtext.TextStyle;
 class StyleStack implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
-	private List<TaggedEntry> stack;
+
+	private final List<TaggedEntry> stack;
 	private transient TextStyle calculated;
-	
+
 	public StyleStack() {
 		stack = new ArrayList<TaggedEntry>();
 	}
-	
+
 	//Functions
 	public void clear() {
 		if (!stack.isEmpty()) {
@@ -26,14 +26,14 @@ class StyleStack implements Serializable {
 			onStackChanged();
 		}
 	}
-	
+
 	public void pushWithTag(String tag, TextStyle style) {
 		if (style == null) throw new IllegalArgumentException("Style may not be null");
-		
+
 		stack.add(new TaggedEntry(tag, style));
 		onStackChanged();
 	}
-	
+
 	public boolean popWithTag(String tag) {
 		ListIterator<TaggedEntry> litr = stack.listIterator(stack.size());
 		while (litr.hasPrevious()) {
@@ -46,11 +46,11 @@ class StyleStack implements Serializable {
 		}
 		return false;
 	}
-	
+
 	protected void onStackChanged() {
 		calculated = null;
 	}
-	
+
 	//Getters
 	public TextStyle getCalculatedStyle() {
 		if (calculated == null) {
@@ -62,22 +62,22 @@ class StyleStack implements Serializable {
 		}
 		return calculated;
 	}
-	
+
 	//Setters
-	
+
 	//Inner Classes
 	private static class TaggedEntry implements Serializable {
-		
+
 		private static final long serialVersionUID = 1L;
-		
+
 		final String tag;
 		final TextStyle style;
-		
+
 		public TaggedEntry(String tag, TextStyle style) {
 			this.tag = tag;
 			this.style = style;
 		}
-		
+
 	}
-	
+
 }

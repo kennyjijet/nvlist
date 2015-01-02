@@ -3,6 +3,7 @@ package nl.weeaboo.vn.script.impl;
 import nl.weeaboo.lua2.LuaRunState;
 import nl.weeaboo.lua2.link.LuaFunctionLink;
 import nl.weeaboo.vn.script.IScriptFunction;
+import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 
 import org.luaj.vm2.LuaClosure;
@@ -30,10 +31,14 @@ class LuaScriptFunction implements IScriptFunction {
         }
     }
 
-    LuaScriptThread callInNewThread() throws ScriptException {
+    IScriptThread callInNewThread() throws ScriptException {
         LuaRunState runState = ScriptImpl.getRunState();
         LuaFunctionLink link = new LuaFunctionLink(runState, func, args);
         return new LuaScriptThread(link);
+    }
+
+    protected Varargs getArgs() {
+        return args;
     }
 
 }

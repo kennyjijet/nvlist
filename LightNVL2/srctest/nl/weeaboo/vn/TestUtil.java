@@ -33,7 +33,7 @@ public final class TestUtil {
 	public static final IRenderEnv BASIC_ENV = new RenderEnv(new Dim(1280, 720), new Rect(0, 75, 800, 450), new Dim(800, 600), false);
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestUtil.class);
-	private static final double EPSILON = 0.001;
+	public static final double EPSILON = 0.001;
 
 	private TestUtil() {
 	}

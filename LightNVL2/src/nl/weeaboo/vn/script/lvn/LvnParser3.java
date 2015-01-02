@@ -165,47 +165,6 @@ class LvnParser3 implements ILvnParser {
 		}
 	}
 
-	protected String parseTextTag(String str) throws LvnParseException {
-		String tag = "";
-		int index = ParserUtil.findBlockEnd(str, 0, ' ');
-		if (index > 0) {
-			tag = str.substring(0, index).trim();
-		}
-		boolean isOpenTag = true;
-		if (tag.startsWith("/")) {
-			tag = tag.substring(1);
-			isOpenTag = false;
-		}
-
-		//Call paragraph.tagOpen() for regular tags, paragraph.tagClose() for tags starting with a '/'
-		StringBuilder sb = new StringBuilder();
-		if (isOpenTag) {
-			sb.append("paragraph.tagOpen(\"");
-		} else {
-			sb.append("paragraph.tagClose(\"");
-		}
-		sb.append(escape(tag));
-		sb.append("\"");
-
-		if (isOpenTag) {
-			//Parse list of values aaa,bbb,ccc and pass them to the function as a single Lua table.
-			sb.append(", {");
-			int start = index + 1;
-			while (start < str.length() && (index = ParserUtil.findBlockEnd(str, start, ',')) >= 0) {
-				String valString = unescape(str.substring(start, index).trim());
-				sb.append("\"");
-				sb.append(escape(valString));
-				sb.append("\",");
-
-				start = index + 1;
-			}
-			sb.append("}");
-		}
-
-		sb.append(")");
-		return sb.toString();
-	}
-
 	protected String parseCodeLine(String line) throws LvnParseException {
 		return line.trim();
 	}

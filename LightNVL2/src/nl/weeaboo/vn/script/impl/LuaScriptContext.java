@@ -22,7 +22,8 @@ public class LuaScriptContext implements IScriptContext {
     @Override
     public IScriptThread newThread(IScriptFunction func) throws ScriptException {
         LuaScriptFunction luaFunc = (LuaScriptFunction)func;
-        LuaScriptThread thread = luaFunc.callInNewThread();
+
+        IScriptThread thread = luaFunc.callInNewThread();
         threads.add(thread);
         return thread;
     }

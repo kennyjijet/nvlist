@@ -27,23 +27,7 @@ public class Polygon implements IShape, Serializable {
 		pointsY = new double[points];
 		System.arraycopy(y, 0, pointsY, 0, points);
 
-		double x0 = Double.POSITIVE_INFINITY;
-		double y0 = Double.POSITIVE_INFINITY;
-		double x1 = Double.NEGATIVE_INFINITY;
-		double y1 = Double.NEGATIVE_INFINITY;
-
-		for (int n = 0; n < points; n++) {
-			x0 = Math.min(x0, pointsX[n]);
-			y0 = Math.min(y0, pointsY[n]);
-			x1 = Math.max(x1, pointsX[n]);
-			y1 = Math.max(y1, pointsY[n]);
-		}
-
-		if (Double.isNaN(x0) || Double.isNaN(x1) || Double.isNaN(y0) || Double.isNaN(y1)) {
-			bounds = new Rect2D(0, 0, 0, 0);
-		} else {
-			bounds = new Rect2D(x0, y0, x1-x0, y1-y0);
-		}
+		bounds = calculateBounds(pointsX, pointsY);
 	}
 
 	//Functions
@@ -68,6 +52,26 @@ public class Polygon implements IShape, Serializable {
 			result[d] = coords[s];
 		}
 		return result;
+	}
+
+	public static Rect2D calculateBounds(double[] pointsX, double[] pointsY) {
+        double x0 = Double.POSITIVE_INFINITY;
+        double y0 = Double.POSITIVE_INFINITY;
+        double x1 = Double.NEGATIVE_INFINITY;
+        double y1 = Double.NEGATIVE_INFINITY;
+
+        int pointsCount = Math.min(pointsX.length, pointsY.length);
+        for (int n = 0; n < pointsCount; n++) {
+            x0 = Math.min(x0, pointsX[n]);
+            y0 = Math.min(y0, pointsY[n]);
+            x1 = Math.max(x1, pointsX[n]);
+            y1 = Math.max(y1, pointsY[n]);
+        }
+
+        if (Double.isNaN(x0) || Double.isNaN(x1) || Double.isNaN(y0) || Double.isNaN(y1)) {
+            return new Rect2D(0, 0, 0, 0);
+        }
+        return new Rect2D(x0, y0, x1-x0, y1-y0);
 	}
 
 	@Override

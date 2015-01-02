@@ -27,9 +27,9 @@ public class RuntimeTextParser implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final LuaValue F_STRINGIFY = valueOf("stringify");
-	private static final LuaValue F_TAG_OPEN  = valueOf("textTagOpen");
-	private static final LuaValue F_TAG_CLOSE = valueOf("textTagClose");
+	public static final LuaValue F_STRINGIFY = valueOf("stringify");
+	public static final LuaValue F_TAG_OPEN  = valueOf("textTagOpen");
+	public static final LuaValue F_TAG_CLOSE = valueOf("textTagClose");
 
 	private final LuaValue globals;
 

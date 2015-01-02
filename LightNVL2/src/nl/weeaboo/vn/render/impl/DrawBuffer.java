@@ -122,8 +122,10 @@ public final class DrawBuffer implements IDrawBuffer {
 		Vec2 offset = AlignUtil.getAlignOffset(tex, tp.getAlignX(), tp.getAlignY());
 		Area2D bounds = new Area2D(offset.x, offset.y, tp.getUnscaledWidth(), tp.getUnscaledHeight());
 
-		drawQuad(dp.getZ(), dp.isClipEnabled(), dp.getBlendMode(), dp.getColorARGB(),
-				tex, tp.getTransform(), bounds, ip.getUV());
+        drawQuad(dp.getZ(), dp.isClipEnabled(), dp.getBlendMode(), dp.getColorARGB(),
+                tex, tp.getTransform(), bounds, ip.getUV());
+//            draw(new FadeQuadCommand(dp.getZ(), dp.isClipEnabled(), dp.getBlendMode(), dp.getColorARGB(),
+//                    tex, tp.getTransform(), bounds, ip.getUV(), 6, true, 0.5, 0.5));
 	}
 
 	@Override

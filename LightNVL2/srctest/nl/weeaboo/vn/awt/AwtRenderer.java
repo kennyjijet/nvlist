@@ -2,11 +2,15 @@ package nl.weeaboo.vn.awt;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.RescaleOp;
+import java.awt.image.DataBufferInt;
+import java.nio.FloatBuffer;
 
+import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
@@ -15,6 +19,7 @@ import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.math.Matrix;
+import nl.weeaboo.vn.math.Polygon;
 import nl.weeaboo.vn.render.impl.BaseRenderer;
 import nl.weeaboo.vn.render.impl.BlendQuadCommand;
 import nl.weeaboo.vn.render.impl.DistortQuadCommand;
@@ -31,18 +36,24 @@ public class AwtRenderer extends BaseRenderer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AwtRenderer.class);
 
+    private final AwtFadeQuadRenderer fadeQuadRenderer;
 	private final BufferedImage blankImage;
 
-	private BufferedImage image;
+	private BufferedImage renderBuffer;
 	private Graphics2D graphics;
 	private AffineTransform screenSpaceTransform;
 
 	private int color;
 	private Rect glClipRect;
 	private boolean clipEnabled;
+	private BlendMode blendMode;
+
+	private BufferedImage tempColorizedImage;
 
 	public AwtRenderer(IRenderEnv env, RenderStats stats) {
 		super(env, stats);
+
+		fadeQuadRenderer = new AwtFadeQuadRenderer(this);
 
 		blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
 		blankImage.setRGB(0, 0, 0xFFFFFFFF);
@@ -52,18 +63,20 @@ public class AwtRenderer extends BaseRenderer {
 	protected void renderBegin() {
 		int sw = env.getScreenWidth();
 		int sh = env.getScreenHeight();
-		if (image == null || image.getWidth() != sw || image.getHeight() != sh) {
-			image = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_ARGB);
-			graphics = image.createGraphics();
+		if (renderBuffer == null || renderBuffer.getWidth() != sw || renderBuffer.getHeight() != sh) {
+			renderBuffer = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_ARGB);
+			graphics = renderBuffer.createGraphics();
 			screenSpaceTransform = graphics.getTransform();
 		}
 
+	    graphics.setComposite(toComposite(BlendMode.DEFAULT));
 		graphics.setBackground(Color.BLACK);
 		graphics.clearRect(0, 0, sw, sh);
 
 		color = 0xFFFFFFFF;
 		glClipRect = env.getGLClip();
 		clipEnabled = true;
+		blendMode = BlendMode.DEFAULT;
 		applyClip();
 
 		graphics.setTransform(createBaseTransform(env));
@@ -101,12 +114,26 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	public void renderQuad(QuadRenderCommand qrc) {
-		BufferedImage image = getImage(qrc.tex);
+	    AwtTexture tex = (AwtTexture)qrc.tex;
+	    Image image = getImage(tex);
+		int iw = image.getWidth(null);
+		int ih = image.getHeight(null);
 
-		if (color != 0xFFFFFFFF) {
-			RescaleOp op = new RescaleOp(getRGBA(), new float[] {0, 0, 0, 0}, null);
-			image = op.filter(image, null);
+		int alpha = (qrc.argb >>> 24);
+		if (alpha == 0) {
+		    return; // Transparent, nothing to draw
 		}
+
+		Composite composite = toComposite(blendMode);
+		if (qrc.argb != 0xFFFFFFFF) {
+		    if ((qrc.argb & 0xFFFFFF) == 0xFFFFFF && composite instanceof AlphaComposite) {
+		        // Alpha-only blend
+		        composite = ((AlphaComposite)composite).derive(alpha / 255f);
+		    } else {
+                image = createColorizedTempImage(tex, qrc.argb);
+		    }
+		}
+		graphics.setComposite(composite);
 
 		AffineTransform oldTransform = graphics.getTransform();
 		if (qrc.transform != Matrix.identityMatrix()) {
@@ -118,10 +145,10 @@ public class AwtRenderer extends BaseRenderer {
 		int w = (int)Math.round(qrc.bounds.w);
 		int h = (int)Math.round(qrc.bounds.h);
 
-		int uvx = (int)Math.round(image.getWidth() * qrc.uv.x);
-		int uvy = (int)Math.round(image.getHeight() * qrc.uv.y);
-		int uvw = (int)Math.round(image.getWidth() * qrc.uv.w);
-		int uvh = (int)Math.round(image.getHeight() * qrc.uv.h);
+		int uvx = (int)Math.round(iw * qrc.uv.x);
+		int uvy = (int)Math.round(ih * qrc.uv.y);
+		int uvw = (int)Math.round(iw * qrc.uv.w);
+		int uvh = (int)Math.round(ih * qrc.uv.h);
 
 		graphics.drawImage(image, x, y, x+w, y+h, uvx, uvy, uvx+uvw, uvy+uvh, null);
 
@@ -138,9 +165,11 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	public void renderFadeQuad(FadeQuadCommand fqc) {
-		// TODO Support this properly instead of just rendering a regular quad
-		renderQuad(new QuadRenderCommand(fqc.z, fqc.clipEnabled, fqc.blendMode, fqc.argb,
-				fqc.tex, fqc.transform, fqc.bounds, fqc.uv));
+	    int color0 = fqc.argb;
+	    int color1 = fqc.argb & 0xFFFFFF;
+
+	    fadeQuadRenderer.renderFadeQuad(fqc.tex, fqc.transform, color0, color1, fqc.bounds, fqc.uv,
+	            fqc.dir, fqc.fadeIn, fqc.span, fqc.frac);
 	}
 
 	@Override
@@ -150,7 +179,55 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	public void renderTriangleGrid(TriangleGrid grid) {
-		LOG.warn("Unsupported operation: renderTriangleGrid");
+	    renderTriangleGrid(grid, new ITexture[grid.getTextures()], Matrix.identityMatrix());
+	}
+
+    public void renderTriangleGrid(TriangleGrid grid, ITexture[] textures, Matrix transform) {
+        final int rows = grid.getRows();
+        final int cols = grid.getCols();
+        final int texCount = grid.getTextures();
+        final int verticesPerRow = cols * 2;
+
+        final int vertBytes = verticesPerRow * 2 * 4;
+        final int texcoordBytes = verticesPerRow * 2 * 4;
+
+        FloatBuffer posBuffer = FloatBuffer.allocate(vertBytes);
+        FloatBuffer[] texBuffers = new FloatBuffer[texCount];
+        for (int n = 0; n < texBuffers.length; n++) {
+            texBuffers[n] = FloatBuffer.allocate(texcoordBytes);
+        }
+
+        double[] xCoords = new double[4];
+        double[] yCoords = new double[4];
+        double[] uCoords = new double[4];
+        double[] vCoords = new double[4];
+        for (int row = 0; row < rows; row++) {
+            grid.getVertices(posBuffer, row);
+            posBuffer.rewind();
+            for (int t = 0; t < texCount; t++) {
+                grid.getTexCoords(texBuffers[t], t, row);
+                texBuffers[t].rewind();
+            }
+
+            for (int col = 0; col < cols-1; col++) {
+                for (int n = 0; n < 4; n++) {
+                    xCoords[n] = posBuffer.get(4 * col + 2 * n);
+                    yCoords[n] = posBuffer.get(4 * col + 2 * n + 1);
+                }
+                Area2D r = Polygon.calculateBounds(xCoords, yCoords).toArea2D();
+
+                for (int t = 0; t < texCount; t++) {
+                    for (int n = 0; n < 4; n++) {
+                        uCoords[n] = texBuffers[t].get(4 * col + 2 * n);
+                        vCoords[n] = texBuffers[t].get(4 * col + 2 * n + 1);
+                    }
+                    Area2D uv = Polygon.calculateBounds(uCoords, vCoords).toArea2D();
+
+                    renderQuad(new QuadRenderCommand(Short.MAX_VALUE, clipEnabled, blendMode, color,
+                            textures[t], transform, r, uv));
+                }
+            }
+        }
 	}
 
 	@Override
@@ -187,11 +264,7 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	protected void setBlendMode(BlendMode bm) {
-		switch (bm) {
-		case ADD: graphics.setComposite(AdditiveComposite.INSTANCE); break;
-		case OPAQUE: graphics.setComposite(AlphaComposite.Src); break;
-		default: graphics.setComposite(AlphaComposite.SrcOver); break;
-		}
+	    blendMode = bm;
 	}
 
 	@Override
@@ -205,17 +278,53 @@ public class AwtRenderer extends BaseRenderer {
 		graphics.translate(dx, dy);
 	}
 
-	private float[] getRGBA() {
-		return new float[] {
-			((color>>16)&0xFF) / 255f,
-			((color>>8 )&0xFF) / 255f,
-			((color    )&0xFF) / 255f,
-			((color>>24)&0xFF) / 255f
-		};
+	BufferedImage getRenderBuffer() {
+		return renderBuffer;
 	}
 
-	BufferedImage getRenderBuffer() {
-		return image;
+	private Image createColorizedTempImage(AwtTexture tex, int argb) {
+	    BufferedImage image = tex.getImage();
+	    final int iw = image.getWidth();
+	    final int ih = image.getHeight();
+	    if (tempColorizedImage == null
+	            || tempColorizedImage.getWidth() != iw || tempColorizedImage.getHeight() != ih)
+	    {
+	        tempColorizedImage = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
+	    }
+
+	    int[] src = tex.getARGB();
+	    int[] dst = ((DataBufferInt)tempColorizedImage.getRaster().getDataBuffer()).getData();
+
+        int alpha = ((argb>>24) & 0xFF);
+	    if ((argb & 0xFFFFFF) == 0xFFFFFF) {
+	        // Alpha-only blend, white
+            for (int n = 0; n < dst.length; n++) {
+                dst[n] = ((alpha * (src[n]>>>8)) & 0xFF000000) | (src[n] & 0xFFFFFF);
+            }
+	    } else {
+    	    for (int n = 0; n < dst.length; n++) {
+                dst[n] = mixColors(src[n], argb);
+    	    }
+	    }
+
+	    return tempColorizedImage;
 	}
+
+	private static Composite toComposite(BlendMode bm) {
+        switch (bm) {
+        case ADD: return AdditiveComposite.INSTANCE;
+        case OPAQUE: return AlphaComposite.Src;
+        default: return AlphaComposite.SrcOver;
+        }
+	}
+
+    private static int mixColors(int c0, int c1) {
+        // Divide by 256 for speed, although it's less accurate
+        int a = ((c0>>24)&0xFF) * ((c1>>24)&0xFF) >> 8;
+        int r = ((c0>>16)&0xFF) * ((c1>>16)&0xFF) >> 8;
+        int g = ((c0>> 8)&0xFF) * ((c1>> 8)&0xFF) >> 8;
+        int b = ((c0    )&0xFF) * ((c1    )&0xFF) >> 8;
+        return (a<<24)|(r<<16)|(g<<8)|(b);
+    }
 
 }
