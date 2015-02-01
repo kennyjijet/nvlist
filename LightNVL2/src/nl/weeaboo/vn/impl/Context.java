@@ -7,7 +7,6 @@ import nl.weeaboo.common.Checks;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.IContextListener;
 import nl.weeaboo.vn.IScreen;
@@ -16,7 +15,6 @@ import nl.weeaboo.vn.script.IScriptContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@LuaSerializable
 public class Context implements IContext {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Part;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
@@ -16,7 +15,6 @@ import nl.weeaboo.vn.math.Matrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@LuaSerializable
 public class DrawablePart extends Part implements IDrawablePart, Serializable {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

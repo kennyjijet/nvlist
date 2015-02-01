@@ -3,9 +3,7 @@ package nl.weeaboo.vn.math;
 import java.io.Serializable;
 
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.lua2.io.LuaSerializable;
 
-@LuaSerializable
 public class Polygon implements IShape, Serializable {
 
 	private static final long serialVersionUID = 1L;

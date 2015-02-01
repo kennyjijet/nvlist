@@ -3,10 +3,8 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IRenderEnv;
 
-@LuaSerializable
 public class RenderEnv implements IRenderEnv {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

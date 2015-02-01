@@ -30,10 +30,11 @@ public interface IScriptPart extends Serializable {
     public IScriptFunction detachFunction(String name);
 
     /**
-     * Runs the associated threads/functions attached to this part.
+     * Returns an attached function.
      *
-     * @throws ScriptException If an exception occurs while trying to execute one or more of the scripts.
+     * @return The function registered under the given name, or {@code null} if no such function exists.
+     * @see #attachFunction(String, IScriptFunction)
      */
-    public void update() throws ScriptException;
+    public IScriptFunction getFunction(String name);
 
 }

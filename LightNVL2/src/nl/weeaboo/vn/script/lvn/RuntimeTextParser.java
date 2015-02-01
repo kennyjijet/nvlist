@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.weeaboo.collections.IntMap;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.styledtext.MutableStyledText;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
@@ -22,7 +21,6 @@ import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
-@LuaSerializable
 public class RuntimeTextParser implements Serializable {
 
 	private static final long serialVersionUID = 1L;

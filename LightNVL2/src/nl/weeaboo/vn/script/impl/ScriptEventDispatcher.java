@@ -7,11 +7,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.script.IScriptEventDispatcher;
 import nl.weeaboo.vn.script.IScriptFunction;
 
-@LuaSerializable
 public class ScriptEventDispatcher implements IScriptEventDispatcher, Serializable {
 
 	private static final long serialVersionUID = ScriptImpl.serialVersionUID;
@@ -86,7 +84,6 @@ public class ScriptEventDispatcher implements IScriptEventDispatcher, Serializab
 		return result;
 	}
 
-	@LuaSerializable
 	private static class Task implements Serializable {
 
 		private static final long serialVersionUID = 1L;

@@ -4,9 +4,7 @@ import java.io.Serializable;
 
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.lua2.io.LuaSerializable;
 
-@LuaSerializable
 class BoundsHelper implements Serializable {
 
 	private static final long serialVersionUID = 1L;

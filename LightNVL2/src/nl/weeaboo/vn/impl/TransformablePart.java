@@ -2,7 +2,6 @@ package nl.weeaboo.vn.impl;
 
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.AlignUtil;
 import nl.weeaboo.vn.entity.ITransformablePart;
 import nl.weeaboo.vn.math.IShape;
@@ -10,7 +9,6 @@ import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;
 import nl.weeaboo.vn.math.Polygon;
 
-@LuaSerializable
 public class TransformablePart extends DrawablePart implements ITransformablePart {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

@@ -1,8 +1,8 @@
-package nl.weeaboo.vn.script.impl;
+package nl.weeaboo.vn.script.lua;
 
-import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 
+import org.luaj.vm2.LuaClosure;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -25,7 +25,7 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
     }
 
     @Override
-    public IScriptThread callInNewThread() throws ScriptException {
+    public LuaScriptThread callInNewThread() throws ScriptException {
         return new ThreadStub(this);
     }
 
@@ -33,7 +33,7 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
         return callCount;
     }
 
-    private static class ThreadStub implements IScriptThread {
+    private static class ThreadStub extends LuaScriptThread {
 
         private static final long serialVersionUID = 1L;
 
@@ -41,6 +41,8 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
         private boolean destroyed;
 
         public ThreadStub(LuaScriptFunctionStub f) {
+            super(null);
+
             function = f;
         }
 
@@ -55,12 +57,17 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
         }
 
         @Override
+        public void call(LuaClosure func) throws ScriptException {
+           func.invoke();
+        }
+
+        @Override
         public void update() throws ScriptException {
             function.call();
         }
 
         @Override
-        public boolean isAlive() {
+        public boolean isRunnable() {
             return !destroyed && function.getCallCount() < 1;
         }
 

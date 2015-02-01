@@ -17,9 +17,21 @@ public interface IScriptLoader {
 	 *
 	 * @param normalizedFilename The canonical filename of the script file to open (i.e. the result of a call
 	 *        to {@link #findScriptFile(String)}).
-	 * @throws IOException If an exception occurs while trying to open the specified script.
+	 * @throws IOException If an exception occurs while trying to open the script.
 	 * @see #findScriptFile(String)
 	 */
 	public InputStream openScript(String normalizedFilename) throws IOException;
+
+	/**
+     * Executes a script file.
+     *
+     * @param thread The thread to execute the script on.
+     * @param normalizedFilename The canonical filename of the script file to open (i.e. the result of a call
+     *        to {@link #findScriptFile(String)}).
+     * @throws IOException If an exception occurs while trying to open the script.
+     * @throws ScriptException If an exception occurs while executing the script.
+     * @see #findScriptFile(String)
+	 */
+	public void loadScript(IScriptThread thread, String normalizedFilename) throws IOException, ScriptException;
 
 }

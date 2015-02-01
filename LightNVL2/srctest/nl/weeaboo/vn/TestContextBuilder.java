@@ -1,0 +1,49 @@
+package nl.weeaboo.vn;
+
+import nl.weeaboo.game.entity.Scene;
+import nl.weeaboo.game.entity.World;
+import nl.weeaboo.vn.impl.Context;
+import nl.weeaboo.vn.impl.ContextArgs;
+import nl.weeaboo.vn.impl.Screen;
+import nl.weeaboo.vn.script.IScriptContext;
+import nl.weeaboo.vn.script.lua.LuaScriptContext;
+import nl.weeaboo.vn.script.lua.LuaScriptEnv;
+
+public class TestContextBuilder implements IContextFactory<Context> {
+
+    public final LuaScriptEnv scriptEnv;
+    public final TestPartRegistry pr;
+    public final World world;
+
+    public TestContextBuilder(LuaScriptEnv scriptEnv) {
+        this.scriptEnv = scriptEnv;
+
+        this.pr = new TestPartRegistry();
+        this.world = new World(pr);
+    }
+
+    protected Screen newScreen(Scene scene) {
+        return TestUtil.newScreen(pr, scene);
+    }
+
+    @Override
+    public Context newContext() {
+        Scene scene = world.createScene();
+
+        ContextArgs contextArgs = new ContextArgs();
+        contextArgs.scene = scene;
+        contextArgs.screen = newScreen(scene);
+        contextArgs.drawablePart = pr.drawable;
+        contextArgs.scriptContext = newScriptContext();
+
+        return new Context(contextArgs);
+    }
+
+    protected IScriptContext newScriptContext() {
+        if (scriptEnv == null) {
+            return null;
+        }
+        return new LuaScriptContext(scriptEnv);
+    }
+
+}

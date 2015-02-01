@@ -1,9 +1,5 @@
 package nl.weeaboo.vn;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
-import nl.weeaboo.vn.IInterpolator;
-
-@LuaSerializable
 public final class LUTInterpolator implements IInterpolator {
 
 	private static final long serialVersionUID = 1L;

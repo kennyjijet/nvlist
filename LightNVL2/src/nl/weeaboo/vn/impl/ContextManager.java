@@ -5,27 +5,26 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IContext;
+import nl.weeaboo.vn.IContextFactory;
 import nl.weeaboo.vn.IContextManager;
 
-@LuaSerializable
 public class ContextManager implements IContextManager {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
-    private final ContextArgs contextArgs;
+    private final IContextFactory<Context> contextFactory;
 
     private final List<Context> contexts = new ArrayList<Context>();
 
-    public ContextManager(ContextArgs contextArgs) {
-        this.contextArgs = contextArgs.clone();
+    public ContextManager(IContextFactory<Context> contextFactory) {
+        this.contextFactory = contextFactory;
     }
 
     //Functions
     @Override
     public final Context createContext() {
-        Context context = doCreateContext();
+        Context context = contextFactory.newContext();
         register(context);
         return context;
     }
@@ -36,10 +35,6 @@ public class ContextManager implements IContextManager {
         }
 
         contexts.add(context);
-    }
-
-    protected Context doCreateContext() {
-        return new Context(contextArgs);
     }
 
     private Context checkContains(IContext ctxt) {

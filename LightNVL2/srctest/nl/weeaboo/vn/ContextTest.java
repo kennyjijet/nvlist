@@ -5,35 +5,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 import nl.weeaboo.vn.impl.Context;
-import nl.weeaboo.vn.impl.ContextArgs;
 import nl.weeaboo.vn.impl.ContextManager;
-import nl.weeaboo.vn.script.IScriptContext;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ContextTest extends AbstractEntityTest {
+public class ContextTest  {
 
     private ContextManager contextManager;
     private Context alpha;
     private Context beta;
 
     @Before
-    @Override
     public void init() {
-        super.init();
+        TestContextBuilder contextBuilder = new TestContextBuilder(null);
 
-        IScreen screen = TestUtil.newScreen(pr, scene);
-        IScriptContext scriptContext = TestUtil.newScriptContext();
-
-        ContextArgs contextArgs = new ContextArgs();
-        contextArgs.scene = scene;
-        contextArgs.drawablePart = pr.drawable;
-        contextArgs.screen = screen;
-        contextArgs.scriptContext = scriptContext;
-
-        contextManager = new ContextManager(contextArgs);
+        contextManager = new ContextManager(contextBuilder);
         alpha = contextManager.createContext();
         beta = contextManager.createContext();
     }

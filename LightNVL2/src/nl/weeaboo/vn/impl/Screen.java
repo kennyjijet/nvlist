@@ -3,13 +3,11 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreen;
 import nl.weeaboo.vn.render.IDrawBuffer;
 
-@LuaSerializable
 public class Screen implements IScreen, ILayerHolder {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

@@ -2,12 +2,9 @@ package nl.weeaboo.vn;
 
 import java.io.Serializable;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
-
 /**
  * Represents a two-dimensional {@code (width, height)} grid of X/Y offsets.
  */
-@LuaSerializable
 public final class DistortGrid implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -79,7 +76,7 @@ public final class DistortGrid implements Serializable {
 	//Setters
 	/**
 	 * Sets the XY-offset for the given grid position.
-	 * 
+	 *
 	 * @throws ArrayIndexOutOfBoundsException If the given coordinates are outside the bounds of this distort
 	 *         grid.
 	 */

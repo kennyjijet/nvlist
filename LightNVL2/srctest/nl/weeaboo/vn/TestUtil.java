@@ -23,6 +23,7 @@ import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.impl.TransformablePart;
 import nl.weeaboo.vn.math.Vec2;
 import nl.weeaboo.vn.script.IScriptContext;
+import nl.weeaboo.vn.script.impl.ScriptPart;
 
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -51,11 +52,13 @@ public final class TestUtil {
 	public static Entity newImage(TestPartRegistry pr, Scene scene) {
 		TransformablePart transformable = new TransformablePart();
 		ImagePart image = new ImagePart(transformable);
+		ScriptPart script = new ScriptPart();
 
 		Entity e = scene.createEntity();
 		e.setPart(pr.drawable, transformable);
 		e.setPart(pr.transformable, transformable);
-		e.setPart(pr.image, image);
+        e.setPart(pr.image, image);
+        e.setPart(pr.script, script);
 		return e;
 	}
 

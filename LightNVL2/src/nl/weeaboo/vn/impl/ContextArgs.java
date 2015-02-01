@@ -4,11 +4,9 @@ import java.io.Serializable;
 
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IScreen;
 import nl.weeaboo.vn.script.IScriptContext;
 
-@LuaSerializable
 public final class ContextArgs implements Cloneable, Serializable {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;

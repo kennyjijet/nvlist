@@ -11,6 +11,11 @@ public interface IScriptContext extends Serializable {
 
     public IScriptThread newThread(IScriptFunction func) throws ScriptException;
 
-	public Collection<IScriptThread> getThreads();
+    public IScriptThread getMainThread();
+
+	public Collection<? extends IScriptThread> getThreads();
+
+	/** Runs every active thread once until they yield. */
+	public void updateThreads();
 
 }

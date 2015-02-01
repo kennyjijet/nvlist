@@ -8,9 +8,7 @@ import java.util.Arrays;
 
 import nl.weeaboo.common.FastMath;
 import nl.weeaboo.common.StringUtil;
-import nl.weeaboo.lua2.io.LuaSerializable;
 
-@LuaSerializable
 public final class Vec2 implements Cloneable, Externalizable {
 
 	public double x, y;

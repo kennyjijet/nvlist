@@ -4,12 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.IScreenshotBuffer;
 import nl.weeaboo.vn.IWritableScreenshot;
 import nl.weeaboo.vn.render.IDrawBuffer;
 
-@LuaSerializable
 public class ScreenshotBuffer implements IScreenshotBuffer {
 
 	private static final long serialVersionUID = RenderImpl.serialVersionUID;
@@ -50,7 +48,6 @@ public class ScreenshotBuffer implements IScreenshotBuffer {
 	//Setters
 
 	//Inner Classes
-	@LuaSerializable
 	private static class ScreenshotEntry implements Serializable {
 
 		private static final long serialVersionUID = 1L;

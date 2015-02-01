@@ -2,9 +2,7 @@ package nl.weeaboo.vn.math;
 
 import static nl.weeaboo.common.FastMath.fastCos;
 import static nl.weeaboo.common.FastMath.fastSin;
-import nl.weeaboo.lua2.io.LuaSerializable;
 
-@LuaSerializable
 public final class MutableMatrix extends AbstractMatrix {
 
 	private static final long serialVersionUID = 1L;

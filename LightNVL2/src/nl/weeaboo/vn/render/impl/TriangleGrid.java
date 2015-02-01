@@ -6,9 +6,7 @@ import java.util.TreeSet;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.io.BufferUtil;
-import nl.weeaboo.lua2.io.LuaSerializable;
 
-@LuaSerializable
 public final class TriangleGrid implements Serializable {
 
 	private static final long serialVersionUID = 1L;

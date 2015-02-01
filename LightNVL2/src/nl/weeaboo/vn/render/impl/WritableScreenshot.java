@@ -1,11 +1,9 @@
 package nl.weeaboo.vn.render.impl;
 
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.IWritableScreenshot;
 import nl.weeaboo.vn.impl.AbstractScreenshot;
 
-@LuaSerializable
 public class WritableScreenshot extends AbstractScreenshot implements IWritableScreenshot {
 
 	private static final long serialVersionUID = RenderImpl.serialVersionUID;

@@ -3,13 +3,11 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Part;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.AlignUtil;
 import nl.weeaboo.vn.ITexture;
 import nl.weeaboo.vn.entity.IImagePart;
 import nl.weeaboo.vn.math.Vec2;
 
-@LuaSerializable
 public class ImagePart extends Part implements IImagePart {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;

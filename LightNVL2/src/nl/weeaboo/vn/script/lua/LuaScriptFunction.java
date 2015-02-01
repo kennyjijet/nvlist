@@ -1,18 +1,18 @@
-package nl.weeaboo.vn.script.impl;
+package nl.weeaboo.vn.script.lua;
 
+import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.LuaRunState;
 import nl.weeaboo.lua2.link.LuaFunctionLink;
+import nl.weeaboo.lua2.link.LuaLink;
 import nl.weeaboo.vn.script.IScriptFunction;
-import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 
 import org.luaj.vm2.LuaClosure;
-import org.luaj.vm2.LuaThread;
 import org.luaj.vm2.Varargs;
 
 class LuaScriptFunction implements IScriptFunction {
 
-    private static final long serialVersionUID = ScriptImpl.serialVersionUID;
+    private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
     private final LuaClosure func;
     private final Varargs args;
@@ -24,15 +24,21 @@ class LuaScriptFunction implements IScriptFunction {
 
     @Override
     public void call() throws ScriptException {
-        LuaRunState runState = ScriptImpl.getRunState();
-        LuaThread currentThread = runState.getRunningThread();
-        if (currentThread == null) {
+        LuaRunState runState = LuaImpl.getRunState();
+        LuaLink currentLink = runState.getCurrentLink();
+        if (currentLink == null) {
             throw new ScriptException("Unable to call Lua function -- no thread is current");
+        }
+
+        try {
+            currentLink.call(func, args);
+        } catch (LuaException e) {
+            throw new ScriptException("Error calling function: " + this, e);
         }
     }
 
-    IScriptThread callInNewThread() throws ScriptException {
-        LuaRunState runState = ScriptImpl.getRunState();
+    LuaScriptThread callInNewThread() throws ScriptException {
+        LuaRunState runState = LuaImpl.getRunState();
         LuaFunctionLink link = new LuaFunctionLink(runState, func, args);
         return new LuaScriptThread(link);
     }

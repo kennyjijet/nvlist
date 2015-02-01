@@ -10,7 +10,6 @@ import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.EntityStream;
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
-import nl.weeaboo.lua2.io.LuaSerializable;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreenshotBuffer;
@@ -21,7 +20,6 @@ import nl.weeaboo.vn.render.impl.ScreenshotBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@LuaSerializable
 public class Layer implements ILayer, ILayerHolder {
 
 	private static final long serialVersionUID = BaseImpl.serialVersionUID;
