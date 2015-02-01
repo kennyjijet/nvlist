@@ -17,6 +17,7 @@ public final class LuaTestUtil {
     public static final String SCRIPT_HELLOWORLD = "helloworld";
     public static final String SCRIPT_YIELD = "yield";
     public static final String SCRIPT_CREATECONTEXT = "createcontext";
+    public static final String SCRIPT_SCRIPTLIB = "scriptlib";
 
     private LuaTestUtil() {
     }
@@ -40,6 +41,10 @@ public final class LuaTestUtil {
     public static void assertGlobal(String name, int val) {
         LuaTable globals = LuaRunState.getCurrent().getGlobalEnvironment();
         Assert.assertEquals(val, globals.get(name).optint(0));
+    }
+    public static void assertGlobal(String name, Object val) {
+        LuaTable globals = LuaRunState.getCurrent().getGlobalEnvironment();
+        Assert.assertEquals(val, globals.get(name).optuserdata(null));
     }
 
     public static <T> T getGlobal(String name, Class<T> type) {
