@@ -33,7 +33,7 @@ class LuaScriptFunction implements IScriptFunction {
         try {
             currentLink.call(func, args);
         } catch (LuaException e) {
-            throw new ScriptException("Error calling function: " + this, e);
+            throw LuaScriptUtil.toScriptException("Error calling function: " + this, e);
         }
     }
 

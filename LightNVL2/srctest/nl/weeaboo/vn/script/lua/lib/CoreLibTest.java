@@ -26,4 +26,11 @@ public class CoreLibTest extends AbstractLibTest {
         Assert.assertEquals(2, contextManager.getContexts().size());
     }
 
+    @Test
+    public void newThread() throws IOException, ScriptException {
+        loadScript(LuaTestUtil.SCRIPT_SCRIPTLIB);
+
+        LuaTestUtil.assertGlobal("newThreadResult", 1 + 2 + 3);
+    }
+
 }

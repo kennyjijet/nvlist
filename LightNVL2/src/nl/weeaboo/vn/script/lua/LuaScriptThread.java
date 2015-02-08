@@ -14,7 +14,7 @@ public class LuaScriptThread implements IScriptThread {
 
     private final LuaLink thread;
 
-    public LuaScriptThread(LuaLink thread) {
+    LuaScriptThread(LuaLink thread) {
         this.thread = thread;
     }
 
@@ -38,7 +38,7 @@ public class LuaScriptThread implements IScriptThread {
         try {
             thread.call(func, LuaValue.NONE);
         } catch (LuaException e) {
-            throw new ScriptException("Error in thread: " + this, e);
+            throw LuaScriptUtil.toScriptException("Error in thread: " + this, e);
         }
     }
 
@@ -47,7 +47,7 @@ public class LuaScriptThread implements IScriptThread {
         try {
             thread.update();
         } catch (LuaException e) {
-            throw new ScriptException("Error in thread: " + this, e);
+            throw LuaScriptUtil.toScriptException("Error in thread: " + this, e);
         }
     }
 

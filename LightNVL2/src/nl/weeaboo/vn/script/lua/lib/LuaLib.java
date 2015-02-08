@@ -20,6 +20,10 @@ public abstract class LuaLib implements ILuaScriptEnvInitializer {
 
     private final String tableName;
 
+    /**
+     * @param tableName The name of the global table object to which the library functions should be added, or
+     *        {@code null} if the library functions should be directly added to the global table.
+     */
     public LuaLib(String tableName) {
         this.tableName = tableName;
     }
@@ -28,9 +32,13 @@ public abstract class LuaLib implements ILuaScriptEnvInitializer {
     public void initEnv(LuaScriptEnv env) throws LuaException {
         LuaTable globals = env.getGlobals();
 
-        LuaTable table = new LuaTable();
-        initTable(table, env);
-        globals.rawset(tableName, table);
+        if (tableName != null) {
+            LuaTable table = new LuaTable();
+            initTable(table, env);
+            globals.rawset(tableName, table);
+        } else {
+            initTable(globals, env);
+        }
     }
 
     protected void initTable(LuaTable table, LuaScriptEnv env) throws LuaException {
