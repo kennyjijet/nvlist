@@ -4,6 +4,7 @@ import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.lua2.LuaRunState;
 import nl.weeaboo.lua2.link.LuaFunctionLink;
 import nl.weeaboo.lua2.link.LuaLink;
+import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptFunction;
 import nl.weeaboo.vn.script.ScriptException;
 
@@ -37,10 +38,10 @@ class LuaScriptFunction implements IScriptFunction {
         }
     }
 
-    LuaScriptThread callInNewThread() throws ScriptException {
+    LuaScriptThread callInNewThread(IScriptContext scriptContext) throws ScriptException {
         LuaRunState runState = LuaImpl.getRunState();
         LuaFunctionLink link = new LuaFunctionLink(runState, func, args);
-        return new LuaScriptThread(link);
+        return new LuaScriptThread(scriptContext, link);
     }
 
     protected Varargs getArgs() {

@@ -25,7 +25,7 @@ public class LuaScriptContext implements IScriptContext {
     public LuaScriptContext(LuaScriptEnv scriptEnv) {
         LuaLink luaLink = new LuaLink(scriptEnv.getRunState());
         luaLink.setPersistent(true);
-        mainThread = new LuaScriptThread(luaLink);
+        mainThread = new LuaScriptThread(this, luaLink);
         threads.add(mainThread);
     }
 
@@ -40,7 +40,7 @@ public class LuaScriptContext implements IScriptContext {
     public IScriptThread newThread(IScriptFunction func) throws ScriptException {
         LuaScriptFunction luaFunc = (LuaScriptFunction)func;
 
-        LuaScriptThread thread = luaFunc.callInNewThread();
+        LuaScriptThread thread = luaFunc.callInNewThread(this);
         threads.add(thread);
         return thread;
     }

@@ -3,7 +3,9 @@ package nl.weeaboo.vn.script.lua.lib;
 import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.IContextManager;
+import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptFunction;
+import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 import nl.weeaboo.vn.script.ScriptFunction;
 import nl.weeaboo.vn.script.lua.LuaScriptUtil;
@@ -28,12 +30,15 @@ public class CoreLib extends LuaLib {
 
     @ScriptFunction
     public Varargs newThread(Varargs args) throws ScriptException {
-        IContext context = args.touserdata(1, IContext.class);
+        IScriptContext scriptContext = LuaScriptUtil.getScriptContext();
+        if (scriptContext == null) {
+            throw new ScriptException("No script context is current");
+        }
 
-        IScriptFunction func = LuaScriptUtil.toScriptFunction(args, 2);
-        context.getScriptContext().newThread(func);
+        IScriptFunction func = LuaScriptUtil.toScriptFunction(args, 1);
+        IScriptThread thread = scriptContext.newThread(func);
 
-        return LuajavaLib.toUserdata(context, IContext.class);
+        return LuajavaLib.toUserdata(thread, IScriptThread.class);
     }
 
 }
