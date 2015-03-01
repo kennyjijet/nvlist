@@ -2,7 +2,14 @@ package nl.weeaboo.vn;
 
 import java.io.Serializable;
 
+import nl.weeaboo.game.entity.Entity;
+
 public interface ILayer extends IDestructible, IEntityContainer, IRenderable, Serializable {
+
+    /**
+     * Creates a new entity and adds it to this layer.
+     */
+    public Entity createEntity();
 
 	/**
 	 * @return {@code true} if the specified layer is a descendant of this layer.

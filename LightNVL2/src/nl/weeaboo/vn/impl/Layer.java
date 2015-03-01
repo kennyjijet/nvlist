@@ -91,6 +91,13 @@ public class Layer implements ILayer, ILayerHolder {
 		}
 	}
 
+    @Override
+    public Entity createEntity() {
+        Entity e = scene.createEntity();
+        add(e);
+        return e;
+    }
+
 	public Layer createSubLayer() {
 		Layer result = new Layer(this, scene, drawablePart);
 		subLayers.add(result);

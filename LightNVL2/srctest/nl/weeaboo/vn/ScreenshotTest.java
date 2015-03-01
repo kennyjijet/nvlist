@@ -89,7 +89,7 @@ public class ScreenshotTest {
 
 	@Test
 	public void screenshotBuffer() {
-		TestPartRegistry pr = new TestPartRegistry();
+		BasicPartRegistry pr = new BasicPartRegistry();
 		World world = new World(pr);
 		Scene scene = world.createScene();
 

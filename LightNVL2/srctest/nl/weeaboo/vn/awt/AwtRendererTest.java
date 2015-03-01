@@ -21,9 +21,9 @@ import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
+import nl.weeaboo.vn.BasicPartRegistry;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.TestPartRegistry;
 import nl.weeaboo.vn.TestUtil;
 import nl.weeaboo.vn.entity.IImagePart;
 import nl.weeaboo.vn.entity.ITransformablePart;
@@ -35,7 +35,7 @@ public class AwtRendererTest {
 
 	public static void main(String[] args) {
 		final IRenderEnv env = TestUtil.BASIC_ENV;
-		final TestPartRegistry pr = new TestPartRegistry();
+		final BasicPartRegistry pr = new BasicPartRegistry();
 		World world = new World(pr);
 		Scene scene = world.createScene();
 		final Screen screen = TestUtil.newScreen(pr, scene);

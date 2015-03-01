@@ -1,6 +1,7 @@
 package nl.weeaboo.vn.impl;
 
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.vn.ILayer;
@@ -28,6 +29,11 @@ public class Screen implements IScreen, ILayerHolder {
 	}
 
 	//Functions
+    @Override
+    public Entity createEntity() {
+        return scene.createEntity();
+    }
+
 	public void draw(IDrawBuffer buffer) {
 		Layer layer = (Layer)getRootLayer();
 		int layerId = buffer.reserveLayerIds(1);

@@ -12,13 +12,13 @@ import nl.weeaboo.vn.script.lua.LuaScriptEnv;
 public class TestContextBuilder implements IContextFactory<Context> {
 
     public final LuaScriptEnv scriptEnv;
-    public final TestPartRegistry pr;
+    public final BasicPartRegistry pr;
     public final World world;
 
     public TestContextBuilder(LuaScriptEnv scriptEnv) {
         this.scriptEnv = scriptEnv;
 
-        this.pr = new TestPartRegistry();
+        this.pr = new BasicPartRegistry();
         this.world = new World(pr);
     }
 

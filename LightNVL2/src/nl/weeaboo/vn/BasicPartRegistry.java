@@ -7,7 +7,7 @@ import nl.weeaboo.vn.impl.ImagePart;
 import nl.weeaboo.vn.impl.TransformablePart;
 import nl.weeaboo.vn.script.impl.ScriptPart;
 
-public class TestPartRegistry extends PartRegistry {
+public class BasicPartRegistry extends PartRegistry {
 
 	private static final long serialVersionUID = 1L;
 
@@ -16,7 +16,7 @@ public class TestPartRegistry extends PartRegistry {
     public final PartType<ImagePart> image;
     public final PartType<ScriptPart> script;
 
-	public TestPartRegistry() {
+	public BasicPartRegistry() {
 		drawable = register("drawable", DrawablePart.class);
 		transformable = register("transformable", TransformablePart.class);
         image = register("image", ImagePart.class);

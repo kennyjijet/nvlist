@@ -39,7 +39,7 @@ public final class TestUtil {
 	private TestUtil() {
 	}
 
-	public static Screen newScreen(TestPartRegistry pr, Scene scene) {
+	public static Screen newScreen(BasicPartRegistry pr, Scene scene) {
         int w = BASIC_ENV.getWidth();
         int h = BASIC_ENV.getHeight();
 	    return new Screen(scene, new Rect2D(0, 0, w, h), pr.drawable, BASIC_ENV);
@@ -49,7 +49,7 @@ public final class TestUtil {
 	    return null;
 	}
 
-	public static Entity newImage(TestPartRegistry pr, Scene scene) {
+	public static Entity newImage(BasicPartRegistry pr, Scene scene) {
 		TransformablePart transformable = new TransformablePart();
 		ImagePart image = new ImagePart(transformable);
 		ScriptPart script = new ScriptPart();

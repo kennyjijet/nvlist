@@ -7,13 +7,13 @@ import org.junit.Before;
 
 public class AbstractEntityTest {
 
-	protected TestPartRegistry pr;
+	protected BasicPartRegistry pr;
 	protected World world;
 	protected Scene scene;
 
 	@Before
 	public void init() {
-		pr = new TestPartRegistry();
+		pr = new BasicPartRegistry();
 		world = new World(pr);
 		scene = world.createScene();
 	}

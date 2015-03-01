@@ -2,7 +2,14 @@ package nl.weeaboo.vn;
 
 import java.io.Serializable;
 
+import nl.weeaboo.game.entity.Entity;
+
 public interface IScreen extends Serializable {
+
+    /**
+     * Creates a new entity and adds it to this screen.
+     */
+    public Entity createEntity();
 
 	/**
 	 * Creates a new layer and adds it to {@code parentLayer}.

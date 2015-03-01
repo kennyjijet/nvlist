@@ -14,7 +14,7 @@ public class CoreLibTest extends AbstractLibTest {
 
     @Override
     protected void addInitializers(LuaScriptEnv scriptEnv) {
-        scriptEnv.addInitializer(new CoreLib(contextManager));
+        scriptEnv.addInitializer(new CoreLib(env));
     }
 
     @Test
@@ -23,7 +23,7 @@ public class CoreLibTest extends AbstractLibTest {
 
         IContext createdContext = LuaTestUtil.getGlobal("context", IContext.class);
         Assert.assertNotNull(createdContext);
-        Assert.assertEquals(2, contextManager.getContexts().size());
+        Assert.assertEquals(2, env.getContextManager().getContexts().size());
     }
 
     @Test
