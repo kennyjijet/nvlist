@@ -6,6 +6,7 @@ import nl.weeaboo.vn.IContextManager;
 import nl.weeaboo.vn.IEnvironment;
 import nl.weeaboo.vn.IImageModule;
 import nl.weeaboo.vn.INotifier;
+import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ISoundModule;
 
 public class DefaultEnvironment implements IEnvironment {
@@ -13,6 +14,7 @@ public class DefaultEnvironment implements IEnvironment {
     private final IContextManager contextManager;
     private final BasicPartRegistry pr;
     private final INotifier notifier;
+    private final IRenderEnv renderEnv;
     private final IImageModule imageModule;
     private final ISoundModule soundModule;
 
@@ -22,13 +24,16 @@ public class DefaultEnvironment implements IEnvironment {
         this.contextManager = Checks.checkNotNull(b.contextManager);
         this.pr = Checks.checkNotNull(b.partRegistry);
         this.notifier = Checks.checkNotNull(b.notifier);
-        this.imageModule = Checks.checkNotNull(b.imageModule);
-        this.soundModule = Checks.checkNotNull(b.soundModule);
+        this.renderEnv = Checks.checkNotNull(b.renderEnv);
+        this.imageModule = b.imageModule;
+        this.soundModule = b.soundModule;
     }
 
     @Override
     public void destroy() {
         destroyed = true;
+
+        ContextUtil.setCurrentContext(null);
     }
 
     @Override
@@ -49,6 +54,11 @@ public class DefaultEnvironment implements IEnvironment {
     @Override
     public INotifier getNotifier() {
         return notifier;
+    }
+
+    @Override
+    public IRenderEnv getRenderEnv() {
+        return renderEnv;
     }
 
     @Override

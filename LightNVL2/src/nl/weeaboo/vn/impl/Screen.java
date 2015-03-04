@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.impl;
 
+import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.PartType;
@@ -22,10 +23,10 @@ public class Screen implements IScreen, ILayerHolder {
 	private IRenderEnv renderEnv;
 
 	public Screen(Scene s, Rect2D bounds, PartType<? extends DrawablePart> drawablePart, IRenderEnv env) {
-		this.scene = s;
-		this.bounds = bounds;
-		this.drawablePart = drawablePart;
-		this.renderEnv = env;
+		this.scene = Checks.checkNotNull(s);
+		this.bounds = Checks.checkNotNull(bounds);
+		this.drawablePart = Checks.checkNotNull(drawablePart);
+		this.renderEnv = Checks.checkNotNull(env);
 	}
 
 	//Functions
@@ -106,6 +107,11 @@ public class Screen implements IScreen, ILayerHolder {
 	protected boolean containsLayer(ILayer layer) {
 		return rootLayer != null && (rootLayer == layer || rootLayer.containsLayer(layer));
 	}
+
+    @Override
+    public IRenderEnv getRenderEnv() {
+        return renderEnv;
+    }
 
 	//Setters
 	public void setRenderEnv(IRenderEnv env) {

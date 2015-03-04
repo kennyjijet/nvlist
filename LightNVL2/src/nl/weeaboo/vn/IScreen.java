@@ -28,4 +28,9 @@ public interface IScreen extends Serializable {
 	 */
 	public ILayer getActiveLayer();
 
+	/**
+	 * Returns information about the rendering environment.
+	 */
+	public IRenderEnv getRenderEnv();
+
 }

@@ -3,11 +3,9 @@ package nl.weeaboo.vn.script;
 import java.io.Serializable;
 
 /**
- * Container for scripting-related state.
+ * Container for global scripting-related state shared between all {@link IScriptContext} objects.
  */
 public interface IScriptEnv extends Serializable {
-
-	public IScriptEventDispatcher getEventDispatcher();
 
 	public IScriptLoader getScriptLoader();
 

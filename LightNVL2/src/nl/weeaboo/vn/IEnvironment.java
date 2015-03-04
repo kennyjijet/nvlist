@@ -10,6 +10,8 @@ public interface IEnvironment extends IDestructible {
 
     INotifier getNotifier();
 
+    IRenderEnv getRenderEnv();
+
     IImageModule getImageModule();
 
     ISoundModule getSoundModule();

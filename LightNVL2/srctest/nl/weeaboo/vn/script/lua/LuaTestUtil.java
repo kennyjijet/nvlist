@@ -69,7 +69,7 @@ public final class LuaTestUtil {
                 IScriptContext scriptContext = context.getScriptContext();
                 if (hasRunnableThreads(scriptContext)) {
                     anyRunnableThreads = true;
-                    scriptContext.updateThreads();
+                    scriptContext.updateThreads(context);
                 }
             }
 
@@ -79,10 +79,11 @@ public final class LuaTestUtil {
         }
         throw new AssertionError("One or more threads refuse to die");
     }
-    public static void waitForAllThreads(IScriptContext context) {
+    public static void waitForAllThreads(IContext context) {
         int iteration = 0;
-        while (hasRunnableThreads(context)) {
-            context.updateThreads();
+        IScriptContext scriptContext = context.getScriptContext();
+        while (hasRunnableThreads(scriptContext)) {
+            scriptContext.updateThreads(context);
 
             if (++iteration >= 10000) {
                 throw new AssertionError("One or more threads refuse to die");

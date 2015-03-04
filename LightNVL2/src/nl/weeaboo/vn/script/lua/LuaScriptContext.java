@@ -1,13 +1,17 @@
 package nl.weeaboo.vn.script.lua;
 
 import java.util.Collection;
+import java.util.List;
 
-import nl.weeaboo.lua2.link.LuaLink;
+import nl.weeaboo.vn.IContext;
+import nl.weeaboo.vn.impl.ContextUtil;
 import nl.weeaboo.vn.script.IScriptContext;
+import nl.weeaboo.vn.script.IScriptEventDispatcher;
 import nl.weeaboo.vn.script.IScriptFunction;
 import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 import nl.weeaboo.vn.script.ScriptLog;
+import nl.weeaboo.vn.script.impl.ScriptEventDispatcher;
 import nl.weeaboo.vn.script.impl.ScriptThreadCollection;
 
 import org.luaj.vm2.LuaClosure;
@@ -18,14 +22,18 @@ public class LuaScriptContext implements IScriptContext {
 
     private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
+    private final IScriptEventDispatcher eventDispatcher;
     private final LuaScriptThread mainThread;
+    private final LuaScriptThread eventThread;
 
     private final ScriptThreadCollection<LuaScriptThread> threads = new ScriptThreadCollection<LuaScriptThread>();
 
     public LuaScriptContext(LuaScriptEnv scriptEnv) {
-        LuaLink luaLink = new LuaLink(scriptEnv.getRunState());
-        luaLink.setPersistent(true);
-        mainThread = new LuaScriptThread(this, luaLink);
+        eventDispatcher = new ScriptEventDispatcher();
+
+        eventThread = LuaScriptUtil.createPersistentThread(scriptEnv.getRunState());
+
+        mainThread = LuaScriptUtil.createPersistentThread(scriptEnv.getRunState());
         threads.add(mainThread);
     }
 
@@ -40,7 +48,7 @@ public class LuaScriptContext implements IScriptContext {
     public IScriptThread newThread(IScriptFunction func) throws ScriptException {
         LuaScriptFunction luaFunc = (LuaScriptFunction)func;
 
-        LuaScriptThread thread = luaFunc.callInNewThread(this);
+        LuaScriptThread thread = luaFunc.callInNewThread();
         threads.add(thread);
         return thread;
     }
@@ -56,7 +64,33 @@ public class LuaScriptContext implements IScriptContext {
     }
 
     @Override
-    public void updateThreads() {
+    public IScriptEventDispatcher getEventDispatcher() {
+        return eventDispatcher;
+    }
+
+    @Override
+    public void updateThreads(IContext context) {
+        IContext oldContext = ContextUtil.setCurrentContext(context);
+        try {
+            runEvents();
+            runThreads();
+        } finally {
+            ContextUtil.setCurrentContext(oldContext);
+        }
+    }
+
+    private void runEvents() {
+        List<IScriptFunction> eventWork = eventDispatcher.retrieveWork();
+        for (IScriptFunction func : eventWork) {
+            try {
+               eventThread.call((LuaScriptFunction)func);
+            } catch (ScriptException e) {
+                ScriptLog.w("Exception while executing event: " + func, e);
+            }
+        }
+    }
+
+    private void runThreads() {
         for (LuaScriptThread thread : threads) {
             try {
                 thread.update();

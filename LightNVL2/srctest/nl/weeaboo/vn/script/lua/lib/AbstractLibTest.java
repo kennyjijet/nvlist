@@ -6,6 +6,7 @@ import nl.weeaboo.lua2.LuaException;
 import nl.weeaboo.vn.TestEnvironment;
 import nl.weeaboo.vn.impl.Context;
 import nl.weeaboo.vn.impl.ContextManager;
+import nl.weeaboo.vn.impl.ContextUtil;
 import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
@@ -32,6 +33,7 @@ public abstract class AbstractLibTest {
         ContextManager contextManager = env.getContextManager();
         mainContext = contextManager.createContext();
         contextManager.setContextActive(mainContext, true);
+        ContextUtil.setCurrentContext(mainContext);
 
         IScriptContext mainScriptContext = mainContext.getScriptContext();
         mainThread = mainScriptContext.getMainThread();

@@ -1,6 +1,5 @@
 package nl.weeaboo.vn.script.lua;
 
-import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.ScriptException;
 
 import org.luaj.vm2.LuaClosure;
@@ -26,8 +25,8 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
     }
 
     @Override
-    public LuaScriptThread callInNewThread(IScriptContext scriptContext) throws ScriptException {
-        return new ThreadStub(scriptContext, this);
+    public LuaScriptThread callInNewThread() throws ScriptException {
+        return new ThreadStub(this);
     }
 
     public int getCallCount() {
@@ -41,8 +40,8 @@ public class LuaScriptFunctionStub extends LuaScriptFunction {
         private final LuaScriptFunctionStub function;
         private boolean destroyed;
 
-        public ThreadStub(IScriptContext scriptContext, LuaScriptFunctionStub f) {
-            super(scriptContext, null);
+        public ThreadStub(LuaScriptFunctionStub f) {
+            super(null);
 
             function = f;
         }

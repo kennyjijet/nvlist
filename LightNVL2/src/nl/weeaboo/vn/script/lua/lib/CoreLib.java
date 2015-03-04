@@ -4,6 +4,7 @@ import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.IContextManager;
 import nl.weeaboo.vn.IEnvironment;
+import nl.weeaboo.vn.impl.ContextUtil;
 import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptFunction;
 import nl.weeaboo.vn.script.IScriptThread;
@@ -14,6 +15,8 @@ import nl.weeaboo.vn.script.lua.LuaScriptUtil;
 import org.luaj.vm2.Varargs;
 
 public class CoreLib extends LuaLib {
+
+    private static final long serialVersionUID = 1L;
 
     private final IEnvironment env;
 
@@ -32,11 +35,12 @@ public class CoreLib extends LuaLib {
 
     @ScriptFunction
     public Varargs newThread(Varargs args) throws ScriptException {
-        IScriptContext scriptContext = LuaScriptUtil.getScriptContext();
-        if (scriptContext == null) {
-            throw new ScriptException("No script context is current");
+        IContext context = ContextUtil.getCurrentContext();
+        if (context == null) {
+            throw new ScriptException("No context is current");
         }
 
+        IScriptContext scriptContext = context.getScriptContext();
         IScriptFunction func = LuaScriptUtil.toScriptFunction(args, 1);
         IScriptThread thread = scriptContext.newThread(func);
 

@@ -30,6 +30,7 @@ public class TestEnvironment extends DefaultEnvironment {
 
         b.partRegistry = new BasicPartRegistry();
         b.notifier = new TestNotifier();
+        b.renderEnv = TestUtil.BASIC_ENV;
 
         LuaRunState runState = LuaTestUtil.newRunState();
         LuaScriptLoader scriptLoader = LuaTestUtil.newScriptLoader(TestFileSystem.newInstance());

@@ -7,6 +7,8 @@ import nl.weeaboo.vn.IEnvironment;
 import nl.weeaboo.vn.IImageModule;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.INotifier;
+import nl.weeaboo.vn.IRenderEnv;
+import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.ITexture;
 
 public abstract class AbstractImageModule implements IImageModule {
@@ -64,6 +66,18 @@ public abstract class AbstractImageModule implements IImageModule {
      * Is called from {@link #getTexture(String, String[], boolean)}
      */
     protected abstract ITexture getTextureNormalized(String filename, String normalized, String[] callStack);
+
+    @Override
+    public ITexture createTexture(IScreenshot ss) {
+        if (ss.isVolatile()) {
+            return ss.getVolatilePixels();
+        } else {
+            IRenderEnv renderEnv = env.getRenderEnv();
+            return createTexture(ss.getPixels(), ss.getPixelsWidth(), ss.getPixelsHeight(),
+                    renderEnv.getWidth() / (double)ss.getScreenWidth(),
+                    renderEnv.getHeight() / (double)ss.getScreenHeight());
+        }
+    }
 
     @Override
     public Collection<String> getImageFiles(String folder) {
