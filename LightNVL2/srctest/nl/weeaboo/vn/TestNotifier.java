@@ -1,31 +1,31 @@
 package nl.weeaboo.vn;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import nl.weeaboo.vn.impl.AbstractNotifier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestNotifier extends AbstractNotifier {
 
-    private final Logger LOG = Logger.getLogger(TestNotifier.class.getName());
+    private final Logger LOG = LoggerFactory.getLogger(TestNotifier.class);
 
     @Override
     public void log(ErrorLevel el, String message, Throwable t) {
         switch (el) {
         case VERBOSE:
-            LOG.log(Level.CONFIG, message, t);
+            LOG.trace(message, t);
             break;
         case DEBUG:
-            LOG.log(Level.INFO, message, t);
+            LOG.debug(message, t);
             break;
         case WARNING:
-            LOG.log(Level.WARNING, message, t);
+            LOG.warn(message, t);
             break;
         case ERROR:
-            LOG.log(Level.SEVERE, message, t);
+            LOG.error(message, t);
             break;
         case MESSAGE:
-            LOG.log(Level.INFO, message, t);
+            LOG.info(message, t);
             break;
         }
     }

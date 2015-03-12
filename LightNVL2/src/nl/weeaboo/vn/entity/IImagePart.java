@@ -1,17 +1,15 @@
 package nl.weeaboo.vn.entity;
 
-import java.io.Serializable;
-
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.vn.ITexture;
 
-public interface IImagePart extends Serializable {
-	
+public interface IImagePart extends INovelPart {
+
 	/**
 	 * Returns the texture used to render this image.
 	 */
 	public ITexture getTexture();
-	
+
 	/**
 	 * Returns the UV rectangle used for texture mapping.
 	 * @see #setUV(Area2D)
@@ -33,10 +31,10 @@ public interface IImagePart extends Serializable {
 	 * @see #setTexture(ITexture, double, double)
 	 */
 	public void setTexture(ITexture i, int anchor);
-	
+
 	/**
 	 * Changes the texture used to render this image.
-	 * 
+	 *
 	 */
 	public void setTexture(ITexture i, double imageAlignX, double imageAlignY);
 
@@ -45,17 +43,17 @@ public interface IImagePart extends Serializable {
 	 * @see #setUV(Area2D)
 	 */
 	public void setUV(double w, double h);
-	
+
 	/**
 	 * Changes the UV rectangle used for texture mapping.
 	 * @see #setUV(Area2D)
 	 */
 	public void setUV(double x, double y, double w, double h);
-	
+
 	/**
 	 * Changed the UV rectangle used for texture mapping. The UV-coordinates map
 	 * to texture coordinate space, which uses a normalized range from 0 to 1.
 	 */
 	public void setUV(Area2D uv);
-	
+
 }

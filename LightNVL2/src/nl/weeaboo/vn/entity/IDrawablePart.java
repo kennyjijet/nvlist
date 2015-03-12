@@ -1,12 +1,10 @@
 package nl.weeaboo.vn.entity;
 
-import java.io.Serializable;
-
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderable;
 
-public interface IDrawablePart extends IRenderable, Serializable {
+public interface IDrawablePart extends INovelPart, IRenderable {
 
 	public short getZ();
 

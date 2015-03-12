@@ -42,7 +42,7 @@ public final class TestUtil {
 	public static Screen newScreen(BasicPartRegistry pr, Scene scene) {
         int w = BASIC_ENV.getWidth();
         int h = BASIC_ENV.getHeight();
-	    return new Screen(scene, new Rect2D(0, 0, w, h), pr.drawable, BASIC_ENV);
+	    return new Screen(scene, new Rect2D(0, 0, w, h), pr, BASIC_ENV);
 	}
 
 	public static IScriptContext newScriptContext() {

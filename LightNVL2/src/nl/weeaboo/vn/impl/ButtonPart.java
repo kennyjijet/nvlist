@@ -1,20 +1,18 @@
 package nl.weeaboo.vn.impl;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-/*
-public class ButtonPart extends Part implements IButtonPart {
+import nl.weeaboo.vn.entity.IButtonPart;
+import nl.weeaboo.vn.script.IScriptFunction;
+
+public class ButtonPart extends NovelPart implements IButtonPart {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
-    private static final TextStyle DEFAULT_STYLE;
-
-    static {
-        MutableTextStyle mts = new MutableTextStyle();
-        mts.setAnchor(5);
-        DEFAULT_STYLE = mts.immutableCopy();
-    }
-
-    private final ITextRenderer textRenderer;
+    private final ChangeHelper changeHelper = new ChangeHelper();
 
     private boolean rollover;
     private boolean keyArmed, mouseArmed;
@@ -23,46 +21,17 @@ public class ButtonPart extends Part implements IButtonPart {
     private boolean toggle;
     private boolean keyboardFocus;
     private int pressEvents;
-    private double touchMargin;
     private Set<Integer> activationKeys = new HashSet<Integer>();
-    private ITexture normalTexture;
-    private ITexture rolloverTexture;
-    private ITexture pressedTexture;
-    private ITexture pressedRolloverTexture;
-    private ITexture disabledTexture;
-    private ITexture disabledPressedTexture;
     private double alphaEnableThreshold = 0.9;
-    private LuaFunction clickHandler;
 
-    private StyledText stext = StyledText.EMPTY_STRING;
-    private TextStyle defaultStyle = DEFAULT_STYLE;
-    private double verticalAlign = 0.5;
+    private IScriptFunction clickHandler;
 
-    private boolean changed;
-
-    public ButtonPart(ITextRenderer tr) {
-        tr.setDefaultStyle(DEFAULT_STYLE);
-        textRenderer = tr;
-
-        TODO: Needs an imagePart that does the rendering?
+    public ButtonPart() {
     }
 
     //Functions
-    @Override
-    public void onDetached(World w) {
-        super.onDetached(w);
-
-        textRenderer.destroy();
-    }
-
-    protected void markChanged() {
-        changed = true;
-    }
-
-    protected boolean consumeChanged() {
-        boolean result = changed;
-        changed = false;
-        return result;
+    protected final void fireChanged() {
+        changeHelper.fireChanged();
     }
 
     @Override
@@ -81,12 +50,8 @@ public class ButtonPart extends Part implements IButtonPart {
         }
     }
 
-    @Override
-    public boolean update(ILayer layer, IInput input, double effectSpeed) {
-        if (super.update(layer, input, effectSpeed)) {
-            markChanged();
-        }
-
+    /*
+    public boolean handleInput() {
         boolean visibleEnough = isVisible(alphaEnableThreshold);
 
         double x = input.getMouseX();
@@ -146,30 +111,7 @@ public class ButtonPart extends Part implements IButtonPart {
 
         eventHandler.addEvent(clickHandler);
     }
-
-    @Override
-    public void draw(IDrawBuffer d) {
-        updateTexture();
-
-        super.draw(d);
-
-        if (stext.length() > 0) {
-            short z = getZ();
-            boolean clip = isClipEnabled();
-            BlendMode blend = getBlendMode();
-            int argb = getColorARGB();
-
-            Vec2 trPos = new Vec2();
-            getTextRendererAbsoluteXY(trPos);
-            textRenderer.draw(d, (short)(z-1), clip, blend, argb, trPos.x, trPos.y);
-        }
-    }
-
-    @Override
-    protected void invalidateTransform() {
-        super.invalidateTransform();
-        textRenderer.setMaxSize((float)getWidth(), (float)getHeight());
-    }
+    */
 
     @Override
     public void cancelMouseArmed() {
@@ -181,17 +123,17 @@ public class ButtonPart extends Part implements IButtonPart {
         // We could consume only one press, or let this method return the number
         // of consumed presses or something. Let's just consume all of them for
         // now...
-
         boolean consumed = (pressEvents > 0);
-        if (consumed) {
-            markChanged();
-        }
-
         pressEvents = 0;
+
+        if (consumed) {
+            fireChanged();
+        }
 
         return consumed;
     }
 
+    /*
     protected void consumeInput(IInput input, boolean mouseContains) {
         if (mouseContains && input.consumeMouse()) {
             mouseArmed = true;
@@ -216,22 +158,10 @@ public class ButtonPart extends Part implements IButtonPart {
             }
         }
     }
-
-    @Override
-    public void extendDefaultStyle(TextStyle style) {
-        setDefaultStyle(getDefaultStyle().extend(style));
-    }
+    */
 
     //Getters
-    protected void getTextRendererAbsoluteXY(Vec2 out) {
-        getTextRendererXY(out);
-        out.x += getX() + touchMargin;
-        out.y += getY() + touchMargin;
-    }
-    protected void getTextRendererXY(Vec2 out) {
-        LayoutUtil.getTextRendererXY(out, getWidth(), getHeight(), textRenderer, verticalAlign);
-    }
-
+    /*
     protected boolean isInputHeld(IInput input) {
         if (input.isMouseHeld(true)) {
             return true;
@@ -248,16 +178,7 @@ public class ButtonPart extends Part implements IButtonPart {
         }
         return false;
     }
-
-    @Override
-    public StyledText getText() {
-        return stext;
-    }
-
-    @Override
-    public TextStyle getDefaultStyle() {
-        return defaultStyle;
-    }
+    */
 
     @Override
     public boolean isRollover() {
@@ -275,59 +196,13 @@ public class ButtonPart extends Part implements IButtonPart {
     }
 
     @Override
-    public double getTouchMargin() {
-        return touchMargin;
-    }
-
-    @Override
-    protected IPolygon createCollisionShape() {
-        double padding = getTouchMargin();
-
-        Matrix transform = getTransform();
-        double dx = getAlignOffsetX();
-        double dy = getAlignOffsetY();
-        if (dx != 0 || dy != 0) {
-            MutableMatrix mm = transform.mutableCopy();
-            mm.translate(dx, dy);
-            transform = mm.immutableCopy();
-        }
-        return new Polygon(transform, -padding, -padding,
-                getUnscaledWidth()+padding*2, getUnscaledHeight()+padding*2);
-    }
-
-    @Override
     public Collection<Integer> getActivationKeys() {
         return Collections.unmodifiableSet(activationKeys);
     }
 
     @Override
-    public ITexture getNormalTexture() {
-        return normalTexture;
-    }
-
-    @Override
-    public ITexture getRolloverTexture() {
-        return rolloverTexture;
-    }
-
-    @Override
-    public ITexture getPressedTexture() {
-        return pressedTexture;
-    }
-
-    @Override
-    public ITexture getPressedRolloverTexture() {
-        return pressedRolloverTexture;
-    }
-
-    @Override
-    public ITexture getDisabledTexture() {
-        return disabledTexture;
-    }
-
-    @Override
-    public ITexture getDisabledPressedTexture() {
-        return disabledPressedTexture;
+    public IScriptFunction getClickHandler() {
+        return clickHandler;
     }
 
     @Override
@@ -346,133 +221,19 @@ public class ButtonPart extends Part implements IButtonPart {
     }
 
     @Override
-    public double getTextWidth() {
-        return textRenderer.getTextWidth();
-    }
-
-    @Override
-    public double getTextHeight() {
-        return textRenderer.getTextHeight();
-    }
-
-    @Override
     public double getAlphaEnableThreshold() {
         return alphaEnableThreshold;
     }
 
     //Setters
     @Override
-    public void setText(String s) {
-        setText(new StyledText(s != null ? s : ""));
-    }
-
-    @Override
-    public void setText(StyledText st) {
-        if (!stext.equals(st)) {
-            stext = st;
-            textRenderer.setText(stext);
-            markChanged();
-        }
-    }
-
-    @Override
-    @Deprecated
-    public void setTextAnchor(int a) {
-        if (a >= 7 && a <= 9) {
-            setVerticalAlign(0);
-        } else if (a >= 4 && a <= 6) {
-            setVerticalAlign(.5);
-        } else {
-            setVerticalAlign(1);
-        }
-    }
-
-    @Override
-    public void setVerticalAlign(double valign) {
-        if (verticalAlign != valign) {
-             verticalAlign = valign;
-             markChanged();
-        }
-    }
-
-    @Override
-    public void setDefaultStyle(TextStyle ts) {
-        if (ts == null) throw new IllegalArgumentException("setDefaultStyle() must not be called with a null argument.");
-
-        if (defaultStyle != ts && (defaultStyle == null || !defaultStyle.equals(ts))) {
-            defaultStyle = ts;
-            textRenderer.setDefaultStyle(ts);
-            markChanged();
-        }
-    }
-
-    @Override
     public void setEnabled(boolean e) {
         if (enabled != e) {
             enabled = e;
-            if (!enabled) rollover = false;
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setTouchMargin(double p) {
-        if (touchMargin != p) {
-            touchMargin = p;
-
-            markChanged();
-            invalidateCollisionShape();
-        }
-    }
-
-    @Override
-    public void setNormalTexture(ITexture tex) {
-        if (normalTexture != tex) {
-            normalTexture = tex;
-            if (getTexture() == null) {
-                setTexture(normalTexture);
+            if (!enabled) {
+                rollover = false;
             }
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setRolloverTexture(ITexture tex) {
-        if (rolloverTexture != tex) {
-            rolloverTexture = tex;
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setPressedTexture(ITexture tex) {
-        if (pressedTexture != tex) {
-            pressedTexture = tex;
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setPressedRolloverTexture(ITexture tex) {
-        if (pressedRolloverTexture != tex) {
-            pressedRolloverTexture = tex;
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setDisabledTexture(ITexture tex) {
-        if (disabledTexture != tex) {
-            disabledTexture = tex;
-            markChanged();
-        }
-    }
-
-    @Override
-    public void setDisabledPressedTexture(ITexture tex) {
-        if (disabledPressedTexture != tex) {
-            disabledPressedTexture = tex;
-            markChanged();
+            fireChanged();
         }
     }
 
@@ -480,7 +241,7 @@ public class ButtonPart extends Part implements IButtonPart {
     public void setSelected(boolean s) {
         if (selected != s) {
             selected = s;
-            markChanged();
+            fireChanged();
         }
     }
 
@@ -488,7 +249,7 @@ public class ButtonPart extends Part implements IButtonPart {
     public void setToggle(boolean t) {
         if (toggle != t) {
             toggle = t;
-            markChanged();
+            fireChanged();
         }
     }
 
@@ -499,7 +260,7 @@ public class ButtonPart extends Part implements IButtonPart {
             if (!keyboardFocus) {
                 keyArmed = false;
             }
-            markChanged();
+            fireChanged();
         }
     }
 
@@ -507,19 +268,23 @@ public class ButtonPart extends Part implements IButtonPart {
     public void setAlphaEnableThreshold(double ae) {
         if (alphaEnableThreshold != ae) {
             alphaEnableThreshold = ae;
-            markChanged();
+            fireChanged();
         }
     }
 
     @Override
-    public void setRenderEnv(RenderEnv env) {
-        super.setRenderEnv(env);
-        textRenderer.setRenderEnv(env);
+    public void setClickHandler(IScriptFunction func) {
+        if (clickHandler != func) {
+            clickHandler = func;
+            fireChanged();
+        }
     }
 
-    public void setClickHandler(LuaFunction func) {
-        clickHandler = func;
+    /**
+     * @see ChangeHelper#setChangeListener(IChangeListener)
+     */
+    void setChangeListener(IChangeListener cl) {
+        changeHelper.setChangeListener(cl);
     }
 
 }
-*/

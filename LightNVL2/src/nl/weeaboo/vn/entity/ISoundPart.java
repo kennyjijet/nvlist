@@ -1,11 +1,10 @@
 package nl.weeaboo.vn.entity;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 import nl.weeaboo.vn.SoundType;
 
-public interface ISoundPart extends Serializable {
+public interface ISoundPart extends INovelPart {
 
 	// === Functions ===========================================================
 	/**

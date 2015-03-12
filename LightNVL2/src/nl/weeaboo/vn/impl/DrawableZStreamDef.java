@@ -8,8 +8,6 @@ import nl.weeaboo.vn.entity.IDrawablePart;
 
 final class DrawableZStreamDef extends EntityStreamDef {
 
-	private static final long serialVersionUID = 1L;
-
 	private final ILayer layer;
 	private final PartType<? extends IDrawablePart> drawablePart;
 	private final int direction;

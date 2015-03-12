@@ -1,24 +1,15 @@
 package nl.weeaboo.vn.impl;
 
-import java.io.Serializable;
-
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
 
-class BoundsHelper implements Serializable {
+class BoundsHelper extends ChangeHelper {
 
 	private static final long serialVersionUID = 1L;
 
 	private double x, y, w, h;
 
-	private transient IChangeListener changeListener;
-
 	// Functions
-	protected final void fireChanged() {
-		if (changeListener != null) {
-			changeListener.onChanged();
-		}
-	}
 
 	// Getters
 	public double getX() { return x; }
@@ -59,16 +50,6 @@ class BoundsHelper implements Serializable {
 
 			fireChanged();
 		}
-	}
-
-	/**
-	 * Warning: The change listener is internally marked transient and will therefore be lost upon
-	 * serialization.
-	 * <p>
-	 * The given change listener will be called whenever a property of this bounds helper changes.
-	 */
-	public void setChangeListener(IChangeListener cl) {
-		changeListener = cl;
 	}
 
 }

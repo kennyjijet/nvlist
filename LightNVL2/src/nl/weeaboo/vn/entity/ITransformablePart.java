@@ -1,10 +1,8 @@
 package nl.weeaboo.vn.entity;
 
-import java.io.Serializable;
-
 import nl.weeaboo.vn.math.Matrix;
 
-public interface ITransformablePart extends IDrawablePart, Serializable {
+public interface ITransformablePart extends IDrawablePart {
 
 	/**
 	 * Returns the base width of the transformable, before any transforms are
