@@ -20,7 +20,7 @@ public class BasicPartRegistry extends PartRegistry {
 	public final PartType<TransformablePart> transformable;
     public final PartType<ImagePart> image;
 
-    public final PartType<? extends IInputHandler> input;
+    public final PartType<? extends IInputListener> input;
 
     public final PartType<? extends IButtonPart> button;
     // public final PartType<? extends IButtonDrawablePart> buttonDrawable;

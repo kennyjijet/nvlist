@@ -5,14 +5,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import nl.weeaboo.common.Checks;
+import nl.weeaboo.vn.IInput;
+import nl.weeaboo.vn.IInputListener;
 import nl.weeaboo.vn.entity.IButtonPart;
+import nl.weeaboo.vn.script.IScriptEventDispatcher;
 import nl.weeaboo.vn.script.IScriptFunction;
 
-public class ButtonPart extends NovelPart implements IButtonPart {
+public class ButtonPart extends NovelPart implements IButtonPart, IInputListener {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
     private final ChangeHelper changeHelper = new ChangeHelper();
+    private final IScriptEventDispatcher eventDispatcher;
 
     private boolean rollover;
     private boolean keyArmed, mouseArmed;
@@ -26,7 +31,8 @@ public class ButtonPart extends NovelPart implements IButtonPart {
 
     private IScriptFunction clickHandler;
 
-    public ButtonPart() {
+    public ButtonPart(IScriptEventDispatcher eventDispatcher) {
+        this.eventDispatcher = Checks.checkNotNull(eventDispatcher);
     }
 
     //Functions
@@ -50,68 +56,14 @@ public class ButtonPart extends NovelPart implements IButtonPart {
         }
     }
 
-    /*
-    public boolean handleInput() {
-        boolean visibleEnough = isVisible(alphaEnableThreshold);
-
-        double x = input.getMouseX();
-        double y = input.getMouseY();
-
-        boolean inputHeld = isInputHeld(input);
-        boolean contains = (!isClipEnabled() || layer.containsRel(x, y)) && contains(x, y) && visibleEnough;
-        boolean r = contains && (mouseArmed || keyArmed || !inputHeld);
-        if (rollover != r) {
-            rollover = r;
-            markChanged();
-        }
-
-        if (isEnabled() && visibleEnough) {
-            consumeInput(input, contains);
-
-            if ((mouseArmed || keyArmed) && !inputHeld) {
-                if ((mouseArmed && contains) || keyArmed) {
-                    onPressed();
-                }
-                mouseArmed = keyArmed = false;
-                markChanged();
-            }
-        } else {
-            pressEvents = 0;
-
-            if (mouseArmed) {
-                mouseArmed = false;
-                markChanged();
-            }
-            if (keyArmed) {
-                keyArmed = false;
-                markChanged();
-            }
-        }
-
-        r = contains && (mouseArmed || keyArmed || !inputHeld);
-        if (rollover != r) {
-            rollover = r;
-            markChanged();
-        }
-
-        updateTexture();
-
-        if (textRenderer.update()) {
-            markChanged();
-        }
-
-        return consumeChanged();
-    }
-
     protected void onPressed() {
         if (isToggle()) {
             setSelected(!isSelected());
         }
         pressEvents++;
 
-        eventHandler.addEvent(clickHandler);
+        eventDispatcher.addEvent(clickHandler);
     }
-    */
 
     @Override
     public void cancelMouseArmed() {
@@ -133,35 +85,80 @@ public class ButtonPart extends NovelPart implements IButtonPart {
         return consumed;
     }
 
-    /*
-    protected void consumeInput(IInput input, boolean mouseContains) {
+    @Override
+    public void handleInput(IInput input, boolean mouseContains) {
+        boolean changed = false;
+
+        // TODO LVN-002 How to temporarily disable input handling based on the visibility of the accompanying drawable?
+        boolean visibleEnough = true; //drawable.isVisible(alphaEnableThreshold);
+        if (!visibleEnough) {
+            mouseContains = false;
+        }
+
+        boolean inputHeld = isInputHeld(input);
+        boolean r = mouseContains && (mouseArmed || keyArmed || !inputHeld);
+
+        if (rollover != r) {
+            rollover = r;
+            changed = true;
+        }
+
+        if (isEnabled() && visibleEnough) {
+            consumeInput(input, mouseContains);
+
+            if ((mouseArmed || keyArmed) && !inputHeld) {
+                if ((mouseArmed && mouseContains) || keyArmed) {
+                    onPressed();
+                }
+                mouseArmed = keyArmed = false;
+                changed = true;
+            }
+        } else {
+            pressEvents = 0;
+
+            if (mouseArmed) {
+                mouseArmed = false;
+                changed = true;
+            }
+            if (keyArmed) {
+                keyArmed = false;
+                changed = true;
+            }
+        }
+
+        r = mouseContains && (mouseArmed || keyArmed || !inputHeld);
+        if (rollover != r) {
+            rollover = r;
+            changed = true;
+        }
+
+        if (changed) {
+            fireChanged();
+        }
+    }
+
+    private void consumeInput(IInput input, boolean mouseContains) {
         if (mouseContains && input.consumeMouse()) {
             mouseArmed = true;
             keyArmed = false;
-            markChanged();
-            return;
-        }
-        if (keyboardFocus && input.consumeConfirm()) {
+            fireChanged();
+        } else if (keyboardFocus && input.consumeConfirm()) {
             mouseArmed = false;
             keyArmed = true;
-            markChanged();
-            return;
-        }
-        if (!activationKeys.isEmpty()) {
+            fireChanged();
+        } else if (!activationKeys.isEmpty()) {
             for (Integer key : activationKeys) {
                 if (input.consumeKey(key)) {
                     mouseArmed = false;
                     keyArmed = true;
-                    markChanged();
-                    return;
+                    fireChanged();
+                    break;
                 }
             }
         }
     }
-    */
 
     //Getters
-    /*
     protected boolean isInputHeld(IInput input) {
         if (input.isMouseHeld(true)) {
             return true;
@@ -178,7 +175,6 @@ public class ButtonPart extends NovelPart implements IButtonPart {
         }
         return false;
     }
-    */
 
     @Override
     public boolean isRollover() {

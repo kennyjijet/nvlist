@@ -53,5 +53,29 @@ public interface IInput extends Serializable {
      */
 	public boolean isIdle();
 
+	// -------------------------------------------------------------------------------------------------------
+
+    public boolean consumeUp();
+    public boolean consumeDown();
+    public boolean consumeLeft();
+    public boolean consumeRight();
+    public boolean consumeConfirm();
+    public boolean consumeCancel();
+    public boolean consumeTextContinue();
+    public boolean consumeEffectSkip();
+    public boolean consumeTextLog();
+    public boolean consumeViewCG();
+    public boolean consumeSaveScreen();
+    public boolean consumeLoadScreen();
+
+    public boolean isUpHeld();
+    public boolean isDownHeld();
+    public boolean isLeftHeld();
+    public boolean isRightHeld();
+    public boolean isQuickRead();
+    public boolean isQuickReadAlt();
+    public boolean isConfirmHeld();
+    public boolean isCancelHeld();
+
 }
 

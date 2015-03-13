@@ -1,12 +1,22 @@
 package nl.weeaboo.vn.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
-/*
+import nl.weeaboo.game.entity.World;
+import nl.weeaboo.styledtext.StyledText;
+import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.IRenderEnv;
+import nl.weeaboo.vn.ITextRenderer;
+import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.entity.IButtonDrawablePart;
+import nl.weeaboo.vn.math.Vec2;
+
 class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
-    private final IButtonPart model;
+    private final ButtonPart model;
     private final ITextRenderer textRenderer;
 
     private ITexture normalTexture;
@@ -21,7 +31,9 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
     private double verticalAlign = 0.5;
     private double touchMargin;
 
-    public ButtonDrawablePart(IButtonPart model, ITextRenderer tr) {
+    private transient ITexture currentTexture;
+
+    public ButtonDrawablePart(ButtonPart model, ITextRenderer tr) {
         this.model = model;
         this.textRenderer = tr;
 
@@ -35,7 +47,8 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         model.setChangeListener(new IChangeListener() {
             @Override
             public void onChanged() {
-                updateTexture();
+                invalidateTexture();
+                markChanged();
             }
         });
     }
@@ -53,6 +66,10 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         textRenderer.destroy();
     }
 
+    protected void invalidateTexture() {
+        currentTexture = null;
+    }
+
     @Override
     public void update() {
         super.update();
@@ -60,27 +77,24 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         textRenderer.update();
     }
 
-    protected void updateTexture() {
-        TODO: Determine which texture to use, call setTexture
-    }
 
-    @Override
-    public void draw(IDrawBuffer d) {
-        updateTexture();
-
-        TODO: Draw image
-
-        if (stext.length() > 0) {
-            short z = getZ();
-            boolean clip = isClipEnabled();
-            BlendMode blend = getBlendMode();
-            int argb = getColorARGB();
-
-            Vec2 trPos = new Vec2();
-            getTextRendererAbsoluteXY(trPos);
-            textRenderer.draw(d, (short)(z-1), clip, blend, argb, trPos.x, trPos.y);
-        }
-    }
+// TODO LVN-001
+//    @Override
+//    public void draw(IDrawBuffer d) {
+//
+//        TODO: Determine currentTexture and draw it
+//
+//        if (stext.length() > 0) {
+//            short z = getZ();
+//            boolean clip = isClipEnabled();
+//            BlendMode blend = getBlendMode();
+//            int argb = getColorARGB();
+//
+//            Vec2 trPos = new Vec2();
+//            getTextRendererAbsoluteXY(trPos);
+//            textRenderer.draw(d, (short)(z-1), clip, blend, argb, trPos.x, trPos.y);
+//        }
+//    }
 
     @Override
     protected void invalidateTransform() {
@@ -94,14 +108,15 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
     }
 
     //Getters
-    protected void getTextRendererAbsoluteXY(Vec2 out) {
-        getTextRendererXY(out);
-        out.x += getX() + touchMargin;
-        out.y += getY() + touchMargin;
+    protected Vec2 getTextRendererAbsoluteXY() {
+        Vec2 v = getTextRendererXY();
+        v.x += getX() + touchMargin;
+        v.y += getY() + touchMargin;
+        return v;
     }
 
-    protected void getTextRendererXY(Vec2 out) {
-        LayoutUtil.getTextRendererXY(out, getWidth(), getHeight(), textRenderer, verticalAlign);
+    protected Vec2 getTextRendererXY() {
+        return RenderUtil.getTextRendererXY(getWidth(), getHeight(), textRenderer, verticalAlign);
     }
 
     @Override
@@ -232,7 +247,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (normalTexture != tex) {
             normalTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -242,7 +257,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (rolloverTexture != tex) {
             rolloverTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -252,7 +267,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (pressedTexture != tex) {
             pressedTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -262,7 +277,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (pressedRolloverTexture != tex) {
             pressedRolloverTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -272,7 +287,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (disabledTexture != tex) {
             disabledTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -282,7 +297,7 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
         if (disabledPressedTexture != tex) {
             disabledPressedTexture = tex;
 
-            updateTexture();
+            invalidateTexture();
             markChanged();
         }
     }
@@ -295,4 +310,3 @@ class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {
     }
 
 }
-*/

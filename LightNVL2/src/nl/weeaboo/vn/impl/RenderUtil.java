@@ -2,6 +2,8 @@ package nl.weeaboo.vn.impl;
 
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.ITextRenderer;
+import nl.weeaboo.vn.math.Vec2;
 
 final class RenderUtil {
 
@@ -28,4 +30,15 @@ final class RenderUtil {
 		return new Rect2D(x, y, w, h);
 	}
 
+    public static Vec2 getTextRendererXY(double outerW, double outerH, ITextRenderer tr, double valign) {
+        double x = 0;
+        /*out.x = LayoutUtil.alignAnchorX(outerW, tr.getTextWidth(), anchor);
+        if (tr.isRightToLeft()) {
+            x -= tr.getTextTrailing();
+        } else {
+            x -= tr.getTextLeading();
+        }*/
+        double y = (outerH - tr.getTextHeight()) * valign;
+        return new Vec2(x, y);
+    }
 }

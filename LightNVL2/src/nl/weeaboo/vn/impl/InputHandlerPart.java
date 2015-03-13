@@ -5,29 +5,29 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import nl.weeaboo.vn.IInput;
-import nl.weeaboo.vn.IInputHandler;
+import nl.weeaboo.vn.IInputListener;
 import nl.weeaboo.vn.entity.IInputHandlerPart;
 
 public class InputHandlerPart extends NovelPart implements IInputHandlerPart {
 
     private static final long serialVersionUID = BaseImpl.serialVersionUID;
 
-    private List<IInputHandler> inputHandlers = new CopyOnWriteArrayList<IInputHandler>();
+    private List<IInputListener> inputHandlers = new CopyOnWriteArrayList<IInputListener>();
 
     @Override
-    public void handleInput(IInput input) {
-        for (IInputHandler handler : inputHandlers) {
-            handler.handleInput(input);
+    public void handleInput(IInput input, boolean mouseContains) {
+        for (IInputListener handler : inputHandlers) {
+            handler.handleInput(input, mouseContains);
         }
     }
 
     @Override
-    public <I extends IInputHandler & Serializable> void addInputListener(I handler) {
+    public <I extends IInputListener & Serializable> void addInputListener(I handler) {
         inputHandlers.add(handler);
     }
 
     @Override
-    public void removeInputListener(IInputHandler handler) {
+    public void removeInputListener(IInputListener handler) {
         inputHandlers.remove(handler);
     }
 
