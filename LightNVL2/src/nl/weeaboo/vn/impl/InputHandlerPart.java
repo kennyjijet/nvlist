@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import nl.weeaboo.vn.IInput;
+import nl.weeaboo.vn.IInputHandlerPart;
 import nl.weeaboo.vn.IInputListener;
-import nl.weeaboo.vn.entity.IInputHandlerPart;
 
 public class InputHandlerPart extends NovelPart implements IInputHandlerPart {
 

@@ -1,12 +1,7 @@
-package nl.weeaboo.vn.entity;
+package nl.weeaboo.vn;
 
-import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.IRenderable;
 
 public interface IDrawablePart extends INovelPart, IRenderable {
-
-	public short getZ();
 
 	/**
 	 * @return The current color (red, green, blue) and alpha, packed together into a single int in ARGB
@@ -28,6 +23,7 @@ public interface IDrawablePart extends INovelPart, IRenderable {
 	/**
 	 * @see #isVisible(double)
 	 */
+	@Override
 	public boolean isVisible();
 
 	/**

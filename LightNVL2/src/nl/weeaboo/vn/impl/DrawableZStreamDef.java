@@ -3,8 +3,8 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.EntityStreamDef;
 import nl.weeaboo.game.entity.PartType;
+import nl.weeaboo.vn.IDrawablePart;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.entity.IDrawablePart;
 
 final class DrawableZStreamDef extends EntityStreamDef {
 

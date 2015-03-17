@@ -1,4 +1,4 @@
-package nl.weeaboo.vn.entity;
+package nl.weeaboo.vn;
 
 import java.util.Collection;
 

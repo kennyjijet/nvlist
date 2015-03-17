@@ -3,8 +3,8 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
+import nl.weeaboo.vn.IImagePart;
 import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.entity.IImagePart;
 import nl.weeaboo.vn.math.Vec2;
 
 public class ImagePart extends NovelPart implements IImagePart {

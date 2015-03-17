@@ -1,8 +1,8 @@
 package nl.weeaboo.vn.script;
 
-import java.io.Serializable;
+import nl.weeaboo.vn.INovelPart;
 
-public interface IScriptPart extends Serializable {
+public interface IScriptPart extends INovelPart {
 
     /**
      * Attaches a thread. When this part becomes detached, the thread's destroy method is called. When the

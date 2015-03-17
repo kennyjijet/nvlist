@@ -8,6 +8,7 @@ import nl.weeaboo.vn.IImageModule;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ISoundModule;
+import nl.weeaboo.vn.save.ISaveModule;
 
 public class DefaultEnvironment implements IEnvironment {
 
@@ -17,6 +18,7 @@ public class DefaultEnvironment implements IEnvironment {
     private final IRenderEnv renderEnv;
     private final IImageModule imageModule;
     private final ISoundModule soundModule;
+    private final ISaveModule saveModule;
 
     private boolean destroyed;
 
@@ -27,6 +29,7 @@ public class DefaultEnvironment implements IEnvironment {
         this.renderEnv = Checks.checkNotNull(b.renderEnv);
         this.imageModule = b.imageModule;
         this.soundModule = b.soundModule;
+        this.saveModule = b.saveModule;
     }
 
     @Override
@@ -69,6 +72,11 @@ public class DefaultEnvironment implements IEnvironment {
     @Override
     public ISoundModule getSoundModule() {
         return soundModule;
+    }
+
+    @Override
+    public ISaveModule getSaveModule() {
+        return saveModule;
     }
 
 }

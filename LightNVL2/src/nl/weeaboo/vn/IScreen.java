@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import nl.weeaboo.game.entity.Entity;
 
-public interface IScreen extends Serializable {
+public interface IScreen extends Serializable, IUpdateable {
 
     /**
      * Creates a new entity and adds it to this screen.

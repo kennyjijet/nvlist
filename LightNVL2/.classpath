@@ -5,16 +5,12 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java6"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.7.7.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-image.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-styledtext.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/LuaJPP2"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/filesystem"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/game-entity"/>
-	<classpathentry kind="lib" path="lib/luajpp2.jar"/>
-	<classpathentry kind="lib" path="lib/tcommon-core.jar"/>
-	<classpathentry kind="lib" path="lib/tcommon-filesystem.jar"/>
-	<classpathentry kind="lib" path="lib/tcommon-game-entity.jar"/>
-	<classpathentry kind="lib" path="lib/tcommon-image.jar"/>
-	<classpathentry kind="lib" path="lib/tcommon-styledtext.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,7 +1,6 @@
-package nl.weeaboo.vn.entity;
+package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Area2D;
-import nl.weeaboo.vn.ITexture;
 
 public interface IImagePart extends INovelPart {
 

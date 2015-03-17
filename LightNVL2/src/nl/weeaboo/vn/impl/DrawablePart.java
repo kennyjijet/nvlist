@@ -5,9 +5,9 @@ import java.io.ObjectInputStream;
 
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
+import nl.weeaboo.vn.IDrawablePart;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.entity.IDrawablePart;
 import nl.weeaboo.vn.math.Matrix;
 
 import org.slf4j.Logger;

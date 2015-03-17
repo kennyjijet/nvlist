@@ -13,9 +13,9 @@ import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.vn.BasicPartRegistry;
 import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.INovelPart;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreen;
-import nl.weeaboo.vn.entity.INovelPart;
 import nl.weeaboo.vn.render.IDrawBuffer;
 
 public class Screen implements IScreen, ILayerHolder {
@@ -57,6 +57,7 @@ public class Screen implements IScreen, ILayerHolder {
         return scene.createEntity();
     }
 
+    @Override
     public void update() {
         // Call update on all IParts
         List<PartType<? extends INovelPart>> partTypes = partRegistry.getParts(INovelPart.class);

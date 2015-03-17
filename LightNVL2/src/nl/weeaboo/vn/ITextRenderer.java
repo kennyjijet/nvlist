@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
-import nl.weeaboo.vn.entity.IDrawablePart;
 import nl.weeaboo.vn.render.IDrawBuffer;
 
 public interface ITextRenderer extends Serializable {

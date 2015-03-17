@@ -1,7 +1,7 @@
 package nl.weeaboo.vn.impl;
 
 import nl.weeaboo.game.entity.Part;
-import nl.weeaboo.vn.entity.INovelPart;
+import nl.weeaboo.vn.INovelPart;
 
 /** Base class for all parts in LightNVL */
 public class NovelPart extends Part implements INovelPart {

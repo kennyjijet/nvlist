@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import nl.weeaboo.common.Checks;
+import nl.weeaboo.vn.IButtonPart;
 import nl.weeaboo.vn.IInput;
 import nl.weeaboo.vn.IInputListener;
-import nl.weeaboo.vn.entity.IButtonPart;
 import nl.weeaboo.vn.script.IScriptEventDispatcher;
 import nl.weeaboo.vn.script.IScriptFunction;
 

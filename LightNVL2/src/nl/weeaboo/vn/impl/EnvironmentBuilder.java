@@ -6,6 +6,7 @@ import nl.weeaboo.vn.IImageModule;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ISoundModule;
+import nl.weeaboo.vn.save.ISaveModule;
 
 public class EnvironmentBuilder {
 
@@ -15,5 +16,6 @@ public class EnvironmentBuilder {
     public IRenderEnv renderEnv;
     public IImageModule imageModule;
     public ISoundModule soundModule;
+    public ISaveModule saveModule;
 
 }

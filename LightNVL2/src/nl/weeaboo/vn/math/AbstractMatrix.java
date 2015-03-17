@@ -35,7 +35,7 @@ abstract class AbstractMatrix implements Serializable {
 		out.writeDouble(m10); out.writeDouble(m11); out.writeDouble(m12);
 	}
 
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream in) throws IOException {
 		m00 = in.readDouble(); m01 = in.readDouble(); m02 = in.readDouble();
 		m10 = in.readDouble(); m11 = in.readDouble(); m12 = in.readDouble();
 	}

@@ -1,6 +1,6 @@
 
 Next free ticket:
-LVN-008
+LVN-011
 
 Currently working on:
 LVN-004
@@ -14,6 +14,9 @@ LVN-004
   - Screen.update(), with the entities in timestamp order?
 [ ] LVN-007 - BasicPartRegistry contains implementation details
   - BasicPartRegistry should not define specific implementation classes, it should only use public interfaces. This means there needs to be a subclass or PartRegistry builder somewhere that initializes the registry with the specific implementation classes.
+[ ] LVN-010 - bug: Part.update() is called multiple times
+  - Part.update() is called once for each PartType the part object is used for. Instead, the update function should be called once per frame. Perhaps this is easiest if I explicitly implement a way of traversing all parts inside game-entity.
+  
     
 --- Input handling -------------------------------------------------------------
 
@@ -40,6 +43,14 @@ LVN-004
 [ ] LVN-002 - Implement buttons
     [ ] LVN-003 - Implement click-handling for buttons -- scheduling an IScriptFunction on the ScriptEventDispatcher.	
 
+--- Save support ---------------------------------------------------------------
+
+[ ] LVN-008 - Encoding of save file thumbnails
+  - The thumbnail image should be stored as a separate file inside the save .zip archive. These zip entries should be stored uncompressed.
+[ ] LVN-009 - Determine save format of persistent storage
+  - Persistent variables are saved in their own special file. This file's format is different from a normal save file. Should I just store the data as XML?
+  - Store a schemaVersion attribute in the header to be able to distinguish between (incompatible) saves made by different engine versions.
+    
 --------------------------------------------------------------------------------
 
 [ ] Integrate EDT functionality.

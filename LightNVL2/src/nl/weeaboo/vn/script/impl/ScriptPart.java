@@ -3,13 +3,13 @@ package nl.weeaboo.vn.script.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import nl.weeaboo.game.entity.Part;
 import nl.weeaboo.game.entity.World;
+import nl.weeaboo.vn.impl.NovelPart;
 import nl.weeaboo.vn.script.IScriptFunction;
 import nl.weeaboo.vn.script.IScriptPart;
 import nl.weeaboo.vn.script.IScriptThread;
 
-public class ScriptPart extends Part implements IScriptPart {
+public class ScriptPart extends NovelPart implements IScriptPart {
 
     private static final long serialVersionUID = 1L;
 

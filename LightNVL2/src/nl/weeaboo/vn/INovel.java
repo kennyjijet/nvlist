@@ -1,7 +1,12 @@
 package nl.weeaboo.vn;
 
-public interface INovel {
+import java.io.Serializable;
 
-    public IContextManager getContextManager();
+public interface INovel extends Serializable, IUpdateable {
+
+    public void start();
+    public void stop();
+
+    public IEnvironment getEnv();
 
 }

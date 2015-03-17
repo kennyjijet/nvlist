@@ -85,6 +85,16 @@ public class Context implements IContext {
 	    }
 	}
 
+	@Override
+	public void updateScreen() {
+	    screen.update();
+	}
+
+	@Override
+	public void updateScripts() {
+	    scriptContext.updateThreads(this);
+	}
+
 	//Getters
 	@Override
 	public boolean isDestroyed() {

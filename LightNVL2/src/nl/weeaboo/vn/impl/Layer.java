@@ -11,10 +11,10 @@ import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.EntityStream;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.vn.BasicPartRegistry;
+import nl.weeaboo.vn.IDrawablePart;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreenshotBuffer;
-import nl.weeaboo.vn.entity.IDrawablePart;
 import nl.weeaboo.vn.render.IDrawBuffer;
 import nl.weeaboo.vn.render.impl.ScreenshotBuffer;
 
@@ -43,7 +43,7 @@ public class Layer implements ILayer, ILayerHolder {
     private transient boolean changed;
 
     public Layer(ILayerHolder parent, Scene s, BasicPartRegistry pr) {
-        if (parent == null) throw new IllegalArgumentException("Parent may not be null");
+        Checks.checkNotNull(parent, "parent");
 
         this.parent = parent;
         this.scene = Checks.checkNotNull(s);

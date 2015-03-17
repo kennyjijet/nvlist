@@ -71,7 +71,7 @@ public class BaseScriptTest {
 
     /** Simple hello world script */
     @Test
-    public void helloWorld() throws LuaException, IOException, ScriptException {
+    public void helloWorld() throws IOException, ScriptException {
         LuaScriptContext context = new LuaScriptContext(scriptEnv);
         IScriptThread mainThread = context.getMainThread();
 

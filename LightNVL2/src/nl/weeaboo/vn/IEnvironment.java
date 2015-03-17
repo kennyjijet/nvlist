@@ -1,5 +1,7 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.vn.save.ISaveModule;
+
 
 /** Wrapper object that contains global engine state. */
 public interface IEnvironment extends IDestructible {
@@ -15,5 +17,7 @@ public interface IEnvironment extends IDestructible {
     IImageModule getImageModule();
 
     ISoundModule getSoundModule();
+
+    ISaveModule getSaveModule();
 
 }

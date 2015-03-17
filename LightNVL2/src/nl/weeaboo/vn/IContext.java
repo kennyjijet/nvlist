@@ -12,7 +12,9 @@ public interface IContext extends Serializable, IDestructible, IEntityContainer 
 
     public boolean isActive();
 
+    public void updateScreen();
 
+    public void updateScripts();
 
 	public IScreen getScreen();
 

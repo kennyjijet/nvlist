@@ -6,10 +6,10 @@ import java.io.ObjectInputStream;
 import nl.weeaboo.game.entity.World;
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.IButtonDrawablePart;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ITextRenderer;
 import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.entity.IButtonDrawablePart;
 import nl.weeaboo.vn.math.Vec2;
 
 class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {

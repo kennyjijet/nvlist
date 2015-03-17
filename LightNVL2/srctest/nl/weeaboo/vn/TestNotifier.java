@@ -27,6 +27,8 @@ public class TestNotifier extends AbstractNotifier {
         case MESSAGE:
             LOG.info(message, t);
             break;
+        default:
+            throw new IllegalArgumentException("Unsupported error level: " + el);
         }
     }
 

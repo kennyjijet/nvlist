@@ -10,6 +10,9 @@ public interface IContextManager extends Serializable {
 
     public Collection<? extends IContext> getContexts();
 
+    /**
+     * @return A copy of the collection of currently active contexts.
+     */
     public Collection<? extends IContext> getActiveContexts();
 
     public boolean isContextActive(IContext context);

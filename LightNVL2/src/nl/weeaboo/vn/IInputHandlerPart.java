@@ -1,8 +1,6 @@
-package nl.weeaboo.vn.entity;
+package nl.weeaboo.vn;
 
 import java.io.Serializable;
-
-import nl.weeaboo.vn.IInputListener;
 
 /**
  * Interface for the part of an entity that is responsible for distributing input events (keyboard, mouse,

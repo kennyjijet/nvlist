@@ -3,7 +3,7 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
-import nl.weeaboo.vn.entity.ITransformablePart;
+import nl.weeaboo.vn.ITransformablePart;
 import nl.weeaboo.vn.math.IShape;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.MutableMatrix;

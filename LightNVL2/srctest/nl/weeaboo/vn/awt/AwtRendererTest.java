@@ -22,11 +22,11 @@ import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
 import nl.weeaboo.vn.BasicPartRegistry;
+import nl.weeaboo.vn.IImagePart;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
+import nl.weeaboo.vn.ITransformablePart;
 import nl.weeaboo.vn.TestUtil;
-import nl.weeaboo.vn.entity.IImagePart;
-import nl.weeaboo.vn.entity.ITransformablePart;
 import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.math.Vec2;
 import nl.weeaboo.vn.render.impl.DrawBuffer;
@@ -148,6 +148,8 @@ public class AwtRendererTest {
                     case KeyEvent.VK_SUBTRACT:
                         speed--;
                         break;
+                    default:
+                        // Do nothing
 			        }
 
 			        speed = Math.max(-4, Math.min(4, speed));

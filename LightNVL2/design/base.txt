@@ -40,4 +40,6 @@ Because visibility information from IDrawablePart is necessary to determine if a
 
 Layer bounds and visibility are also be considered when determining click detection. The way in which Layer determines to which drawables to forward user input is very similar to the way visibility is determined during rendering. Importantly, if clipEnabled is false, the (grand-)parent layer bounds are ignored.
 
-- Layer -> visibility calculation -> Drawable -> input listener -> Controller
+Screen -> Layer -> InputHandler(input, inputInfo) -> InputListener
+
+The InputInfo object contains the logic required to determine if the object should be considered interactable (visible, enabled, etc.) and what its hit-rect for mouse/touch input is. This object is typically provided by the DrawablePart ('view') of the entity, while the InputListener interface is implemented by the 'controller'.

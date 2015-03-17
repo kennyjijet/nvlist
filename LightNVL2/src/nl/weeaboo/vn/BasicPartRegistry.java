@@ -2,7 +2,6 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.game.entity.PartRegistry;
 import nl.weeaboo.game.entity.PartType;
-import nl.weeaboo.vn.entity.IButtonPart;
 import nl.weeaboo.vn.impl.ButtonPart;
 import nl.weeaboo.vn.impl.DrawablePart;
 import nl.weeaboo.vn.impl.ImagePart;

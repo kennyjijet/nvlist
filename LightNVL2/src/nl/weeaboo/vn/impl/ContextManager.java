@@ -54,7 +54,7 @@ public class ContextManager implements IContextManager {
 
     @Override
     public Collection<Context> getActiveContexts() {
-        List<Context> active = new ArrayList<Context>();
+        List<Context> active = new ArrayList<Context>(2);
         for (Context context : contexts) {
             if (context.isActive()) {
                 active.add(context);

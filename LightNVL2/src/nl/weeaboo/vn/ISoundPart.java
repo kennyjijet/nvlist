@@ -1,8 +1,6 @@
-package nl.weeaboo.vn.entity;
+package nl.weeaboo.vn;
 
 import java.io.IOException;
-
-import nl.weeaboo.vn.SoundType;
 
 public interface ISoundPart extends INovelPart {
 
