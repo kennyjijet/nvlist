@@ -1,13 +1,13 @@
-package nl.weeaboo.vn;
+package nl.weeaboo.vn.impl;
 
-import nl.weeaboo.vn.impl.AbstractNotifier;
+import nl.weeaboo.vn.ErrorLevel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestNotifier extends AbstractNotifier {
+public class DefaultNotifier extends AbstractNotifier {
 
-    private final Logger LOG = LoggerFactory.getLogger(TestNotifier.class);
+    private final Logger LOG = LoggerFactory.getLogger(DefaultNotifier.class);
 
     @Override
     public void log(ErrorLevel el, String message, Throwable t) {

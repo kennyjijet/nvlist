@@ -3,6 +3,8 @@ package nl.weeaboo.vn.impl;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.vn.BasicPartRegistry;
 import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.IScreen;
+import nl.weeaboo.vn.image.impl.ImagePart;
 import nl.weeaboo.vn.script.impl.ScriptPart;
 
 public class EntityHelper {
@@ -13,9 +15,15 @@ public class EntityHelper {
         this.pr = pr;
     }
 
+    public Entity createScriptableEntity(IScreen screen) {
+        Entity e = screen.createEntity();
+        addScriptParts(e);
+        return e;
+    }
+
     public Entity createScriptableEntity(ILayer layer) {
         Entity e = layer.createEntity();
-        addImageParts(e);
+        addScriptParts(e);
         return e;
     }
 

@@ -2,7 +2,7 @@ package nl.weeaboo.vn.render.impl;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.ITexture;
 import nl.weeaboo.vn.math.Matrix;
 
 public final class QuadRenderCommand extends BaseRenderCommand {

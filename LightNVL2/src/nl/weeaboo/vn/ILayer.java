@@ -3,6 +3,7 @@ package nl.weeaboo.vn;
 import java.io.Serializable;
 
 import nl.weeaboo.game.entity.Entity;
+import nl.weeaboo.vn.image.IScreenshotBuffer;
 
 public interface ILayer extends IDestructible, IEntityContainer, IRenderable, Serializable {
 

@@ -3,8 +3,8 @@ package nl.weeaboo.vn.save;
 import java.io.IOException;
 
 import nl.weeaboo.vn.IProgressListener;
-import nl.weeaboo.vn.IScreenshot;
 import nl.weeaboo.vn.IStorage;
+import nl.weeaboo.vn.image.IScreenshot;
 
 public interface ISaveModule {
 

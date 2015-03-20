@@ -1,6 +1,8 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.vn.image.IImageModule;
 import nl.weeaboo.vn.save.ISaveModule;
+import nl.weeaboo.vn.sound.ISoundModule;
 
 
 /** Wrapper object that contains global engine state. */

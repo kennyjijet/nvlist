@@ -4,11 +4,11 @@ import nl.weeaboo.common.Checks;
 import nl.weeaboo.vn.BasicPartRegistry;
 import nl.weeaboo.vn.IContextManager;
 import nl.weeaboo.vn.IEnvironment;
-import nl.weeaboo.vn.IImageModule;
 import nl.weeaboo.vn.INotifier;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.ISoundModule;
+import nl.weeaboo.vn.image.IImageModule;
 import nl.weeaboo.vn.save.ISaveModule;
+import nl.weeaboo.vn.sound.ISoundModule;
 
 public class DefaultEnvironment implements IEnvironment {
 
@@ -22,7 +22,7 @@ public class DefaultEnvironment implements IEnvironment {
 
     private boolean destroyed;
 
-    protected DefaultEnvironment(EnvironmentBuilder b) {
+    public DefaultEnvironment(EnvironmentBuilder b) {
         this.contextManager = Checks.checkNotNull(b.contextManager);
         this.pr = Checks.checkNotNull(b.partRegistry);
         this.notifier = Checks.checkNotNull(b.notifier);

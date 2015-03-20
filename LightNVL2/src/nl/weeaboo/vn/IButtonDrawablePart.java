@@ -2,6 +2,7 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.styledtext.StyledText;
 import nl.weeaboo.styledtext.TextStyle;
+import nl.weeaboo.vn.image.ITexture;
 
 public interface IButtonDrawablePart extends INovelPart, IRenderable {
 

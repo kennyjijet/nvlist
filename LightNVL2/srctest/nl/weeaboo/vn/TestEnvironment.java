@@ -2,8 +2,9 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.lua2.LuaRunState;
-import nl.weeaboo.vn.impl.DefaultEnvironment;
 import nl.weeaboo.vn.impl.ContextManager;
+import nl.weeaboo.vn.impl.DefaultEnvironment;
+import nl.weeaboo.vn.impl.DefaultNotifier;
 import nl.weeaboo.vn.impl.EnvironmentBuilder;
 import nl.weeaboo.vn.script.IScriptLoader;
 import nl.weeaboo.vn.script.lua.LuaScriptEnv;
@@ -29,7 +30,7 @@ public class TestEnvironment extends DefaultEnvironment {
         EnvironmentBuilder b = new EnvironmentBuilder();
 
         b.partRegistry = new BasicPartRegistry();
-        b.notifier = new TestNotifier();
+        b.notifier = new DefaultNotifier();
         b.renderEnv = TestUtil.BASIC_ENV;
 
         LuaRunState runState = LuaTestUtil.newRunState();

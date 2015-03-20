@@ -3,8 +3,9 @@ package nl.weeaboo.vn;
 import org.junit.Assert;
 
 import nl.weeaboo.game.entity.Entity;
+import nl.weeaboo.vn.image.ITexture;
+import nl.weeaboo.vn.image.impl.ImagePart;
 import nl.weeaboo.vn.impl.DrawablePart;
-import nl.weeaboo.vn.impl.ImagePart;
 import nl.weeaboo.vn.impl.TransformablePart;
 
 import org.junit.Test;

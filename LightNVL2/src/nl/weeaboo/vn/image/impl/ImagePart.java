@@ -1,15 +1,17 @@
-package nl.weeaboo.vn.impl;
+package nl.weeaboo.vn.image.impl;
 
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
-import nl.weeaboo.vn.IImagePart;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.IImagePart;
+import nl.weeaboo.vn.image.ITexture;
+import nl.weeaboo.vn.impl.NovelPart;
+import nl.weeaboo.vn.impl.TransformablePart;
 import nl.weeaboo.vn.math.Vec2;
 
 public class ImagePart extends NovelPart implements IImagePart {
 
-	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final long serialVersionUID = ImageImpl.serialVersionUID;
 
 	private final TransformablePart drawable;
 

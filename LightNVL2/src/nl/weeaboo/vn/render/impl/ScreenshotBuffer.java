@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import nl.weeaboo.vn.IScreenshotBuffer;
-import nl.weeaboo.vn.IWritableScreenshot;
+import nl.weeaboo.vn.image.IScreenshotBuffer;
+import nl.weeaboo.vn.image.IWritableScreenshot;
 import nl.weeaboo.vn.render.IDrawBuffer;
 
 public class ScreenshotBuffer implements IScreenshotBuffer {

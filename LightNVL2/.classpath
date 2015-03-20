@@ -7,6 +7,7 @@
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.7.7.jar"/>
 	<classpathentry kind="lib" path="lib/tcommon-image.jar"/>
 	<classpathentry kind="lib" path="lib/tcommon-styledtext.jar"/>
+	<classpathentry kind="lib" path="lib/tcommon-game-core.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/LuaJPP2"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/filesystem"/>

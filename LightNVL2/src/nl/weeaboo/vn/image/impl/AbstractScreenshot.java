@@ -1,15 +1,15 @@
-package nl.weeaboo.vn.impl;
+package nl.weeaboo.vn.image.impl;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import nl.weeaboo.vn.IScreenshot;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.IScreenshot;
+import nl.weeaboo.vn.image.ITexture;
 
 public abstract class AbstractScreenshot implements IScreenshot {
 
-	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final long serialVersionUID = ImageImpl.serialVersionUID;
 
 	private final short z;
 	private final boolean isVolatile;

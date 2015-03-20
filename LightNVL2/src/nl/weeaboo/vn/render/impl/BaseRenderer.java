@@ -4,7 +4,7 @@ import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.IScreenshot;
+import nl.weeaboo.vn.image.IScreenshot;
 import nl.weeaboo.vn.render.IRenderer;
 import nl.weeaboo.vn.render.RenderUtil;
 

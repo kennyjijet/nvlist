@@ -4,8 +4,8 @@ import nl.weeaboo.common.Area2D;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.ILayer;
-import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.IWritableScreenshot;
+import nl.weeaboo.vn.image.ITexture;
+import nl.weeaboo.vn.image.IWritableScreenshot;
 import nl.weeaboo.vn.math.Matrix;
 
 public interface IDrawBuffer {

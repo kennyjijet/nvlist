@@ -1,6 +1,7 @@
 package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Rect2D;
+import nl.weeaboo.vn.image.ITexture;
 import nl.weeaboo.vn.math.Vec2;
 
 public final class AlignUtil {

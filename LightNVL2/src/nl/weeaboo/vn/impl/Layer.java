@@ -14,7 +14,7 @@ import nl.weeaboo.vn.BasicPartRegistry;
 import nl.weeaboo.vn.IDrawablePart;
 import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.IScreenshotBuffer;
+import nl.weeaboo.vn.image.IScreenshotBuffer;
 import nl.weeaboo.vn.render.IDrawBuffer;
 import nl.weeaboo.vn.render.impl.ScreenshotBuffer;
 

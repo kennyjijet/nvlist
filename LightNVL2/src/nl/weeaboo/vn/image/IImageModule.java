@@ -1,8 +1,9 @@
-package nl.weeaboo.vn;
+package nl.weeaboo.vn.image;
 
 import java.util.Collection;
 
 import nl.weeaboo.game.entity.Entity;
+import nl.weeaboo.vn.ILayer;
 
 public interface IImageModule {
 

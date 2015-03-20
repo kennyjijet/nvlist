@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import javax.imageio.ImageIO;
 
 import nl.weeaboo.io.BufferUtil;
-import nl.weeaboo.vn.impl.DecodingScreenshot;
+import nl.weeaboo.vn.image.impl.DecodingScreenshot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

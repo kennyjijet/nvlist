@@ -17,7 +17,7 @@ import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.filesystem.LocalFileSystem;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.Scene;
-import nl.weeaboo.vn.impl.ImagePart;
+import nl.weeaboo.vn.image.impl.ImagePart;
 import nl.weeaboo.vn.impl.RenderEnv;
 import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.impl.TransformablePart;

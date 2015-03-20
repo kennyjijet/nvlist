@@ -1,6 +1,7 @@
 package nl.weeaboo.vn;
 
 import nl.weeaboo.common.Area2D;
+import nl.weeaboo.vn.image.ITexture;
 
 public class TextureStub implements ITexture {
 

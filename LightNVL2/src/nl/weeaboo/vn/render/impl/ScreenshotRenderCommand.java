@@ -1,6 +1,6 @@
 package nl.weeaboo.vn.render.impl;
 
-import nl.weeaboo.vn.IScreenshot;
+import nl.weeaboo.vn.image.IScreenshot;
 
 public final class ScreenshotRenderCommand extends BaseRenderCommand {
 

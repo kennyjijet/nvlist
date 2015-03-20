@@ -6,7 +6,7 @@ import java.nio.IntBuffer;
 import nl.weeaboo.common.Area2D;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.ITexture;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Polygon;
 import nl.weeaboo.vn.render.RenderUtil;

@@ -1,4 +1,4 @@
-package nl.weeaboo.vn.impl;
+package nl.weeaboo.vn.image.impl;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,7 +9,7 @@ import nl.weeaboo.io.BufferUtil;
 
 public abstract class DecodingScreenshot extends AbstractScreenshot {
 
-	private static final long serialVersionUID = BaseImpl.serialVersionUID;
+	private static final long serialVersionUID = ImageImpl.serialVersionUID;
 
 	private transient ByteBuffer data;
 	private transient boolean isLoaded;

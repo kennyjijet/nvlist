@@ -202,7 +202,7 @@ public class TransformablePart extends DrawablePart implements ITransformablePar
 		super.setSize(sx * getUnscaledWidth(), sy * getUnscaledHeight());
 	}
 
-	protected void setUnscaledSize(double w, double h) {
+	public void setUnscaledSize(double w, double h) {
 		if (unscaledWidth != w || unscaledHeight != h) {
 			unscaledWidth = w;
 			unscaledHeight = h;

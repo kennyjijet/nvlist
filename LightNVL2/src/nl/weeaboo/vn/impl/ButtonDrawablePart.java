@@ -9,7 +9,7 @@ import nl.weeaboo.styledtext.TextStyle;
 import nl.weeaboo.vn.IButtonDrawablePart;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ITextRenderer;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.ITexture;
 import nl.weeaboo.vn.math.Vec2;
 
 class ButtonDrawablePart extends DrawablePart implements IButtonDrawablePart {

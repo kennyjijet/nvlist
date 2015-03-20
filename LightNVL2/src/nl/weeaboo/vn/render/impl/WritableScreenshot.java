@@ -1,8 +1,8 @@
 package nl.weeaboo.vn.render.impl;
 
-import nl.weeaboo.vn.ITexture;
-import nl.weeaboo.vn.IWritableScreenshot;
-import nl.weeaboo.vn.impl.AbstractScreenshot;
+import nl.weeaboo.vn.image.ITexture;
+import nl.weeaboo.vn.image.IWritableScreenshot;
+import nl.weeaboo.vn.image.impl.AbstractScreenshot;
 
 public class WritableScreenshot extends AbstractScreenshot implements IWritableScreenshot {
 

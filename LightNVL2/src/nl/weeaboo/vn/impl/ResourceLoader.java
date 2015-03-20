@@ -1,11 +1,14 @@
 package nl.weeaboo.vn.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import nl.weeaboo.collections.LRUSet;
+import nl.weeaboo.common.Checks;
 import nl.weeaboo.vn.IEnvironment;
 import nl.weeaboo.vn.INotifier;
 
@@ -19,7 +22,7 @@ public abstract class ResourceLoader {
     private boolean checkFileExt;
 
     public ResourceLoader(IEnvironment env) {
-        this.notifier = env.getNotifier();
+        this.notifier = Checks.checkNotNull(env.getNotifier());
         this.checkedFilenames = new LRUSet<String>(128);
     }
 
@@ -28,7 +31,7 @@ public abstract class ResourceLoader {
         return BaseImpl.replaceExt(filename, ext);
     }
 
-    protected String normalizeFilename(String filename) {
+    public String normalizeFilename(String filename) {
         if (filename == null) return null;
 
         if (isValidFilename(filename)) {
@@ -90,18 +93,23 @@ public abstract class ResourceLoader {
      */
     protected abstract boolean isValidFilename(String normalizedFilename);
 
-    protected Collection<String> getMediaFiles(String folder) {
-        Collection<String> files = getFiles(folder);
-        List<String> filtered = new ArrayList<String>(files.size());
-        for (String file : files) {
-            if (isValidFilename(file)) {
-                filtered.add(file);
+    public Collection<String> getMediaFiles(String folder) {
+        try {
+            Collection<String> files = getFiles(folder);
+            List<String> filtered = new ArrayList<String>(files.size());
+            for (String file : files) {
+                if (isValidFilename(file)) {
+                    filtered.add(file);
+                }
             }
+            return filtered;
+        } catch (IOException ioe) {
+            notifier.warn("Folder doesn't exist or can't be read: " + folder, ioe);
+            return Collections.emptyList();
         }
-        return filtered;
     }
 
-    protected abstract List<String> getFiles(String folder);
+    protected abstract List<String> getFiles(String folder) throws IOException;
 
     //Setters
     public void setAutoFileExts(String... exts) {

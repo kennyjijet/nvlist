@@ -1,6 +1,6 @@
 
 Next free ticket:
-LVN-011
+LVN-014
 
 Currently working on:
 LVN-004
@@ -16,7 +16,7 @@ LVN-004
   - BasicPartRegistry should not define specific implementation classes, it should only use public interfaces. This means there needs to be a subclass or PartRegistry builder somewhere that initializes the registry with the specific implementation classes.
 [ ] LVN-010 - bug: Part.update() is called multiple times
   - Part.update() is called once for each PartType the part object is used for. Instead, the update function should be called once per frame. Perhaps this is easiest if I explicitly implement a way of traversing all parts inside game-entity.
-  
+[ ] LVN-013 - IImageModule, ISoundModule etc. must be able to save/load their internal state.
     
 --- Input handling -------------------------------------------------------------
 
@@ -38,6 +38,12 @@ LVN-004
   - Currently, code external to the entity determines its rendering. I would like to give text/buttons their own custom rendering code. To do this, I need to add an overridable draw() method to IDrawablePart.
   - I don't want Drawable to know ImagePart, but ImagePart itself doesn't know about rendering. What I basically need is a subclass of Drawable that -does- know about ImagePart. The most straightforward solution I see is to turn my current ImagePart into a non-part helper class and then implement an ImageDrawable extends Transformable that uses a delegate imagehelper object.
 
+--- Sound ----------------------------------------------------------------------
+
+[ ] LVN-012 - Port NVList3 ISoundState functionality over to NVList4's ISoundModule
+  - Make sure ISoundController.update() is called every frame.
+  - Entities with SoundParts work slightly differently than the standalone Sound objects from NVList3. Check my code to see if it makes sense (and is correct) for the new system.
+
 --- Buttons --------------------------------------------------------------------
 
 [ ] LVN-002 - Implement buttons
@@ -50,7 +56,12 @@ LVN-004
 [ ] LVN-009 - Determine save format of persistent storage
   - Persistent variables are saved in their own special file. This file's format is different from a normal save file. Should I just store the data as XML?
   - Store a schemaVersion attribute in the header to be able to distinguish between (incompatible) saves made by different engine versions.
-    
+
+--- Analytics, seenlog, preloader ----------------------------------------------
+
+[ ] LVN-011 - Re-enable analytics
+  - NVList3 had an analytics class that tracked load times for textures and such. I should reimplement that functionality for NVList4.
+
 --------------------------------------------------------------------------------
 
 [ ] Integrate EDT functionality.

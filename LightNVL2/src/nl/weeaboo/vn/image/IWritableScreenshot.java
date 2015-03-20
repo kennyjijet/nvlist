@@ -1,4 +1,5 @@
-package nl.weeaboo.vn;
+package nl.weeaboo.vn.image;
+
 
 public interface IWritableScreenshot extends IScreenshot {
 

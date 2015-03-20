@@ -6,9 +6,7 @@ public final class EngineVersion {
 
     private static final int VERSION_MAJOR = 4;
     private static final int VERSION_MINOR = 0;
-    private static final int VERSION = 10000 * VERSION_MAJOR + 100 * VERSION_MINOR;
-    private static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR; // Our current engine
-                                                                                      // version
+    private static final String VERSION_STRING = VERSION_MAJOR + "." + VERSION_MINOR;
 
     /** The oldest target engine version we're still reasonably backwards-compatible with */
     private static final String MIN_COMPAT_VERSION = "3.0";
@@ -40,6 +38,10 @@ public final class EngineVersion {
                     MIN_COMPAT_VERSION));
         }
 
+    }
+
+    public static String getEngineVersion() {
+        return VERSION_STRING;
     }
 
 }

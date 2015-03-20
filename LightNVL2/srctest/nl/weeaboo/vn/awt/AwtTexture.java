@@ -3,7 +3,7 @@ package nl.weeaboo.vn.awt;
 import java.awt.image.BufferedImage;
 
 import nl.weeaboo.common.Area2D;
-import nl.weeaboo.vn.ITexture;
+import nl.weeaboo.vn.image.ITexture;
 
 public class AwtTexture implements ITexture {
 
