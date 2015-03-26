@@ -16,8 +16,8 @@ import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
 import nl.weeaboo.vn.BlendMode;
 import nl.weeaboo.vn.IRenderEnv;
-import nl.weeaboo.vn.image.IScreenshot;
 import nl.weeaboo.vn.image.ITexture;
+import nl.weeaboo.vn.image.IWritableScreenshot;
 import nl.weeaboo.vn.math.Matrix;
 import nl.weeaboo.vn.math.Polygon;
 import nl.weeaboo.vn.render.impl.BaseRenderer;
@@ -61,8 +61,8 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	protected void renderBegin() {
-		int sw = env.getScreenWidth();
-		int sh = env.getScreenHeight();
+		int sw = renderEnv.getScreenWidth();
+		int sh = renderEnv.getScreenHeight();
 		if (renderBuffer == null || renderBuffer.getWidth() != sw || renderBuffer.getHeight() != sh) {
 			renderBuffer = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_ARGB);
 			graphics = renderBuffer.createGraphics();
@@ -74,14 +74,14 @@ public class AwtRenderer extends BaseRenderer {
 		graphics.clearRect(0, 0, sw, sh);
 
 		color = 0xFFFFFFFF;
-		glClipRect = env.getGLClip();
+		glClipRect = renderEnv.getGLClip();
 		clipEnabled = true;
 		blendMode = BlendMode.DEFAULT;
 		applyClip();
 
-		graphics.setTransform(createBaseTransform(env));
+		graphics.setTransform(createBaseTransform(renderEnv));
 		graphics.setColor(new Color(16, 16, 16));
-		graphics.fillRect(0, 0, env.getWidth(), env.getHeight());
+		graphics.fillRect(0, 0, renderEnv.getWidth(), renderEnv.getHeight());
 
 		super.renderBegin();
 	}
@@ -231,7 +231,7 @@ public class AwtRenderer extends BaseRenderer {
 	}
 
 	@Override
-	public void renderScreenshot(IScreenshot out, Rect glScreenRect) {
+	public void renderScreenshot(IWritableScreenshot out, Rect glScreenRect) {
 		LOG.warn("Unsupported operation: renderScreenshot");
 	}
 
@@ -244,7 +244,7 @@ public class AwtRenderer extends BaseRenderer {
 		if (clipEnabled) {
 			AffineTransform oldTransform = graphics.getTransform();
 			graphics.setTransform(screenSpaceTransform);
-			graphics.setClip(glClipRect.x, env.getScreenHeight() - glClipRect.y - glClipRect.h, glClipRect.w, glClipRect.h);
+			graphics.setClip(glClipRect.x, renderEnv.getScreenHeight() - glClipRect.y - glClipRect.h, glClipRect.w, glClipRect.h);
 			graphics.setTransform(oldTransform);
 		} else {
 			graphics.setClip(null);

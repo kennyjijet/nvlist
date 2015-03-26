@@ -3,18 +3,17 @@ package nl.weeaboo.vn.save;
 import java.io.IOException;
 
 import nl.weeaboo.vn.IProgressListener;
-import nl.weeaboo.vn.IStorage;
 import nl.weeaboo.vn.image.IScreenshot;
+import nl.weeaboo.vn.save.impl.SaveFileHeader;
 
 public interface ISaveModule {
 
+    public void loadPersistent();
     public void savePersistent();
 
     public void delete(int slot) throws IOException;
-
-    public void save(int slot, SaveParams params, IProgressListener pl) throws IOException;
-
     public void load(int slot, IProgressListener pl) throws IOException;
+    public void save(int slot, SaveParams params, IProgressListener pl) throws IOException;
 
     public int getNextFreeSlot();
 

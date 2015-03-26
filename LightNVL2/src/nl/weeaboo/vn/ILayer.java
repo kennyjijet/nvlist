@@ -1,6 +1,7 @@
 package nl.weeaboo.vn;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.vn.image.IScreenshotBuffer;
@@ -16,6 +17,16 @@ public interface ILayer extends IDestructible, IEntityContainer, IRenderable, Se
 	 * @return {@code true} if the specified layer is a descendant of this layer.
 	 */
 	public boolean containsLayer(ILayer layer);
+
+	/**
+	 * @return A read-only view of all sub-layers (non-recursive).
+	 */
+	public Collection<? extends ILayer> getSubLayers();
+
+    /**
+     * @return A read-only view of all entities contained in this layer.
+     */
+    public Iterable<Entity> getContents();
 
 	/**
 	 * @return A buffer for pending screenshots. Screenshots requests queued in this buffer will be fullfilled

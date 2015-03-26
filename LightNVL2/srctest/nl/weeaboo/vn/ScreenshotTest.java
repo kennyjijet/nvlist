@@ -10,10 +10,12 @@ import javax.imageio.ImageIO;
 
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
+import nl.weeaboo.vn.BasicPartRegistry;
+import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.awt.AwtDecodingScreenshot;
 import nl.weeaboo.vn.awt.AwtTexture;
+import nl.weeaboo.vn.core.impl.Screen;
 import nl.weeaboo.vn.image.IScreenshotBuffer;
-import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.render.impl.DrawBuffer;
 import nl.weeaboo.vn.render.impl.LayerRenderCommand;
 import nl.weeaboo.vn.render.impl.RenderCommand;
@@ -102,7 +104,7 @@ public class ScreenshotTest {
 		IScreenshotBuffer ssb = root.getScreenshotBuffer();
 		ssb.add(s, false);
 
-		DrawBuffer buf = new DrawBuffer(pr.transformable, pr.image);
+		DrawBuffer buf = new DrawBuffer(pr);
 		screen.draw(buf);
 		Assert.assertTrue(ssb.isEmpty()); // Screenshot buffer empties into the draw buffer
 

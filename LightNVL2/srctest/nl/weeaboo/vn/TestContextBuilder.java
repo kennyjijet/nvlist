@@ -2,9 +2,11 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
-import nl.weeaboo.vn.impl.Context;
-import nl.weeaboo.vn.impl.ContextArgs;
-import nl.weeaboo.vn.impl.Screen;
+import nl.weeaboo.vn.BasicPartRegistry;
+import nl.weeaboo.vn.IContextFactory;
+import nl.weeaboo.vn.core.impl.Context;
+import nl.weeaboo.vn.core.impl.ContextArgs;
+import nl.weeaboo.vn.core.impl.Screen;
 import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.lua.LuaScriptContext;
 import nl.weeaboo.vn.script.lua.LuaScriptEnv;

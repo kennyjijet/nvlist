@@ -2,6 +2,7 @@ package nl.weeaboo.vn.image;
 
 import java.util.Collection;
 
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.vn.ILayer;
 
@@ -34,8 +35,14 @@ public interface IImageModule {
     public ITexture createTexture(IScreenshot ss);
 
     /**
-     * Returns the paths for all image files in the specified folder
+     * Returns the paths for all image files in the specified folder and its sub-folders.
      */
     public Collection<String> getImageFiles(String folder);
+
+    /**
+     * Changes the desired image resolution (width x height). Images are loaded from the resource folder that
+     * most closely matches the desired size.
+     */
+    public void setImageResolution(Dim size);
 
 }

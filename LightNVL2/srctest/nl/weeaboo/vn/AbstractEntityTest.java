@@ -2,6 +2,7 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.game.entity.World;
+import nl.weeaboo.vn.BasicPartRegistry;
 
 import org.junit.Before;
 

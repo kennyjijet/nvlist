@@ -1,8 +1,7 @@
 package nl.weeaboo.vn.save;
 
-import nl.weeaboo.vn.IStorage;
-import nl.weeaboo.vn.impl.Storage;
-import nl.weeaboo.vn.impl.UnmodifiableStorage;
+import nl.weeaboo.vn.core.impl.Storage;
+import nl.weeaboo.vn.core.impl.UnmodifiableStorage;
 
 public final class SaveParams {
 

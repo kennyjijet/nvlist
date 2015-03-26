@@ -1,5 +1,7 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.vn.DistortGrid;
+
 import org.junit.Assert;
 import org.junit.Test;
 

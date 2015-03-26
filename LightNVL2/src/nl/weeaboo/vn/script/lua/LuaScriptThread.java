@@ -12,26 +12,26 @@ public class LuaScriptThread implements IScriptThread {
 
     private static final long serialVersionUID = LuaImpl.serialVersionUID;
 
-    private final LuaLink thread;
+    final LuaLink luaLink;
 
-    LuaScriptThread(LuaLink thread) {
-        this.thread = thread;
+    LuaScriptThread(LuaLink link) {
+        this.luaLink = link;
     }
 
     @Override
     public void destroy() {
-        thread.destroy();
+        luaLink.destroy();
     }
 
     @Override
     public boolean isDestroyed() {
-        return thread.isFinished();
+        return luaLink.isFinished();
     }
 
     @Deprecated
     @Override
     public boolean isFinished() {
-        return thread.isFinished();
+        return luaLink.isFinished();
     }
 
     public void call(LuaScriptFunction func) throws ScriptException {
@@ -40,7 +40,7 @@ public class LuaScriptThread implements IScriptThread {
 
     public void call(LuaClosure func) throws ScriptException {
         try {
-            thread.call(func, LuaValue.NONE);
+            luaLink.call(func, LuaValue.NONE);
         } catch (LuaException e) {
             throw LuaScriptUtil.toScriptException("Error in thread: " + this, e);
         }
@@ -49,7 +49,7 @@ public class LuaScriptThread implements IScriptThread {
     @Override
     public void update() throws ScriptException {
         try {
-            thread.update();
+            luaLink.update();
         } catch (LuaException e) {
             throw LuaScriptUtil.toScriptException("Error in thread: " + this, e);
         }
@@ -57,7 +57,7 @@ public class LuaScriptThread implements IScriptThread {
 
     @Override
     public boolean isRunnable() {
-        return thread.isRunnable();
+        return luaLink.isRunnable();
     }
 
 }

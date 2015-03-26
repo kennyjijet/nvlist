@@ -20,6 +20,10 @@ public final class LuaScriptUtil {
     private LuaScriptUtil() {
     }
 
+    public static boolean isLvnFile(String filename) {
+        return filename.endsWith(".lvn");
+    }
+
     public static LuaScriptFunction toScriptFunction(Varargs args, int offset) {
         return new LuaScriptFunction(args.checkclosure(offset), args.subargs(offset+1));
     }
@@ -54,20 +58,11 @@ public final class LuaScriptUtil {
         return result.toArray(new String[result.size()]);
     }
 
-    public static String getNearestLVNSrcloc(String[] stack) {
-        if (stack == null) {
-            return null;
-        }
-
-        for (String frame : stack) {
-            if (frame.contains(LVN_PATTERN)) {
-                return frame;
-            }
-        }
-        return null;
+    public static String getNearestLVNSrcloc(LuaScriptThread thread) {
+        return getNearestLVNSrcloc(thread.luaLink.getThread());
     }
 
-    public static String getNearestLVNSrcloc(LuaThread thread) {
+    private static String getNearestLVNSrcloc(LuaThread thread) {
         if (thread == null) {
             return null;
         }
@@ -77,6 +72,19 @@ public final class LuaScriptUtil {
 
             if (line.contains(LVN_PATTERN)) {
                 return line;
+            }
+        }
+        return null;
+    }
+
+    public static String getNearestLVNSrcloc(String[] stack) {
+        if (stack == null) {
+            return null;
+        }
+
+        for (String frame : stack) {
+            if (frame.contains(LVN_PATTERN)) {
+                return frame;
             }
         }
         return null;

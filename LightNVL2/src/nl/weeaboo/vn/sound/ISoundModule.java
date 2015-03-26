@@ -29,7 +29,7 @@ public interface ISoundModule {
     public String getDisplayName(String filename);
 
     /**
-     * Returns the paths for all sound files in the specified folder.
+     * Returns the paths for all sound files in the specified folder and its sub-folders.
      */
     public Collection<String> getSoundFiles(String folder);
 

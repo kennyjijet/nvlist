@@ -1,9 +1,9 @@
 
 Next free ticket:
-LVN-014
+LVN-019
 
 Currently working on:
-LVN-004
+LVN-015
 
 --- Framework ------------------------------------------------------------------
 
@@ -17,7 +17,12 @@ LVN-004
 [ ] LVN-010 - bug: Part.update() is called multiple times
   - Part.update() is called once for each PartType the part object is used for. Instead, the update function should be called once per frame. Perhaps this is easiest if I explicitly implement a way of traversing all parts inside game-entity.
 [ ] LVN-013 - IImageModule, ISoundModule etc. must be able to save/load their internal state.
-    
+[ ] LVN-014 - Use SLF4J everywhere possible, consider deprecating INotifier's non-message functionality
+[ ] LVN-015 - Get the current NVList4 stub to compile
+[ ] LVN-019 - Implement DesktopRenderer
+  - gl.glShadeModel(GL2.GL_SMOOTH); //Required for TriangleGrid
+
+
 --- Input handling -------------------------------------------------------------
 
 [ ] LVN-004 - Design an interface for user input handling
@@ -56,12 +61,22 @@ LVN-004
 [ ] LVN-009 - Determine save format of persistent storage
   - Persistent variables are saved in their own special file. This file's format is different from a normal save file. Should I just store the data as XML?
   - Store a schemaVersion attribute in the header to be able to distinguish between (incompatible) saves made by different engine versions.
+[ ] LVN-018 - Implement SaveModule.save/load
 
 --- Analytics, seenlog, preloader ----------------------------------------------
 
 [ ] LVN-011 - Re-enable analytics
   - NVList3 had an analytics class that tracked load times for textures and such. I should reimplement that functionality for NVList4.
 
+--- User tooling and debugging -------------------------------------------------
+  
+[ ] LVN-016 - Restore DebugLuaPanel, DebugScriptPanel.call()
+  - They require some way to eval() code in the main thread.
+
+--- VNDS support ---------------------------------------------------------------
+  
+[ ] LVN-017 - Re-enable VNDS support
+  
 --------------------------------------------------------------------------------
 
 [ ] Integrate EDT functionality.

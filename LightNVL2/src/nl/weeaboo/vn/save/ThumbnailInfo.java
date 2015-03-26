@@ -3,7 +3,7 @@ package nl.weeaboo.vn.save;
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Dim;
 
-final class ThumbnailInfo {
+public final class ThumbnailInfo {
 
     private final String path;
     private final Dim imageSize;

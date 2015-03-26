@@ -2,11 +2,11 @@ package nl.weeaboo.vn;
 
 import nl.weeaboo.game.entity.PartRegistry;
 import nl.weeaboo.game.entity.PartType;
+import nl.weeaboo.vn.core.impl.ButtonPart;
+import nl.weeaboo.vn.core.impl.DrawablePart;
+import nl.weeaboo.vn.core.impl.InputHandlerPart;
+import nl.weeaboo.vn.core.impl.TransformablePart;
 import nl.weeaboo.vn.image.impl.ImagePart;
-import nl.weeaboo.vn.impl.ButtonPart;
-import nl.weeaboo.vn.impl.DrawablePart;
-import nl.weeaboo.vn.impl.InputHandlerPart;
-import nl.weeaboo.vn.impl.TransformablePart;
 import nl.weeaboo.vn.script.impl.ScriptPart;
 
 public class BasicPartRegistry extends PartRegistry {

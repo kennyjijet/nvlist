@@ -4,23 +4,25 @@ import java.util.Collection;
 import java.util.List;
 
 import nl.weeaboo.vn.IContext;
-import nl.weeaboo.vn.impl.ContextUtil;
+import nl.weeaboo.vn.core.impl.ContextUtil;
 import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptEventDispatcher;
 import nl.weeaboo.vn.script.IScriptFunction;
 import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
-import nl.weeaboo.vn.script.ScriptLog;
 import nl.weeaboo.vn.script.impl.ScriptEventDispatcher;
 import nl.weeaboo.vn.script.impl.ScriptThreadCollection;
 
 import org.luaj.vm2.LuaClosure;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LuaScriptContext implements IScriptContext {
 
     private static final long serialVersionUID = LuaImpl.serialVersionUID;
+    private static final Logger LOG = LoggerFactory.getLogger(LuaScriptContext.class);
 
     private final IScriptEventDispatcher eventDispatcher;
     private final LuaScriptThread mainThread;
@@ -85,7 +87,7 @@ public class LuaScriptContext implements IScriptContext {
             try {
                eventThread.call((LuaScriptFunction)func);
             } catch (ScriptException e) {
-                ScriptLog.w("Exception while executing event: " + func, e);
+                LOG.warn("Exception while executing event: " + func, e);
             }
         }
     }
@@ -95,7 +97,7 @@ public class LuaScriptContext implements IScriptContext {
             try {
                 thread.update();
             } catch (ScriptException e) {
-                ScriptLog.w("Exception while executing thread: " + thread, e);
+                LOG.warn("Exception while executing thread: " + thread, e);
             }
         }
     }

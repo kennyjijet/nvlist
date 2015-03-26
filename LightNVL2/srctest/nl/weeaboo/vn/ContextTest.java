@@ -4,8 +4,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import nl.weeaboo.vn.impl.Context;
-import nl.weeaboo.vn.impl.ContextManager;
+import nl.weeaboo.vn.IContext;
+import nl.weeaboo.vn.core.impl.Context;
+import nl.weeaboo.vn.core.impl.ContextManager;
 
 import org.junit.Assert;
 import org.junit.Before;

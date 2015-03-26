@@ -56,16 +56,19 @@
   <target name="compile">  
     <mkdir dir="bin"/>
 
-    <javac srcdir="src" destdir="bin"
+    <javac destdir="bin"
       source="1.6" target="1.6"
       encoding="UTF-8" debug="true" includeantruntime="false">
       
+      <src path="src" />
+      <src path="srcimpl" />
       <classpath refid="classpath" />
     </javac>
 
     <!-- Copy resources (embedded images, scripts, etc.) to bin dir -->
     <copy todir="bin" overwrite="true">
       <fileset dir="src" excludes="**/*.java" />
+      <fileset dir="srcimpl" excludes="**/*.java" />
     </copy>
     <copy todir="bin/script" overwrite="true">
       <fileset dir="script" />

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.script.ScriptException;
+import nl.weeaboo.vn.script.impl.CoreLib;
 import nl.weeaboo.vn.script.lua.LuaScriptEnv;
 import nl.weeaboo.vn.script.lua.LuaTestUtil;
 

@@ -18,4 +18,9 @@ public interface ICompiledLvnFile {
      */
     public int countTextLines(boolean countEmptyLines);
 
+    /**
+     * Counts the number of words in text-mode lines in the compiled LVN file.
+     */
+    public int countTextWords();
+
 }

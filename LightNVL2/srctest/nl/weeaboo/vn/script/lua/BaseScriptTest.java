@@ -9,12 +9,13 @@ import nl.weeaboo.lua2.lib.LuajavaLib;
 import nl.weeaboo.vn.IContextManager;
 import nl.weeaboo.vn.TestContextBuilder;
 import nl.weeaboo.vn.TestFileSystem;
-import nl.weeaboo.vn.impl.Context;
-import nl.weeaboo.vn.impl.ContextManager;
+import nl.weeaboo.vn.core.impl.Context;
+import nl.weeaboo.vn.core.impl.ContextManager;
 import nl.weeaboo.vn.script.IScriptContext;
 import nl.weeaboo.vn.script.IScriptThread;
 import nl.weeaboo.vn.script.ScriptException;
 import nl.weeaboo.vn.script.lvn.ICompiledLvnFile;
+import nl.weeaboo.vn.script.lvn.LvnParseException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -55,7 +56,7 @@ public class BaseScriptTest {
 
     /** Make sure .lvn loading isn't completely broken. */
     @Test
-    public void loadScript() throws ScriptException, IOException {
+    public void loadScript() throws ScriptException, LvnParseException, IOException {
         String normalized = scriptLoader.findScriptFile(LuaTestUtil.SCRIPT_HELLOWORLD);
 
         ICompiledLvnFile compiled;

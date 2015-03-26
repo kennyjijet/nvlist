@@ -1,7 +1,9 @@
 package nl.weeaboo.vn.script;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 
 public interface IScriptLoader {
 
@@ -17,10 +19,11 @@ public interface IScriptLoader {
 	 *
 	 * @param normalizedFilename The canonical filename of the script file to open (i.e. the result of a call
 	 *        to {@link #findScriptFile(String)}).
+	 * @throws FileNotFoundException If the file could not be openend.
 	 * @throws IOException If an exception occurs while trying to open the script.
 	 * @see #findScriptFile(String)
 	 */
-	public InputStream openScript(String normalizedFilename) throws IOException;
+	public InputStream openScript(String normalizedFilename) throws FileNotFoundException, IOException;
 
 	/**
      * Executes a script file.
@@ -33,5 +36,10 @@ public interface IScriptLoader {
      * @see #findScriptFile(String)
 	 */
 	public void loadScript(IScriptThread thread, String normalizedFilename) throws IOException, ScriptException;
+
+    /**
+     * Returns the paths for all script files in the specified folder and its sub-folders.
+     */
+    public Collection<String> getScriptFiles(String folder);
 
 }

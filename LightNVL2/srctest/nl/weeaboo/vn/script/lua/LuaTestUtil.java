@@ -29,9 +29,7 @@ public final class LuaTestUtil {
     }
 
     public static LuaScriptLoader newScriptLoader(IFileSystem fileSystem) {
-        LuaScriptLoader loader = new LuaScriptLoader(LuaTestUtil.newLvnParser(), fileSystem);
-        loader.initEnv();
-        return loader;
+        return LuaScriptLoader.newInstance(LuaTestUtil.newLvnParser(), fileSystem);
     }
 
     public static ILvnParser newLvnParser() {

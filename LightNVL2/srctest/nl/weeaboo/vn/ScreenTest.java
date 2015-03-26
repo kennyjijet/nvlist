@@ -1,6 +1,7 @@
 package nl.weeaboo.vn;
 
-import nl.weeaboo.vn.impl.Screen;
+import nl.weeaboo.vn.ILayer;
+import nl.weeaboo.vn.core.impl.Screen;
 
 import org.junit.Assert;
 import org.junit.Test;

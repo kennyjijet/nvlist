@@ -14,8 +14,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.settings.Preference;
-import nl.weeaboo.vn.IStorage;
-import nl.weeaboo.vn.impl.Storage;
+import nl.weeaboo.vn.core.impl.Storage;
+import nl.weeaboo.vn.save.IStorage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

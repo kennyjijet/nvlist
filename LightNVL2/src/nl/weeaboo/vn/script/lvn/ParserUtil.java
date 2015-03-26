@@ -51,6 +51,39 @@ final class ParserUtil {
         return new String(chars, 0, w);
     }
 
+    /**
+     * @return {@code true} if the given string consists of only whitespace.
+     */
+    public static boolean isWhitespace(String string) {
+        return isWhitespace(string, 0, string.length());
+    }
+    public static boolean isWhitespace(String string, int from, int to) {
+        int n = from;
+        while (n < to) {
+            int c = string.codePointAt(n);
+            if (!Character.isWhitespace(c)) {
+                return false;
+            }
+            n += Character.charCount(c);
+        }
+        return true;
+    }
+
+    public static boolean isWord(String string) {
+        return isWord(string, 0, string.length());
+    }
+    public static boolean isWord(String string, int from, int to) {
+        int n = from;
+        while (n < to) {
+            int c = string.codePointAt(n);
+            if (Character.isLetterOrDigit(c)) {
+                return true;
+            }
+            n += Character.charCount(c);
+        }
+        return false;
+    }
+
     static int findBlockEnd(String str, int off, char endChar) {
         CharacterIterator itr = new StringCharacterIterator(str, off);
         return findBlockEnd(itr, endChar, null);

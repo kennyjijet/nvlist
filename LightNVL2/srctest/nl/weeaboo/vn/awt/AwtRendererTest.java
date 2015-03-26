@@ -26,8 +26,8 @@ import nl.weeaboo.vn.ILayer;
 import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.ITransformablePart;
 import nl.weeaboo.vn.TestUtil;
+import nl.weeaboo.vn.core.impl.Screen;
 import nl.weeaboo.vn.image.IImagePart;
-import nl.weeaboo.vn.impl.Screen;
 import nl.weeaboo.vn.math.Vec2;
 import nl.weeaboo.vn.render.impl.DrawBuffer;
 
@@ -66,7 +66,7 @@ public class AwtRendererTest {
 
 		Timer timer = new Timer(10, new ActionListener() {
 
-			final DrawBuffer buf = new DrawBuffer(pr.transformable, pr.image);
+			final DrawBuffer buf = new DrawBuffer(pr);
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
