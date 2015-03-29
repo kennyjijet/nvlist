@@ -1,5 +1,7 @@
 package nl.weeaboo.vn;
 
+import nl.weeaboo.common.Dim;
+import nl.weeaboo.common.Rect;
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.settings.Preference;
 import nl.weeaboo.vn.image.IImageModule;
@@ -27,5 +29,10 @@ public interface IEnvironment extends IDestructible {
     ISoundModule getSoundModule();
     IVideoModule getVideoModule();
     ISaveModule getSaveModule();
+
+    /**
+     * @see IRenderEnv
+     */
+    void updateRenderEnv(Rect realClip, Dim realScreenSize);
 
 }

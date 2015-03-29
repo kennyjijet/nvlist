@@ -20,4 +20,6 @@ public interface IContext extends Serializable, IDestructible, IEntityContainer 
 
 	public IScriptContext getScriptContext();
 
+    public void setRenderEnv(IRenderEnv env);
+
 }

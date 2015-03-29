@@ -8,6 +8,7 @@ import java.util.List;
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.IContextFactory;
 import nl.weeaboo.vn.IContextManager;
+import nl.weeaboo.vn.IRenderEnv;
 
 public class ContextManager implements IContextManager {
 
@@ -74,6 +75,13 @@ public class ContextManager implements IContextManager {
     public void setContextActive(IContext ctxt, boolean active) {
         Context context = checkContains(ctxt);
         context.setActive(active);
+    }
+
+    @Override
+    public void setRenderEnv(IRenderEnv env) {
+        for (IContext context : contexts) {
+            context.setRenderEnv(env);
+        }
     }
 
 }

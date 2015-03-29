@@ -16,7 +16,7 @@ public class RenderEnv implements IRenderEnv {
 
 	private final double scale;
 	private final Rect glClip;
-	private final Rect2D glScreenVirtualBounds;
+    private final Rect2D glScreenVirtualBounds;
 
 	/**
 	 * @param vsize Virtual screen size.
@@ -36,6 +36,12 @@ public class RenderEnv implements IRenderEnv {
 				rscreen.w, rscreen.h, scale);
 	}
 
+    public static RenderEnv newDefaultInstance(Dim vsize, boolean isTouchScreen) {
+        Rect rclip = new Rect(0, 0, vsize.w, vsize.h);
+        Dim rscreen = new Dim(vsize.w, vsize.h);
+        return new RenderEnv(vsize, rclip, rscreen, isTouchScreen);
+    }
+
 	@Override
 	public int getWidth() {
 		return virtualSize.w;
@@ -47,33 +53,18 @@ public class RenderEnv implements IRenderEnv {
 	}
 
 	@Override
-	public int getRealX() {
-		return realClip.x;
+	public Dim getVirtualSize() {
+	    return virtualSize;
 	}
 
 	@Override
-	public int getRealY() {
-		return realClip.y;
+	public Rect getRealClip() {
+	    return realClip;
 	}
 
 	@Override
-	public int getRealWidth() {
-		return realClip.w;
-	}
-
-	@Override
-	public int getRealHeight() {
-		return realClip.h;
-	}
-
-	@Override
-	public int getScreenWidth() {
-		return realScreenSize.w;
-	}
-
-	@Override
-	public int getScreenHeight() {
-		return realScreenSize.h;
+	public Dim getScreenSize() {
+		return realScreenSize;
 	}
 
 	@Override

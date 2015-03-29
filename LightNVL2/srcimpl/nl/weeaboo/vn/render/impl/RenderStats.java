@@ -22,9 +22,6 @@ public class RenderStats {
 	public void startRender() {
 	}
 	public void stopRender() {
-	}
-
-	public void onFrameRenderDone() {
 		framesRendered++;
 		if ((framesRendered & 0xFF) == 0) {
 			System.out.println(this);

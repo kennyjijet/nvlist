@@ -1,5 +1,6 @@
 package nl.weeaboo.vn.render.impl;
 
+import nl.weeaboo.common.Checks;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.BlendMode;
@@ -24,7 +25,7 @@ public abstract class BaseRenderer implements IRenderer<DrawBuffer> {
 
 	public BaseRenderer(IRenderEnv env, RenderStats stats) {
 		this.renderEnv = env;
-		this.renderStats = stats;
+		this.renderStats = Checks.checkNotNull(stats);
 
 		renderReset();
 	}
@@ -39,11 +40,8 @@ public abstract class BaseRenderer implements IRenderer<DrawBuffer> {
 	@Override
 	public void render(DrawBuffer d) {
 		rendering = true;
+        renderStats.startRender();
 		try {
-			if (renderStats != null) {
-				renderStats.startRender();
-			}
-
 			renderReset();
 			renderBegin();
 
@@ -55,9 +53,7 @@ public abstract class BaseRenderer implements IRenderer<DrawBuffer> {
 			renderEnd();
 		} finally {
 			rendering = false;
-			if (renderStats != null) {
-				renderStats.stopRender();
-			}
+			renderStats.stopRender();
 		}
 	}
 
@@ -136,9 +132,7 @@ public abstract class BaseRenderer implements IRenderer<DrawBuffer> {
 			}
 
 			//Perform command-specific rendering
-			if (renderStats != null) {
-				renderStatsTimestamp = System.nanoTime();
-			}
+			renderStatsTimestamp = System.nanoTime();
 
 			preRenderCommand(cmd);
 
@@ -160,9 +154,7 @@ public abstract class BaseRenderer implements IRenderer<DrawBuffer> {
 
 			postRenderCommand(cmd);
 
-			if (renderStats != null) {
-				renderStats.log(cmd, System.nanoTime()-renderStatsTimestamp);
-			}
+			renderStats.log(cmd, System.nanoTime()-renderStatsTimestamp);
 		}
 
 		flushQuadBatch();

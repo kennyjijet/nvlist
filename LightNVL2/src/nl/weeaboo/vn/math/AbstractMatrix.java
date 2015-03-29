@@ -47,12 +47,12 @@ abstract class AbstractMatrix implements Serializable {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return Arrays.hashCode(new double[] {m00, m01, m02, m10, m11, m12});
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		if (obj instanceof AbstractMatrix) {
 			AbstractMatrix m = (AbstractMatrix)obj;
 			return equals(m, 0.0);
@@ -60,7 +60,7 @@ abstract class AbstractMatrix implements Serializable {
 		return false;
 	}
 
-	public boolean equals(AbstractMatrix m, double epsilon) {
+	public final boolean equals(AbstractMatrix m, double epsilon) {
 		if (this == m) {
 			return true;
 		}

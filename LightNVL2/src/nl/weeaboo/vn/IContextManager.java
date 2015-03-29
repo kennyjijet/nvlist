@@ -19,4 +19,6 @@ public interface IContextManager extends Serializable {
 
     public void setContextActive(IContext context, boolean active);
 
+    public void setRenderEnv(IRenderEnv env);
+
 }

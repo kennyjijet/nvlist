@@ -33,4 +33,10 @@ public interface IScreen extends Serializable, IUpdateable {
 	 */
 	public IRenderEnv getRenderEnv();
 
+    /**
+     * Sets the rendering environment which contains information about the
+     * clipping/scaling performed by OpenGL.
+     */
+    public void setRenderEnv(IRenderEnv env);
+
 }

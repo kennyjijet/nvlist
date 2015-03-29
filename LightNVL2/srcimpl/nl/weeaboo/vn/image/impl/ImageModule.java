@@ -41,7 +41,7 @@ public class ImageModule implements IImageModule {
         this.texFactory = texStore;
 
         IRenderEnv renderEnv = env.getRenderEnv();
-        imageResolution = new Dim(renderEnv.getWidth(), renderEnv.getHeight());
+        imageResolution = renderEnv.getVirtualSize();
     }
 
     @Override

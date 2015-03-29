@@ -1,6 +1,6 @@
 
 Next free ticket:
-LVN-019
+LVN-022
 
 Currently working on:
 LVN-015
@@ -21,6 +21,7 @@ LVN-015
 [ ] LVN-015 - Get the current NVList4 stub to compile
 [ ] LVN-019 - Implement DesktopRenderer
   - gl.glShadeModel(GL2.GL_SMOOTH); //Required for TriangleGrid
+    [ ] LVN-020 - NVList3 rerendered only if needed. Re-enable this behavior.
 
 
 --- Input handling -------------------------------------------------------------
@@ -42,7 +43,8 @@ LVN-015
 [ ] LVN-001 - Add a way to perform custom rendering for IDrawableParts
   - Currently, code external to the entity determines its rendering. I would like to give text/buttons their own custom rendering code. To do this, I need to add an overridable draw() method to IDrawablePart.
   - I don't want Drawable to know ImagePart, but ImagePart itself doesn't know about rendering. What I basically need is a subclass of Drawable that -does- know about ImagePart. The most straightforward solution I see is to turn my current ImagePart into a non-part helper class and then implement an ImageDrawable extends Transformable that uses a delegate imagehelper object.
-
+[ ] LVN-021 - Implement video playback
+  
 --- Sound ----------------------------------------------------------------------
 
 [ ] LVN-012 - Port NVList3 ISoundState functionality over to NVList4's ISoundModule

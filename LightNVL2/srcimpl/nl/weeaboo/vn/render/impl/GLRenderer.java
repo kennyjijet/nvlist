@@ -152,9 +152,7 @@ public abstract class GLRenderer extends BaseRenderer {
             quadBatch.flush(glm);
         }
 
-        if (renderStats != null) {
-            renderStats.onRenderQuadBatch(buffered);
-        }
+        renderStats.onRenderQuadBatch(buffered);
         buffered = 0;
         quadTexture = null;
     }

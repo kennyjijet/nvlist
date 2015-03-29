@@ -1,5 +1,7 @@
 package nl.weeaboo.vn.core.impl;
 
+import nl.weeaboo.common.Dim;
+import nl.weeaboo.common.Rect;
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.settings.Preference;
@@ -108,6 +110,11 @@ public class EnvironmentBuilder extends AbstractEnvironment {
     @Override
     public ISaveModule getSaveModule() {
         return checkSet(saveModule);
+    }
+
+    @Override
+    public void updateRenderEnv(Rect realClip, Dim realScreenSize) {
+        throw new RuntimeException("Not implemented");
     }
 
 }

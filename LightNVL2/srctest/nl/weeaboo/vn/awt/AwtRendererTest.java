@@ -17,6 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import nl.weeaboo.common.Dim;
+import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.Scene;
@@ -74,8 +76,9 @@ public class AwtRendererTest {
 			    speed.scale(Math.pow(2, renderPanel.speed));
 
 			    Vec2 mp = new Vec2(renderPanel.mousePos.x, renderPanel.mousePos.y);
-                mp.x = (mp.x - env.getRealX()) * env.getWidth() / env.getRealWidth();
-			    mp.y = (mp.y - env.getRealY()) * env.getHeight() / env.getRealHeight();
+			    Rect realClip = env.getRealClip();
+                mp.x = (mp.x - realClip.x) * env.getWidth() / realClip.w;
+			    mp.y = (mp.y - realClip.y) * env.getHeight() / realClip.h;
 
 				for (Entity e : entities) {
 					ITransformablePart tp = e.getPart(pr.transformable);
@@ -125,8 +128,10 @@ public class AwtRendererTest {
 		public RenderPanel(AwtRenderer r, IRenderEnv env) {
 			renderer = r;
 
+			Dim screenSize = env.getScreenSize();
+
 			setFocusable(true);
-			setPreferredSize(new Dimension(env.getScreenWidth(), env.getScreenHeight()));
+			setPreferredSize(new Dimension(screenSize.w, screenSize.h));
 
 			addMouseMotionListener(new MouseMotionListener() {
                 @Override

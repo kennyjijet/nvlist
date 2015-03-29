@@ -3,17 +3,18 @@ package nl.weeaboo.vn.core.impl;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nl.weeaboo.common.Checks;
 import nl.weeaboo.game.entity.Entity;
 import nl.weeaboo.game.entity.PartType;
 import nl.weeaboo.game.entity.Scene;
 import nl.weeaboo.vn.IContext;
 import nl.weeaboo.vn.IContextListener;
+import nl.weeaboo.vn.IRenderEnv;
 import nl.weeaboo.vn.IScreen;
 import nl.weeaboo.vn.script.IScriptContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Context implements IContext {
 
@@ -124,5 +125,10 @@ public class Context implements IContext {
 	        fireActiveStateChanged(a);
 	    }
 	}
+
+    @Override
+    public void setRenderEnv(IRenderEnv env) {
+        screen.setRenderEnv(env);
+    }
 
 }

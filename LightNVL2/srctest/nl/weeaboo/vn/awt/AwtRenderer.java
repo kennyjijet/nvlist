@@ -10,7 +10,11 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.FloatBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nl.weeaboo.common.Area2D;
+import nl.weeaboo.common.Dim;
 import nl.weeaboo.common.Rect;
 import nl.weeaboo.common.Rect2D;
 import nl.weeaboo.vn.AlignUtil;
@@ -28,9 +32,6 @@ import nl.weeaboo.vn.render.impl.QuadRenderCommand;
 import nl.weeaboo.vn.render.impl.RenderCommand;
 import nl.weeaboo.vn.render.impl.RenderStats;
 import nl.weeaboo.vn.render.impl.TriangleGrid;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AwtRenderer extends BaseRenderer {
 
@@ -61,17 +62,16 @@ public class AwtRenderer extends BaseRenderer {
 
 	@Override
 	protected void renderBegin() {
-		int sw = renderEnv.getScreenWidth();
-		int sh = renderEnv.getScreenHeight();
-		if (renderBuffer == null || renderBuffer.getWidth() != sw || renderBuffer.getHeight() != sh) {
-			renderBuffer = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_ARGB);
+	    Dim screenSize = renderEnv.getScreenSize();
+		if (renderBuffer == null || renderBuffer.getWidth() != screenSize.w || renderBuffer.getHeight() != screenSize.h) {
+			renderBuffer = new BufferedImage(screenSize.w, screenSize.h, BufferedImage.TYPE_INT_ARGB);
 			graphics = renderBuffer.createGraphics();
 			screenSpaceTransform = graphics.getTransform();
 		}
 
 	    graphics.setComposite(toComposite(BlendMode.DEFAULT));
 		graphics.setBackground(Color.BLACK);
-		graphics.clearRect(0, 0, sw, sh);
+		graphics.clearRect(0, 0, screenSize.w, screenSize.h);
 
 		color = 0xFFFFFFFF;
 		glClipRect = renderEnv.getGLClip();
@@ -93,9 +93,10 @@ public class AwtRenderer extends BaseRenderer {
 
 	private static AffineTransform createBaseTransform(IRenderEnv env) {
 		Rect glClip = env.getGLClip();
+		Dim screenSize = env.getScreenSize();
 
 		AffineTransform transform = new AffineTransform();
-		transform.translate(glClip.x, env.getScreenHeight() - glClip.y - glClip.h);
+		transform.translate(glClip.x, screenSize.h - glClip.y - glClip.h);
 		transform.scale(env.getScale(), env.getScale());
 		return transform;
 	}
@@ -242,9 +243,11 @@ public class AwtRenderer extends BaseRenderer {
 
 	private void applyClip() {
 		if (clipEnabled) {
+		    Dim screenSize = renderEnv.getScreenSize();
+
 			AffineTransform oldTransform = graphics.getTransform();
 			graphics.setTransform(screenSpaceTransform);
-			graphics.setClip(glClipRect.x, renderEnv.getScreenHeight() - glClipRect.y - glClipRect.h, glClipRect.w, glClipRect.h);
+			graphics.setClip(glClipRect.x, screenSize.h - glClipRect.y - glClipRect.h, glClipRect.w, glClipRect.h);
 			graphics.setTransform(oldTransform);
 		} else {
 			graphics.setClip(null);

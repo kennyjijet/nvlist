@@ -13,6 +13,12 @@ public interface IVideoModule {
     public IVideo movie(String filename) throws IOException;
 
     /**
+     * @return The currently playing full-screen video, or {@code null} if there's no full-screen video
+     *         currently playing.
+     */
+    public IVideo getBlocking();
+
+    /**
      * Sets the resource folder that videos are loaded from.
      */
     public void setVideoFolder(String videoFolder);

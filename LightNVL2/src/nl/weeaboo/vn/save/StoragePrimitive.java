@@ -1,6 +1,5 @@
 package nl.weeaboo.vn.save;
 
-import nl.weeaboo.common.Checks;
 import nl.weeaboo.string.StringUtil2;
 
 public final class StoragePrimitive {
@@ -8,7 +7,7 @@ public final class StoragePrimitive {
     private final Object value;
 
     private StoragePrimitive(Object value) {
-        this.value = Checks.checkNotNull(value);
+        this.value = value;
     }
 
     /**
@@ -56,7 +55,7 @@ public final class StoragePrimitive {
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return (value != null ? value.hashCode() : 0);
     }
 
     @Override
@@ -65,7 +64,7 @@ public final class StoragePrimitive {
             return false;
         }
         StoragePrimitive p = (StoragePrimitive)obj;
-        return value.equals(p.value);
+        return value == p.value || (value != null && value.equals(p.value));
     }
 
     @Override
@@ -105,9 +104,6 @@ public final class StoragePrimitive {
     }
 
     public static StoragePrimitive fromString(String value) {
-        if (value == null) {
-            return null;
-        }
         return new StoragePrimitive(value);
     }
 

@@ -1,6 +1,8 @@
 package nl.weeaboo.vn.core.impl;
 
 import nl.weeaboo.common.Checks;
+import nl.weeaboo.common.Dim;
+import nl.weeaboo.common.Rect;
 import nl.weeaboo.filesystem.IFileSystem;
 import nl.weeaboo.settings.IConfig;
 import nl.weeaboo.settings.Preference;
@@ -22,7 +24,6 @@ public class DefaultEnvironment extends AbstractEnvironment {
     private final LuaScriptLoader scriptLoader;
     private final IFileSystem fileSystem;
     private final INotifier notifier;
-    private final IRenderEnv renderEnv;
     private final ISystemEventHandler systemEventHandler;
 
     private final IConfig preferences;
@@ -32,6 +33,7 @@ public class DefaultEnvironment extends AbstractEnvironment {
     private final IVideoModule videoModule;
     private final ISaveModule saveModule;
 
+    private IRenderEnv renderEnv;
     private boolean destroyed;
 
     public DefaultEnvironment(EnvironmentBuilder b) {
@@ -40,7 +42,6 @@ public class DefaultEnvironment extends AbstractEnvironment {
         this.scriptLoader = Checks.checkNotNull(b.scriptLoader);
         this.fileSystem = b.fileSystem;
         this.notifier = Checks.checkNotNull(b.notifier);
-        this.renderEnv = Checks.checkNotNull(b.renderEnv);
         this.systemEventHandler = Checks.checkNotNull(b.systemEventHandler);
 
         this.preferences = b.preferences;
@@ -49,6 +50,8 @@ public class DefaultEnvironment extends AbstractEnvironment {
         this.soundModule = b.soundModule;
         this.videoModule = b.videoModule;
         this.saveModule = b.saveModule;
+
+        this.renderEnv = Checks.checkNotNull(b.renderEnv);
     }
 
     @Override
@@ -121,6 +124,14 @@ public class DefaultEnvironment extends AbstractEnvironment {
     @Override
     public ISaveModule getSaveModule() {
         return saveModule;
+    }
+
+    @Override
+    public void updateRenderEnv(Rect realClip, Dim realScreenSize) {
+        IRenderEnv old = getRenderEnv();
+        renderEnv = new RenderEnv(old.getVirtualSize(), realClip, realScreenSize, old.isTouchScreen());
+
+        contextManager.setRenderEnv(getRenderEnv());
     }
 
 }
